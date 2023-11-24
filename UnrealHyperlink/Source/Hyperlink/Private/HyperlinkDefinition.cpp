@@ -18,10 +18,10 @@ TSubclassOf<UHyperlinkDefinitionSettings> UHyperlinkDefinition::GetSettingsClass
 	return SettingsClass;
 }
 
-void UHyperlinkDefinition::ExecuteLinkBody(const FString& LinkBody)
+void UHyperlinkDefinition::ExecuteLinkBody(const FString& InLinkBody)
 {
 	const FRegexPattern LinkPattern{ BodyPattern };
-	FRegexMatcher LinkMatcher{ LinkPattern, LinkBody };
+	FRegexMatcher LinkMatcher{ LinkPattern, InLinkBody };
 
 	if (LinkMatcher.FindNext())
 	{
@@ -47,13 +47,36 @@ FString UHyperlinkDefinition::GetHyperlinkBase() const
 
 void UHyperlinkDefinition::CopyLink() const
 {
+	PrintLinkInternal(true);
+}
+
+void UHyperlinkDefinition::PrintLink() const
+{
+	PrintLinkInternal();
+}
+
+void UHyperlinkDefinition::CopyLink(const FString& InLink)
+{
+	UE_LOG(LogHyperlink, Display, TEXT("Copied: %s"), *InLink);
+	FPlatformApplicationMisc::ClipboardCopy(*InLink);
+}
+
+void UHyperlinkDefinition::PrintLinkInternal(const bool bCopy) const
+{
 	FString Link{}; 
 	if (GenerateLink(Link))
 	{
-		FPlatformApplicationMisc::ClipboardCopy(*Link);
+		if (bCopy)
+		{
+			CopyLink(*Link);
+		}
+		else
+		{
+			UE_LOG(LogHyperlink, Display, TEXT("%s"), *Link);
+		}
 	}
 	else
 	{
-		UE_LOG(LogHyperlink, Error, TEXT("Failed to generated %s link"), *DefinitionIdentifier);
+		UE_LOG(LogHyperlink, Error, TEXT("Failed to generate %s link"), *DefinitionIdentifier);
 	}
 }

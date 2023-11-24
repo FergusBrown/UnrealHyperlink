@@ -20,7 +20,7 @@ public:
 	FString GetDefinitionIdentifier() const;
 	TSubclassOf<UHyperlinkDefinitionSettings> GetSettingsClass() const;
 	
-	void ExecuteLinkBody(const FString& LinkBody);
+	void ExecuteLinkBody(const FString& InLinkBody);
 	
 	/* Setup any commands, menu extensions etc. which can be used to generate this link */
 	virtual void Initialize() {}
@@ -37,18 +37,26 @@ public:
 	/* Generate a link using the GenerateLink function and copy it to clipboard */
 	void CopyLink() const;
 
-#if WITH_EDITOR
+	/* Generate a link using the GenerateLink function and log it */
+	void PrintLink() const;
+
 protected:
+	static void CopyLink(const FString& InLink);
+
+#if WITH_EDITOR
 	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) PURE_VIRTUAL(UHyperlinkDefinition::ExecuteLinkBodyInternal, );
 #endif //WITH_EDITOR
 
+private:
+	void PrintLinkInternal(const bool bCopy = false) const;
+	
 protected:
 	/* The name used to identify this type of link */
 	UPROPERTY(Config, EditAnywhere)
 	FString DefinitionIdentifier{ TEXT("") };
 
 	/* Used to validate a received link */
-	FString BodyPattern{ TEXT(R"(.*)") };
+	FString BodyPattern{ TEXT(".*") };
 
 	/* The name used to identify this type of link */
 	TSubclassOf<UHyperlinkDefinitionSettings> SettingsClass{ nullptr };
