@@ -12,7 +12,7 @@
 
 namespace PipeConstants
 {
-	static constexpr DWORD BufferSize{ 4096 };
+	static constexpr DWORD BufferSize{ 1028 };
 }
 
 FHyperlinkPipeServer::FHyperlinkPipeServer()
@@ -26,7 +26,7 @@ bool FHyperlinkPipeServer::Init()
 	const FString PipeName{ GetPipeName() };
 	UE_LOG(LogHyperlinkEditor, Log, TEXT("Setting up pipe server %s"), *PipeName);
 
-	static constexpr DWORD InBufferSize{ PipeConstants::BufferSize * sizeof(ANSICHAR) };
+	static constexpr DWORD InBufferSize{ PipeConstants::BufferSize * sizeof(TCHAR) };
 	static constexpr float Timeout{ 500.f };
 	PipeHandle =
 		::CreateNamedPipeW
@@ -62,19 +62,18 @@ uint32 FHyperlinkPipeServer::Run()
 			return EXIT_FAILURE;
 		}
 
-		ANSICHAR MessageBuffer[PipeConstants::BufferSize];
+		// Read the contents of the client message
+		TCHAR MessageBuffer[PipeConstants::BufferSize];
 		DWORD BytesRead{ 0 };
-		// If we were expecting multiple lines we would need a while loop here
-		// Since we know a link will only ever be 1 line we can just read once
 		if (::ReadFile(PipeHandle, MessageBuffer, sizeof(MessageBuffer) - 1, &BytesRead, nullptr))
 		{
 			// Make sure BytesRead does not exceed our buffer size
 			BytesRead = FMath::Min(BytesRead, PipeConstants::BufferSize - 1);
 
 			// Add terminating zero
-			MessageBuffer[BytesRead] = '\0';
+			MessageBuffer[BytesRead] = TEXT('\0');
 
-			UE_LOG(LogHyperlinkEditor, Log, TEXT("Hyperlink message received: %s"), ANSI_TO_TCHAR(MessageBuffer));
+			UE_LOG(LogHyperlinkEditor, Log, TEXT("Hyperlink message received: %s"), MessageBuffer);
 			// TODO: do something with the data
 		}
 
