@@ -17,6 +17,7 @@ void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		TEXT("uhl.CopyLink"),
 		TEXT(R"(Copy a link of the specified type. For example: "uhl.CopyLink Edit")"),
 		FConsoleCommandWithArgsDelegate::CreateUObject(this, &UHyperlinkSubsystem::CopyLinkConsole));
+
 #if WITH_EDITOR
 	ExecuteConsoleCommand = IConsoleManager::Get().RegisterConsoleCommand(
 		TEXT("uhl.ExecuteLink"),
@@ -48,7 +49,7 @@ void UHyperlinkSubsystem::CopyLinkConsole(const TArray<FString>& Args)
 {
 	if (Args.Num() != 1)
 	{
-		UE_LOG(LogHyperlink, Display, TEXT(R"(Invalid arguments, must have only 1 argument)"), *GetLinkFormatHint());
+		UE_LOG(LogHyperlink, Display, TEXT("Invalid arguments, must have only 1 argument"));
 	}
 	else
 	{
