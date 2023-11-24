@@ -22,11 +22,10 @@ namespace FHyperlinkUtils
 
 	static constexpr int32 DoubleStringLength{ sizeof(double) * 2 };
 	static constexpr int32 VectorStringLength{ DoubleStringLength * 3 };
+
 	HYPERLINK_API FString VectorToHexString(const FVector& InVector);
 	HYPERLINK_API FString DoubleToHexString(double InDouble);
-	HYPERLINK_API TCHAR NibbleToHexChar(int64 InNibble);
 
 	HYPERLINK_API FVector HexStringToVector(const FString& InHexString);
 	HYPERLINK_API double HexStringToDouble(const FString& InHexString);
-	HYPERLINK_API int64 HexCharToNibble(TCHAR InHexChar);
 };
