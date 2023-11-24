@@ -21,11 +21,20 @@ public:
 	
 	/* Decode the provided unreal://... link and execute the associated action */
 	bool ExecuteLink(const FString& Link) const;
-	static FString GetLinkBase();
 	
 	// Link functions
-	using FHyperlinkExecutor = TFunction<bool(const FString&)>;
+	using FHyperlinkExecutor = const TFunction<bool(const FString& Link)>;
 	void RegisterHyperlinkExecutor(const FName& ExecutorID, FHyperlinkExecutor Executor);
+
+	static bool ExecuteBrowse(const FString& Link);
+	static bool ExecuteEdit(const FString& Link);
+
+	// Utility
+	static FString GetLinkBase();
+	static FString GetLinkFormatHint();
+
+private:
+	void ExecuteLinkConsole(const TArray<FString>& Args) const;
 	
 private:
 	TUniquePtr<FHyperlinkPipeServer> PipeServer{ nullptr };
