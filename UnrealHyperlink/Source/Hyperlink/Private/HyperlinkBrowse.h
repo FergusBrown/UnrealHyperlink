@@ -6,6 +6,19 @@
 #include "HyperlinkDefinition.h"
 #include "HyperlinkBrowse.generated.h"
 
+#if WITH_EDITOR
+class FHyperlinkBrowseCommands : public TCommands<FHyperlinkBrowseCommands>
+{
+public:
+	FHyperlinkBrowseCommands();
+	virtual void RegisterCommands() override;
+
+public:
+	TSharedPtr<FUICommandInfo> CopyBrowseLink{ nullptr };
+	TSharedPtr<FUICommandInfo> CopyFolderLink{ nullptr };
+};
+#endif //WITH_EDITOR
+
 /**
  * 
  */
@@ -26,11 +39,8 @@ protected:
 
 #if WITH_EDITOR
 private:
-	TSharedRef<FExtender> OnExtendAssetContextMenu(const TArray<FAssetData>& SelectedAssets) const;
-	TSharedRef<FExtender> OnExtendFolderContextMenu(const TArray<FString>& SelectedFolders) const;
-	
-private:
 	FDelegateHandle AssetContextMenuHandle{};
 	FDelegateHandle FolderContextMenuHandle{};
+	TSharedPtr<FUICommandList> BrowseCommands{};
 #endif //WITH_EDITOR
 };

@@ -58,10 +58,9 @@ void UHyperlinkEdit::Initialize()
 	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
 	FContentBrowserMenuExtender_SelectedAssets SelectedAssetsDelegate
 	{
-		//FContentBrowserMenuExtender_SelectedAssets::CreateUObject(this, &UHyperlinkEdit::OnExtendAssetContextMenu)
 		FContentBrowserMenuExtender_SelectedAssets::CreateLambda([=](const TArray<FAssetData>&)
 		{
-			return FHyperlinkUtils::GetMenuExtender(TEXT("CommonAssetActions"), EExtensionHook::After, EditCommands, FHyperlinkEditCommands::Get().CopyEditLink, TEXT("Icons.Link"));
+			return FHyperlinkUtils::GetMenuExtender(TEXT("CommonAssetActions"), EExtensionHook::After, EditCommands, FHyperlinkEditCommands::Get().CopyEditLink, TEXT("CopyEditLink"));
 		})
 	};
 	AssetContextMenuHandle = SelectedAssetsDelegate.GetHandle();
