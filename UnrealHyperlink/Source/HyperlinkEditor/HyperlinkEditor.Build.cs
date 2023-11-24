@@ -18,12 +18,18 @@ public class HyperlinkEditor : ModuleRules
         PrivateDependencyModuleNames.AddRange(
             new string[]
             {
+                "ApplicationCore",
+                "AssetRegistry",
+                "AssetTools",
+                "ContentBrowser",
+                "ContentBrowserData",
                 "CoreUObject",
                 "Engine",
                 "Hyperlink",
                 "Projects",
                 "Slate",
                 "SlateCore",
+                "UnrealEd",
             }
         );
     }

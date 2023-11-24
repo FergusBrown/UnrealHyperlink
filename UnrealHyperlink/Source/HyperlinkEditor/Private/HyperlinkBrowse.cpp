@@ -3,7 +3,6 @@
 
 #include "HyperlinkBrowse.h"
 
-#if WITH_EDITOR
 #include "AssetRegistry/IAssetRegistry.h"
 #include "ContentBrowserModule.h"
 #include "Editor.h"
@@ -30,7 +29,6 @@ void FHyperlinkBrowseCommands::RegisterCommands()
 }
 
 #undef LOCTEXT_NAMESPACE
-#endif //WITH_EDITOR
 
 UHyperlinkBrowse::UHyperlinkBrowse()
 {
@@ -39,7 +37,6 @@ UHyperlinkBrowse::UHyperlinkBrowse()
 
 void UHyperlinkBrowse::Initialize()
 {
-#if WITH_EDITOR
 	FHyperlinkBrowseCommands::Register();
 	BrowseCommands = MakeShared<FUICommandList>();
 	BrowseCommands->MapAction(
@@ -78,7 +75,7 @@ void UHyperlinkBrowse::Initialize()
 					}
 					else
 					{
-						UE_LOG(LogHyperlink, Display, TEXT("Failed to convert %s to an internal path, cannot create browse link."), *VirtualPath);
+						UE_LOG(LogHyperlinkEditor, Display, TEXT("Failed to convert %s to an internal path, cannot create browse link."), *VirtualPath);
 					}
 				}
 			}
@@ -106,12 +103,10 @@ void UHyperlinkBrowse::Initialize()
 	};
 	FolderContextMenuHandle = SelectedFoldersDelegate.GetHandle();
 	ContentBrowser.GetAllPathViewContextMenuExtenders().Emplace(MoveTemp(SelectedFoldersDelegate));
-#endif //WITH_EDITOR
 }
 
 void UHyperlinkBrowse::Deinitialize()
 {
-#if WITH_EDITOR
 	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
 
 	ContentBrowser.GetAllAssetViewContextMenuExtenders().RemoveAll(
@@ -119,7 +114,6 @@ void UHyperlinkBrowse::Deinitialize()
 	ContentBrowser.GetAllPathViewContextMenuExtenders().RemoveAll(
 		[=](const FContentBrowserMenuExtender_SelectedPaths& Delegate){ return Delegate.GetHandle() == FolderContextMenuHandle; });
 	FHyperlinkBrowseCommands::Unregister();
-#endif //WITH_EDITOR
 }
 
 FString UHyperlinkBrowse::GenerateLink(const FString& PackageOrFolderName) const
@@ -129,7 +123,6 @@ FString UHyperlinkBrowse::GenerateLink(const FString& PackageOrFolderName) const
 
 void UHyperlinkBrowse::ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments)
 {
-#if WITH_EDITOR
   	TArray<FAssetData> LinkAssetData{};
 	IAssetRegistry::Get()->GetAssetsByPackageName(FName(LinkArguments[0]), LinkAssetData);
 
@@ -144,5 +137,4 @@ void UHyperlinkBrowse::ExecuteLinkBodyInternal(const TArray<FString>& LinkArgume
 		// Treat as folder
 		ContentBrowserModule.Get().SyncBrowserToFolders(LinkArguments);
 	}
-#endif //WITH_EDITOR
 }

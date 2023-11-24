@@ -34,10 +34,6 @@ public class Hyperlink : ModuleRules
                 new string[] 
                 {
                     "ApplicationCore",
-                    "AssetRegistry",
-                    "AssetTools",
-                    "ContentBrowser",
-                    "ContentBrowserData",
                     "UnrealEd",
                 }
             );

@@ -6,7 +6,6 @@
 #include "HyperlinkDefinition.h"
 #include "HyperlinkBrowse.generated.h"
 
-#if WITH_EDITOR
 class FHyperlinkBrowseCommands : public TCommands<FHyperlinkBrowseCommands>
 {
 public:
@@ -17,7 +16,6 @@ public:
 	TSharedPtr<FUICommandInfo> CopyBrowseLink{ nullptr };
 	TSharedPtr<FUICommandInfo> CopyFolderLink{ nullptr };
 };
-#endif //WITH_EDITOR
 
 /**
  * 
@@ -38,10 +36,8 @@ public:
 protected:
 	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) override;
 
-#if WITH_EDITOR
 private:
 	FDelegateHandle AssetContextMenuHandle{};
 	FDelegateHandle FolderContextMenuHandle{};
 	TSharedPtr<FUICommandList> BrowseCommands{};
-#endif //WITH_EDITOR
 };

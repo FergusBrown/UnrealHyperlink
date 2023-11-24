@@ -3,7 +3,6 @@
 
 #include "HyperlinkEdit.h"
 
-#if WITH_EDITOR
 #include "AssetViewUtils.h"
 #include "ContentBrowserModule.h"
 #include "HyperlinkUtils.h"
@@ -27,7 +26,6 @@ void FHyperlinkEditCommands::RegisterCommands()
 }
 
 #undef LOCTEXT_NAMESPACE
-#endif //WITH_EDITOR
 
 UHyperlinkEdit::UHyperlinkEdit()
 {
@@ -36,7 +34,6 @@ UHyperlinkEdit::UHyperlinkEdit()
 
 void UHyperlinkEdit::Initialize()
 {
-#if WITH_EDITOR
 	FHyperlinkEditCommands::Register();
 	EditCommands = MakeShared<FUICommandList>();
 	EditCommands->MapAction(
@@ -65,18 +62,15 @@ void UHyperlinkEdit::Initialize()
 	};
 	AssetContextMenuHandle = SelectedAssetsDelegate.GetHandle();
 	ContentBrowser.GetAllAssetViewContextMenuExtenders().Emplace(MoveTemp(SelectedAssetsDelegate));
-#endif //WITH_EDITOR
 }
 
 void UHyperlinkEdit::Deinitialize()
 {
-#if WITH_EDITOR
 	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
 
 	ContentBrowser.GetAllAssetViewContextMenuExtenders().RemoveAll(
 		[=](const FContentBrowserMenuExtender_SelectedAssets& Delegate){ return Delegate.GetHandle() == AssetContextMenuHandle; });
 	FHyperlinkEditCommands::Unregister();
-#endif //WITH_EDITOR
 }
 
 FString UHyperlinkEdit::GenerateLink(const FString& PackageName) const
@@ -86,10 +80,8 @@ FString UHyperlinkEdit::GenerateLink(const FString& PackageName) const
 
 void UHyperlinkEdit::ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments)
 {
-#if WITH_EDITOR
   	if (UObject* const Object{ FHyperlinkUtils::LoadObjectFromPackageName(LinkArguments[0]) })
 	{
 		AssetViewUtils::OpenEditorForAsset(Object);
 	}
-#endif //WITH_EDITOR
 }
