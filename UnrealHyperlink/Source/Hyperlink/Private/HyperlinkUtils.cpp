@@ -64,8 +64,6 @@ TSharedRef<FExtender> FHyperlinkUtils::GetMenuExtender(const FName& ExtensionHoo
 namespace HexConstants
 {
 	static constexpr int32 NibbleLength{ 4 };
-	static constexpr int32 DoubleStringLength{ sizeof(double) * 2 };
-	static constexpr int32 VectorStringLength{ DoubleStringLength * 3 };
 	static constexpr TCHAR ZeroChar{ TEXT('0') };
 	static constexpr TCHAR NineChar{ TEXT('9') };
 	static constexpr TCHAR AChar{ TEXT('A') };
@@ -108,13 +106,13 @@ TCHAR FHyperlinkUtils::NibbleToHexChar(int64 InNibble)
 
 FVector FHyperlinkUtils::HexStringToVector(const FString& InHexString)
 {
-	check(InHexString.Len() == HexConstants::VectorStringLength);
+	check(InHexString.Len() == VectorStringLength);
 
 	FVector RetVector{};
 	
 	for (int32 Idx{ 0 }; Idx < 3; ++Idx)
 	{
-		RetVector[Idx] = HexStringToDouble(InHexString.Mid(Idx * HexConstants::DoubleStringLength, HexConstants::DoubleStringLength));
+		RetVector[Idx] = HexStringToDouble(InHexString.Mid(Idx * DoubleStringLength, DoubleStringLength));
 	}
 
 	return RetVector;
@@ -122,7 +120,7 @@ FVector FHyperlinkUtils::HexStringToVector(const FString& InHexString)
 
 double FHyperlinkUtils::HexStringToDouble(const FString& InHexString)
 {
-	check(InHexString.Len() == HexConstants::DoubleStringLength);
+	check(InHexString.Len() == DoubleStringLength);
 	int64 DoubleAsInt{ 0 };
 	for (int32 Idx{ 0 }; Idx < InHexString.Len(); ++Idx)
 	{
@@ -132,8 +130,11 @@ double FHyperlinkUtils::HexStringToDouble(const FString& InHexString)
 	return *reinterpret_cast<double*>(&DoubleAsInt);
 }
 
-int64 FHyperlinkUtils::HexCharToNibble(TCHAR InHexChar)
+int64 FHyperlinkUtils::HexCharToNibble(const TCHAR InHexChar)
 {
+	check((InHexChar >= HexConstants::AChar		&& InHexChar <= HexConstants::FChar) ||
+		  (InHexChar >= HexConstants::ZeroChar	&& InHexChar <= HexConstants::NineChar));
+	
 	if (InHexChar >= HexConstants::ZeroChar && InHexChar <= HexConstants::NineChar)
 	{
 		return InHexChar - HexConstants::ZeroChar;
@@ -144,6 +145,7 @@ int64 FHyperlinkUtils::HexCharToNibble(TCHAR InHexChar)
 	}
 	else
 	{
-		return 0; // TODO: some sort of error checking
+		// Should be impossible to reach here due to the check
+		return 0;
 	}
 }

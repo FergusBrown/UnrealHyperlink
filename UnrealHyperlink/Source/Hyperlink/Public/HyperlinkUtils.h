@@ -15,6 +15,8 @@ namespace FHyperlinkUtils
 	HYPERLINK_API TSharedRef<FExtender> GetMenuExtender(const FName& ExtensionHook, EExtensionHook::Position HookPosition, const TSharedPtr<FUICommandList> CommandList, const TSharedPtr<const FUICommandInfo> Command, const FName& ExtenderName);
 #endif //WITH_EDITOR
 
+	static constexpr int32 DoubleStringLength{ sizeof(double) * 2 };
+	static constexpr int32 VectorStringLength{ DoubleStringLength * 3 };
 	HYPERLINK_API FString VectorToHexString(const FVector& InVector);
 	HYPERLINK_API FString DoubleToHexString(double InDouble);
 	HYPERLINK_API TCHAR NibbleToHexChar(int64 InNibble);
