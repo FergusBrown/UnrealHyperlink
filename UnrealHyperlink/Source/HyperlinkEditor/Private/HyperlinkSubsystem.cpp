@@ -3,8 +3,11 @@
 
 #include "HyperlinkSubsystem.h"
 
+#include "ContentBrowserModule.h"
 #include "HyperlinkPipeServer.h"
+#include "IContentBrowserSingleton.h"
 #include "Log.h"
+#include "AssetRegistry/IAssetRegistry.h"
 
 void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -31,7 +34,7 @@ bool UHyperlinkSubsystem::ExecuteLink(const FString& Link) const
 {
 	bool bResult{ false };
 	
-	const FRegexPattern TypePattern{ GetLinkBase() + TEXT(R"((\w+)/(.*))") };
+	const FRegexPattern TypePattern{ GetLinkBase() + TEXT(R"((\w+)(/.*))") };
 	FRegexMatcher Matcher{ TypePattern, Link };
 	if (Matcher.FindNext())
 	{
@@ -41,7 +44,7 @@ bool UHyperlinkSubsystem::ExecuteLink(const FString& Link) const
 			const FString LinkBody{ Matcher.GetCaptureGroup(2) };
 			UE_LOG(LogHyperlinkEditor, Display, TEXT("Executing %s link with body %s"), *ExecutorID, *LinkBody);
 		
-			bResult = (*Executor)(Link);
+			bResult = (*Executor)(LinkBody);
 
 			UE_CLOG(!bResult, LogHyperlinkEditor, Warning, TEXT("Failed to execute link %s"), *Link);
 		}
@@ -63,15 +66,31 @@ void UHyperlinkSubsystem::RegisterHyperlinkExecutor(const FName& ExecutorID, FHy
 	LinkExecutorMap.Emplace(ExecutorID, Executor);
 }
 
-bool UHyperlinkSubsystem::ExecuteBrowse(const FString& Link)
+bool UHyperlinkSubsystem::ExecuteBrowse(const FString& LinkBody)
 {
 	UE_LOG(LogHyperlinkEditor, Display, TEXT("Executing browse link (temp log)"))
+	TArray<FAssetData> LinkAssetData{};
+	IAssetRegistry::Get()->GetAssetsByPackageName(FName(LinkBody), LinkAssetData);
+
+	const FContentBrowserModule& ContentBrowserModule{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
+	if (LinkAssetData.Num() > 0)
+	{
+		// Treat as asset
+		ContentBrowserModule.Get().SyncBrowserToAssets(LinkAssetData);
+	}
+	else
+	{
+		// Treat as folder
+		ContentBrowserModule.Get().SyncBrowserToFolders({ LinkBody });
+	}
+	
 	return true;
 }
 
-bool UHyperlinkSubsystem::ExecuteEdit(const FString& Link)
+bool UHyperlinkSubsystem::ExecuteEdit(const FString& LinkBody)
 {
 	UE_LOG(LogHyperlinkEditor, Display, TEXT("Executing edit link (temp log)"))
+	
 	return true;
 }
 

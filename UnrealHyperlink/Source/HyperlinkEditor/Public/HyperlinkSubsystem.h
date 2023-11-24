@@ -23,11 +23,11 @@ public:
 	bool ExecuteLink(const FString& Link) const;
 	
 	// Link functions
-	using FHyperlinkExecutor = const TFunction<bool(const FString& Link)>;
+	using FHyperlinkExecutor = const TFunction<bool(const FString& LinkBody)>;
 	void RegisterHyperlinkExecutor(const FName& ExecutorID, FHyperlinkExecutor Executor);
 
-	static bool ExecuteBrowse(const FString& Link);
-	static bool ExecuteEdit(const FString& Link);
+	static bool ExecuteBrowse(const FString& LinkBody);
+	static bool ExecuteEdit(const FString& LinkBody);
 
 	// Utility
 	static FString GetLinkBase();
