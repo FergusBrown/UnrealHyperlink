@@ -7,12 +7,13 @@
 #include "HyperlinkSettings.generated.h"
 
 UCLASS(Config = Hyperlink, DefaultConfig, meta = (DisplayName = "Hyperlink"))
-class UHyperlinkSettings : public UDeveloperSettings
+class HYPERLINK_API UHyperlinkSettings : public UDeveloperSettings
 {
+private:
 	GENERATED_BODY()
 
 public:
-	UHyperlinkSettings();
+	virtual void PostInitProperties() override;
 	virtual FName GetCategoryName() const override;
 	
 public:

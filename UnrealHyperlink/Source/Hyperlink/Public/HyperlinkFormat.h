@@ -10,5 +10,4 @@
 namespace HyperlinkFormat
 {
 	static const TCHAR* Base{ TEXT("unreal://") };
-
 };

@@ -3,14 +3,15 @@
 
 #include "HyperlinkSettings.h"
 
-UHyperlinkSettings::UHyperlinkSettings()
+void UHyperlinkSettings::PostInitProperties()
 {
+	Super::PostInitProperties();
 	// Fill project identifier if it's empty
 	if (ProjectIdentifier.IsEmpty())
 	{
-		// TODO: config doesn't save here for some reason
 		ProjectIdentifier = FApp::GetProjectName();
-		SaveConfig();
+		const FString DefaultConfigFile{ GetDefaultConfigFilename() };
+		SaveConfig(CPF_Config, *DefaultConfigFile);
 	}
 }
 
