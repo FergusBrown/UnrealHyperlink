@@ -21,9 +21,8 @@
 		},
 		{
 			"Name": "Hyperlink",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"TargetConfigurationDenyList": [ "Shipping" ]
+			"Type": "DeveloperTool", 
+			"LoadingPhase": "Default"
 		}
 	]
 }
