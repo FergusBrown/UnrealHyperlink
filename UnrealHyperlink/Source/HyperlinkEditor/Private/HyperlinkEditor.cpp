@@ -34,8 +34,8 @@ void FHyperlinkEditorModule::SetupRegistry() const
 		RegCreateKey(OutCreatedKey, TEXT("shell"), &OutCreatedKey);
 		RegCreateKey(OutCreatedKey, TEXT("open"), &OutCreatedKey);
 		RegCreateKey(OutCreatedKey, TEXT("command"), &OutCreatedKey);
-		const FString ExePath{ TEXT(R"(")") + FPlatformMisc::GetEnvironmentVariable(TEXT("LocalAppData")) + TEXT(R"(\UnrealHyperlink\ProtocolHandler.exe" "%1")") }; 
-		RegSetValue(OutCreatedKey, nullptr, REG_SZ, *ExePath, Temp);
+		const FString CommandKeyValue{  FString::Format(TEXT(R"("{0}" "%1")"), { GetProtocolHandlerPath() }) }; 
+		RegSetValue(OutCreatedKey, nullptr, REG_SZ, *CommandKeyValue, Temp);
 	}
 	else
 	{
@@ -46,7 +46,7 @@ void FHyperlinkEditorModule::SetupRegistry() const
 void FHyperlinkEditorModule::SetupProtcolHandler() const
 {
 	 FPlatformMisc::GetEnvironmentVariable(TEXT("LocalAppData"));
-	static const FString DestPath{ FPlatformMisc::GetEnvironmentVariable(TEXT("LocalAppData")) + TEXT(R"(\UnrealHyperlink\ProtocolHandler.exe)") };
+	const FString DestPath{ GetProtocolHandlerPath() };
 	if (!FPaths::FileExists(DestPath))
 	{
 		const TSharedPtr<IPlugin> HyperlinkPlugin{ IPluginManager::Get().FindPlugin(TEXT("UnrealHyperlink")) };
@@ -56,6 +56,11 @@ void FHyperlinkEditorModule::SetupProtcolHandler() const
 			IFileManager::Get().Copy(*DestPath, *SourcePath);
 		}
 	}
+}
+
+FString FHyperlinkEditorModule::GetProtocolHandlerPath()
+{
+	return FPlatformMisc::GetEnvironmentVariable(TEXT("LocalAppData")) + TEXT(R"(\UnrealHyperlink\ProtocolHandler.exe)");
 }
 
 #undef LOCTEXT_NAMESPACE

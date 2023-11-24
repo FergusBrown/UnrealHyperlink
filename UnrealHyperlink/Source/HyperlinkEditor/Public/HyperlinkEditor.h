@@ -15,5 +15,6 @@ private:
     
     /* Copy the protocol handler exe to the required directory */
     void SetupProtcolHandler() const;
-    
+
+    static FString GetProtocolHandlerPath();
 };
