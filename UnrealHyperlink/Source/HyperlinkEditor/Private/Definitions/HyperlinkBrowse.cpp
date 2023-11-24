@@ -49,29 +49,11 @@ void UHyperlinkBrowse::Initialize()
 	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
 
 	// Context menu extensions
-	FContentBrowserMenuExtender_SelectedAssets SelectedAssetsDelegate
-	{
-		FContentBrowserMenuExtender_SelectedAssets::CreateLambda([=](const TArray<FAssetData>&)
-		{
-			return FHyperlinkUtils::GetMenuExtender(
-				TEXT("CommonAssetActions"), EExtensionHook::After, BrowseCommands,
-				FHyperlinkBrowseCommands::Get().CopyBrowseLink, TEXT("CopyBrowseLink"));
-		})
-	};
-	AssetContextMenuHandle = SelectedAssetsDelegate.GetHandle();
-	ContentBrowser.GetAllAssetViewContextMenuExtenders().Emplace(MoveTemp(SelectedAssetsDelegate));
-	
-	FContentBrowserMenuExtender_SelectedPaths SelectedFoldersDelegate
-	{
-		FContentBrowserMenuExtender_SelectedPaths::CreateLambda([=](const TArray<FString>&)
-		{
-			return FHyperlinkUtils::GetMenuExtender(
-				TEXT("PathViewFolderOptions"), EExtensionHook::After, BrowseCommands,
-				FHyperlinkBrowseCommands::Get().CopyFolderLink, TEXT("CopyBrowseLink"));
-		})
-	};
-	FolderContextMenuHandle = SelectedFoldersDelegate.GetHandle();
-	ContentBrowser.GetAllPathViewContextMenuExtenders().Emplace(MoveTemp(SelectedFoldersDelegate));
+	FHyperlinkUtils::ExtendToolMenuSection(TEXT("ContentBrowser.AssetContextMenu"), TEXT("CommonAssetActions"),
+	BrowseCommands, FHyperlinkBrowseCommands::Get().CopyBrowseLink);
+
+	FHyperlinkUtils::ExtendToolMenuSection(TEXT("ContentBrowser.FolderContextMenu"), TEXT("PathViewFolderOptions"),
+	BrowseCommands, FHyperlinkBrowseCommands::Get().CopyBrowseLink);
 
 	// Keyboard shortcut command
 	// Note that the keyboard shortcut will only be registered if applied on startup because of the way content
@@ -92,13 +74,9 @@ void UHyperlinkBrowse::Initialize()
 void UHyperlinkBrowse::Deinitialize()
 {
 	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
-
-	ContentBrowser.GetAllAssetViewContextMenuExtenders().RemoveAll(
-		[=](const FContentBrowserMenuExtender_SelectedAssets& Delegate){ return Delegate.GetHandle() == AssetContextMenuHandle; });
-	ContentBrowser.GetAllPathViewContextMenuExtenders().RemoveAll(
-		[=](const FContentBrowserMenuExtender_SelectedPaths& Delegate){ return Delegate.GetHandle() == FolderContextMenuHandle; });
 	ContentBrowser.GetAllContentBrowserCommandExtenders().RemoveAll(
 		[=](const FContentBrowserCommandExtender& Delegate){ return Delegate.GetHandle() == KeyboardShortcutHandle; });
+	
 	FHyperlinkBrowseCommands::Unregister();
 }
 

@@ -38,8 +38,6 @@ protected:
 	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) override;
 	
 private:
-	FDelegateHandle AssetContextMenuHandle{};
-	FDelegateHandle FolderContextMenuHandle{};
 	FDelegateHandle KeyboardShortcutHandle{};
 	TSharedPtr<FUICommandList> BrowseCommands{};
 };

@@ -17,7 +17,11 @@ namespace FHyperlinkUtils
 	 * @return The UObject the editor was opened for
 	 */
 	HYPERLINK_API UObject* OpenEditorForAsset(const FString& PackageName);
-	HYPERLINK_API TSharedRef<FExtender> GetMenuExtender(const FName& ExtensionHook, EExtensionHook::Position HookPosition, const TSharedPtr<FUICommandList> CommandList, const TSharedPtr<const FUICommandInfo> Command, const FName& ExtenderName);
+	HYPERLINK_API void ExtendToolMenuSection(const FName& MenuName, const FName& SectionName,
+		TSharedPtr<FUICommandList> CommandList, TSharedPtr<const FUICommandInfo> Command);
+	HYPERLINK_API TSharedRef<FExtender> GetMenuExtender(const FName& ExtensionHook,
+		EExtensionHook::Position HookPosition, TSharedPtr<FUICommandList> CommandList,
+		TSharedPtr<const FUICommandInfo> Command, const FName& ExtenderName);
 #endif //WITH_EDITOR
 
 	static constexpr int32 DoubleStringLength{ sizeof(double) * 2 };

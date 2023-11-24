@@ -35,6 +35,7 @@ public class Hyperlink : ModuleRules
                 {
                     "ApplicationCore",
                     "InputCore",
+                    "ToolMenus",
                     "UnrealEd",
                 }
             );
