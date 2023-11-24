@@ -8,15 +8,12 @@
 
 class UHyperlinkDefinition;
 
-/*
- * Define how you want links to be handled.
- * This aff
- */
 UENUM()
 enum class EHyperlinkHandlingMethod : uint8
 {
-	/* Use the local "unreal://" protocol handler on your PC */
+	/* Use the local "unreal://" url scheme */
 	Local,
+	
 	/*
 	 * Use the specified web server to handle links.
 	 * This will involve querying a web server which redirects to the local "unreal://" link.
@@ -56,11 +53,11 @@ protected:
 
 	/* What method should be used to generate and handle links */
 	UPROPERTY(Config, EditAnywhere, Category = "Project")
-	EHyperlinkHandlingMethod LinkHandlingMethod{ EHyperlinkHandlingMethod::Local };
+	EHyperlinkHandlingMethod LinkHandlingMethod{ EHyperlinkHandlingMethod::Web };
 
 	/* Web address which is used to handle links */
 	UPROPERTY(Config, EditAnywhere, Category = "Project", meta = (EditCondition = "HandlingMethod == EHyperlinkHandlingMethod::Web"))
-	FString LinkHandlerAddress{ TEXT("www.placeholder.com") };
+	FString LinkHandlerAddress{ TEXT("uehyper.link") };
 	
 	/*
 	 * List of definitions discovered in this project and whether each definition is enabled
