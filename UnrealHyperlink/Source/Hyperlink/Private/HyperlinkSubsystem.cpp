@@ -5,9 +5,10 @@
 
 #include "HyperlinkClassEntry.h"
 #include "HyperlinkDefinition.h"
-#include "HyperlinkFormat.h"
+#include "HyperlinkExecutePayload.h"
 #include "HyperlinkPythonBridge.h"
 #include "HyperlinkSettings.h"
+#include "HyperlinkUtility.h"
 #include "JsonObjectConverter.h"
 #include "Internationalization/Regex.h"
 #include "Log.h"
@@ -25,7 +26,8 @@ void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 #if WITH_EDITOR
 	ExecuteConsoleCommand = IConsoleManager::Get().RegisterConsoleCommand(
 		TEXT("uhl.ExecuteLink"),
-		*FString::Format(TEXT(R"(Execute a hyperlink in the format "{0}". Note the link must be surrounded in quotes.)"), { FHyperlinkFormat::StructureHint }),
+		*FString::Printf(TEXT(R"(Execute a hyperlink in the format "%s". Note the link must be surrounded in quotes.)"),
+			*UHyperlinkUtility::GetLinkStructureHint()),
 		FConsoleCommandWithArgsDelegate::CreateUObject(this, &UHyperlinkSubsystem::ExecuteLinkConsole));
 #endif //WITH_EDITOR
 }
@@ -172,7 +174,8 @@ void UHyperlinkSubsystem::ExecuteLinkConsole(const TArray<FString>& Args)
 {
 	if (Args.Num() != 1)
 	{
-		UE_LOG(LogHyperlink, Display, TEXT(R"(Invalid argument, requires 1 argument in the format "%s")"), FHyperlinkFormat::StructureHint);
+		UE_LOG(LogHyperlink, Display, TEXT(R"(Invalid argument, requires 1 argument in the format "%s")"),
+			*UHyperlinkUtility::GetLinkStructureHint());
 	}
 	else
 	{

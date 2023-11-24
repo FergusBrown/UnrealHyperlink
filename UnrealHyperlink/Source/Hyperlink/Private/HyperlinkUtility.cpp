@@ -21,6 +21,11 @@ FString UHyperlinkUtility::GetLinkBaseAddress()
 	return FString::Printf(TEXT("http://localhost:%d/v1"), GetDefault<UHyperlinkSettings>()->GetLocalServerPort());
 }
 
+FString UHyperlinkUtility::GetLinkStructureHint()
+{
+	return GetLinkBaseAddress() / TEXT("JsonPayload");
+}
+
 FString UHyperlinkUtility::CreateLinkFromPayload(const TSubclassOf<UHyperlinkDefinition> DefinitionClass,
                                                  const FJsonObjectWrapper& InPayload)
 {

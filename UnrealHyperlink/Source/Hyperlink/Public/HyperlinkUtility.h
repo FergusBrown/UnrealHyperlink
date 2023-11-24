@@ -18,6 +18,7 @@ public:
 	/* LINK HANDLING UTILITY */
 	UFUNCTION(BlueprintCallable, Category = "Hyperlink | Link Handling Utility")
 	static FString GetLinkBaseAddress();
+	static FString GetLinkStructureHint();
 	
 	UFUNCTION(BlueprintCallable, Category = "Hyperlink | Link Handling Utility")
 	static FString CreateLinkFromPayload(TSubclassOf<UHyperlinkDefinition> DefinitionClass,
