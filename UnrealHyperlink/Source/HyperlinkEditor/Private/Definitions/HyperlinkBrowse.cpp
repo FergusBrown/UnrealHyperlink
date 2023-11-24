@@ -31,11 +31,6 @@ void FHyperlinkBrowseCommands::RegisterCommands()
 
 #undef LOCTEXT_NAMESPACE
 
-UHyperlinkBrowse::UHyperlinkBrowse()
-{
-	DefinitionIdentifier = TEXT("Browse");
-}
-
 void UHyperlinkBrowse::Initialize()
 {
 	FHyperlinkBrowseCommands::Register();

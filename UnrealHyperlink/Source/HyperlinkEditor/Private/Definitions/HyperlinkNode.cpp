@@ -30,11 +30,6 @@ void FHyperlinkNodeCommands::RegisterCommands()
 
 #undef LOCTEXT_NAMESPACE
 
-UHyperlinkNode::UHyperlinkNode()
-{
-	DefinitionIdentifier = TEXT("Node");
-}
-
 void UHyperlinkNode::Initialize()
 {
 	FString ObjectPath = this->GetPathName();

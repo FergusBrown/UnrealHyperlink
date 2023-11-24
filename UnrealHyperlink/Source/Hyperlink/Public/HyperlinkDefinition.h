@@ -15,9 +15,6 @@ class HYPERLINK_API UHyperlinkDefinition : public UObject
 	GENERATED_BODY()
 
 public:
-	FString GetIdentifier() const;
-	void SetIdentifier(const FString& InIdentifier);
-	
 	/* Setup any commands, menu extensions etc. which can be used to generate this link */
 	virtual void Initialize() {}
 
@@ -26,23 +23,18 @@ public:
 
 	/* Generate payload using current editor/game state */
 	virtual TSharedPtr<FJsonObject> GeneratePayload() const { return TSharedPtr<FJsonObject>(); }
-	
-	/* Generate a link using the GeneratePayload function and copy it to clipboard */
-	void CopyLink() const;
-
-	/* Generate a link using the GeneratePayload function and log it */
-	void PrintLink() const;
 
 #if WITH_EDITOR
 	virtual void ExecutePayload(const TSharedRef<FJsonObject>& InPayload) PURE_VIRTUAL(UHyperlinkDefinition::ExecutePayload, );
 #endif //WITH_EDITOR
 
-protected:
-	static void CopyLink(const FString& InLink);
+	/* Generate a link using the GeneratePayload function and copy it to clipboard */
+	void CopyLink() const;
+
+	/* Generate a link using the GeneratePayload function and log it */
+	void PrintLink() const;
 	
 protected:
-	/* The name used to identify this type of link */
-	UPROPERTY(EditDefaultsOnly, Transient)
-	FString DefinitionIdentifier{ TEXT("") };
+	static void CopyLink(const FString& InLink);
 	
 };

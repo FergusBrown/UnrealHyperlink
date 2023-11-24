@@ -26,8 +26,6 @@ class HYPERLINKEDITOR_API UHyperlinkBrowse : public UHyperlinkDefinition
 	GENERATED_BODY()
 
 public:
-	UHyperlinkBrowse();
-	
 	virtual void Initialize() override;
 	virtual void Deinitialize() override;
 

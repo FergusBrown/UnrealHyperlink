@@ -39,6 +39,9 @@ public:
 		EExtensionHook::Position HookPosition, const TSharedPtr<FUICommandList>& CommandList,
 		const TSharedPtr<const FUICommandInfo>& Command, const FName& ExtenderName);
 #endif //WITH_EDITOR
+
+	/* Use to create a nice display string for a class*/
+	static FString CreateClassDisplayString(const UClass* Class);
 	
 	/* EDITOR UTILITY */
 	/* These functions should only be called in editor, they'll do nothing at runtime! */

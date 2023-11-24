@@ -37,8 +37,6 @@ class HYPERLINKEDITOR_API UHyperlinkLevelActor : public UHyperlinkDefinition
 	GENERATED_BODY()
 	
 public:
-	UHyperlinkLevelActor();
-
 	virtual void Initialize() override;
 	virtual void Deinitialize() override;
 	

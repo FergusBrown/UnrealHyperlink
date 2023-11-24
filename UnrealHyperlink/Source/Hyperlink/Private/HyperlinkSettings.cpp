@@ -3,7 +3,9 @@
 
 #include "HyperlinkSettings.h"
 
+#include "HyperlinkUtility.h"
 #include "Definitions/HyperlinkDefinitionBlueprintBase.h"
+#include "Internationalization/Regex.h"
 
 #if WITH_EDITOR
 #include "AssetRegistry/IAssetRegistry.h"
@@ -148,7 +150,8 @@ bool UHyperlinkSettings::RegisterDefinitionClass(UClass* const Class)
 	{
 		FHyperlinkClassEntry NewEntry{};
 		NewEntry.Class = Class;
-		NewEntry.Identifier = GetDefault<UHyperlinkDefinition>(Class)->GetIdentifier();
+		NewEntry.Identifier = UHyperlinkUtility::CreateClassDisplayString(Class);
+		
 		RegisteredDefinitions.Emplace(MoveTemp(NewEntry));
 		bResult = true;
 	}

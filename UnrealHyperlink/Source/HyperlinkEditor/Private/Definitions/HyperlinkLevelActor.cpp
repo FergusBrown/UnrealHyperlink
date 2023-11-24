@@ -28,11 +28,6 @@ void FHyperlinkLevelActorCommands::RegisterCommands()
 
 #undef LOCTEXT_NAMESPACE
 
-UHyperlinkLevelActor::UHyperlinkLevelActor()
-{
-	DefinitionIdentifier = TEXT("LevelActor");
-}
-
 void UHyperlinkLevelActor::Initialize()
 {
 	FHyperlinkLevelActorCommands::Register();

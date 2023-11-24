@@ -8,26 +8,18 @@
 #include "Log.h"
 #include "Windows/WindowsPlatformApplicationMisc.h"
 
-FString UHyperlinkDefinition::GetIdentifier() const
-{
-	return DefinitionIdentifier;
-}
-
-void UHyperlinkDefinition::SetIdentifier(const FString& InIdentifier)
-{
-	DefinitionIdentifier = InIdentifier;
-}
-
 void UHyperlinkDefinition::CopyLink() const
 {
 	if (const TSharedPtr<FJsonObject> Payload{ GeneratePayload() })
 	{
-		const FString ExecutePayloadString{ UHyperlinkUtility::CreateLinkFromPayload(this->GetClass(), Payload.ToSharedRef()) };
+		const FString ExecutePayloadString
+			{ UHyperlinkUtility::CreateLinkFromPayload(GetClass(), Payload.ToSharedRef()) };
 		CopyLink(ExecutePayloadString);
 	}
 	else
 	{
-		UE_LOG(LogHyperlink, Error, TEXT("Failed to generate and copy %s link"), *DefinitionIdentifier);
+		UE_LOG(LogHyperlink, Error, TEXT("Failed to generate and copy %s link"),
+			*UHyperlinkUtility::CreateClassDisplayString(GetClass()));
 	}
 }
 
@@ -36,11 +28,12 @@ void UHyperlinkDefinition::PrintLink() const
 	if (const TSharedPtr<FJsonObject> Payload{ GeneratePayload() })
 	{
 		UE_LOG(LogHyperlink, Display, TEXT("%s"),
-			*UHyperlinkUtility::CreateLinkFromPayload(this->GetClass(), Payload.ToSharedRef()));
+			*UHyperlinkUtility::CreateLinkFromPayload(GetClass(), Payload.ToSharedRef()));
 	}
 	else
 	{
-		UE_LOG(LogHyperlink, Error, TEXT("Failed to generate and print %s link"), *DefinitionIdentifier);
+		UE_LOG(LogHyperlink, Error, TEXT("Failed to generate and print %s link"),
+			*UHyperlinkUtility::CreateClassDisplayString(GetClass()));
 	}
 }
 

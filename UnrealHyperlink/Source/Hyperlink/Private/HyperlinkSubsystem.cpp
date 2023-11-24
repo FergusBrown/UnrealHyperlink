@@ -93,7 +93,6 @@ void UHyperlinkSubsystem::InitDefinitions()
 			if (!Definitions.Contains(ClassEntry.Identifier))
 			{
 				TObjectPtr<UHyperlinkDefinition> NewDefinition{ NewObject<UHyperlinkDefinition>(this, ClassEntry.Class) };
-				NewDefinition->SetIdentifier(ClassEntry.Identifier);
 				NewDefinition->Initialize();
 				Definitions.Emplace(ClassEntry.Identifier, NewDefinition);
 			}

@@ -32,11 +32,6 @@ void FHyperlinkViewportCommands::RegisterCommands()
 
 #endif //WITH_EDITOR
 
-UHyperlinkViewport::UHyperlinkViewport()
-{
-	DefinitionIdentifier = TEXT("Viewport");
-}
-
 void UHyperlinkViewport::Initialize()
 {
 #if WITH_EDITOR

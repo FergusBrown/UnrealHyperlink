@@ -41,8 +41,6 @@ class HYPERLINKEDITOR_API UHyperlinkNode : public UHyperlinkDefinition
 	GENERATED_BODY()
 
 public:
-	UHyperlinkNode();
-	
 	virtual void Initialize() override;
 	virtual void Deinitialize() override;
 	

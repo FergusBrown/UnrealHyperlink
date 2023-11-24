@@ -30,11 +30,6 @@ void FHyperlinkEditCommands::RegisterCommands()
 
 #undef LOCTEXT_NAMESPACE
 
-UHyperlinkEdit::UHyperlinkEdit()
-{
-	DefinitionIdentifier = TEXT("Edit");
-}
-
 void UHyperlinkEdit::Initialize()
 {
 	FHyperlinkEditCommands::Register();

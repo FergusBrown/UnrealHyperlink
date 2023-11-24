@@ -6,6 +6,7 @@
 #include "HyperlinkDefinition.h"
 #include "HyperlinkExecutePayload.h"
 #include "HyperlinkSettings.h"
+#include "Internationalization/Regex.h"
 #include "JsonObjectConverter.h"
 #include "Log.h"
 #include "Serialization/JsonSerializer.h"
@@ -114,7 +115,25 @@ TSharedRef<FExtender> UHyperlinkUtility::GetMenuExtender(const FName& ExtensionH
 	
 	return Extender;
 }
+
 #endif //WITH_EDITOR
+
+FString UHyperlinkUtility::CreateClassDisplayString(const UClass* Class)
+{
+	FString Identifier{ Class->GetDisplayNameText().ToString() };
+	Identifier.RemoveSpacesInline();
+	
+	// Try create a nice display name. Expect class names to typically follow the format "...HyperlinkType"
+	const FRegexPattern Pattern{ TEXT("Hyperlink(.*)$") };
+	FRegexMatcher Matcher{ Pattern, Identifier };
+
+	if (Matcher.FindNext())
+	{
+		Identifier = Matcher.GetCaptureGroup(1);
+	}
+	
+	return  Identifier;
+}
 
 UObject* UHyperlinkUtility::LoadObject(const FString& PackageName)
 {

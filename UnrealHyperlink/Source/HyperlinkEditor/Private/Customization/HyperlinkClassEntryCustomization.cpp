@@ -1,6 +1,7 @@
 ﻿#include "HyperlinkClassEntryCustomization.h"
 
 #include "HyperlinkClassEntry.h"
+#include "HyperlinkUtility.h"
 #include "IDetailChildrenBuilder.h"
 #include "PropertyHandle.h"
 #include "PropertyCustomizationHelpers.h"
@@ -154,11 +155,11 @@ bool FHyperlinkClassEntryArrayBuilder::IsResetToDefaultVisible(TSharedPtr<IPrope
 	
 	bool bResult{ true };
 	
-	if (UClass* const Class{ Cast<UClass>(ClassValue) })
+	if (const UClass* const Class{ Cast<UClass>(ClassValue) })
 	{
 		FString IdentifierValue{};
 		IdentifierPropertyHandle->GetValue(IdentifierValue);
-		const FString DefaultIdentifier{ GetDefault<UHyperlinkDefinition>(Class)->GetIdentifier() };
+		const FString DefaultIdentifier{ UHyperlinkUtility::CreateClassDisplayString(Class) };
 		bResult = IdentifierValue != DefaultIdentifier;
 	}
 	
@@ -174,9 +175,9 @@ void FHyperlinkClassEntryArrayBuilder::ResetToDefaultHandler(TSharedPtr<IPropert
 	UObject* ClassValue{ nullptr };
 	ClassPropertyHandle->GetValue(ClassValue);
 	
-	if (UClass* const Class{ Cast<UClass>(ClassValue) })
+	if (const UClass* const Class{ Cast<UClass>(ClassValue) })
 	{
-		const FString DefaultIdentifier{ GetDefault<UHyperlinkDefinition>(Class)->GetIdentifier() };
+		const FString DefaultIdentifier{ UHyperlinkUtility::CreateClassDisplayString(Class) };
 		IdentifierPropertyHandle->SetValue(DefaultIdentifier);
 	}
 }
