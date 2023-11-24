@@ -23,6 +23,11 @@ void UHyperlinkEdit::Deinitialize()
 	// TODO
 }
 
+FString UHyperlinkEdit::GenerateLink(const FString& PackageName) const
+{
+	return GetHyperlinkBase() / PackageName;
+}
+
 void UHyperlinkEdit::ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments)
 {
 #if WITH_EDITOR

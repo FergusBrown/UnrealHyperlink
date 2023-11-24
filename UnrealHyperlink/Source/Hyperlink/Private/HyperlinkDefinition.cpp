@@ -37,6 +37,5 @@ FString UHyperlinkDefinition::GetBodyPattern() const
 
 FString UHyperlinkDefinition::GetHyperlinkBase() const
 {
-	// TODO: support for web links
-	return FString::Format(TEXT("{0}{1}/{2}/"), { FHyperlinkFormat::Base, GetMutableDefault<UHyperlinkSettings>()->ProjectIdentifier,  GetDefinitionName()});
+	return GetMutableDefault<UHyperlinkSettings>()->GetLinkGenerationBase() / GetDefinitionName();
 }

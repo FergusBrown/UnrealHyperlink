@@ -24,6 +24,11 @@ void UHyperlinkBrowse::Deinitialize()
 	// TODO
 }
 
+FString UHyperlinkBrowse::GenerateLink(const FString& PackageOrFolderName) const
+{
+	return GetHyperlinkBase() / PackageOrFolderName;
+}
+
 void UHyperlinkBrowse::ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments)
 {
 #if WITH_EDITOR

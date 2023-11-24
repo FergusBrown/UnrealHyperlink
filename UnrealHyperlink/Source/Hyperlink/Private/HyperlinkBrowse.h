@@ -19,6 +19,8 @@ public:
 	virtual void Initialize() override;
 	virtual void Deinitialize() override;
 
+	FString GenerateLink(const FString& PackageOrFolderName) const;
+
 protected:
 	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) override;
 	

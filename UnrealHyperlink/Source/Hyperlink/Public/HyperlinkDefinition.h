@@ -28,6 +28,9 @@ public:
 	/* Construct the base of the link without the body */
 	FString GetHyperlinkBase() const;
 
+	/* Define your own GenerateLink function */
+	/* FString GenerateLink(Args...); */
+
 protected:
 	/* Used to validate a received link */
 	virtual FString GetBodyPattern() const;
