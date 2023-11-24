@@ -1,7 +1,7 @@
 // Copyright (c) 2023 Fergus Brown. Licensed under the MIT license. See "LICENSE" file for details.
 
 
-#include "Definitions/HyperlinkLevelGoTo.h"
+#include "Definitions/HyperlinkViewport.h"
 
 #include "GameFramework/PlayerController.h"
 #include "HyperlinkFormat.h"
@@ -11,20 +11,20 @@
 #if WITH_EDITOR
 #include "Subsystems/UnrealEditorSubsystem.h"
 
-#define LOCTEXT_NAMESPACE "HyperlinkGoTo"
+#define LOCTEXT_NAMESPACE "HyperlinkViewport"
 
-FHyperlinkGoToCommands::FHyperlinkGoToCommands()
-	: TCommands<FHyperlinkGoToCommands>(
-		TEXT("HyperlinkGoTo"),
-		NSLOCTEXT("Contexts", "HyperlinkGoTo", "Hyperlink GoTo"),
+FHyperlinkViewportCommands::FHyperlinkViewportCommands()
+	: TCommands<FHyperlinkViewportCommands>(
+		TEXT("HyperlinkViewport"),
+		NSLOCTEXT("Contexts", "HyperlinkViewport", "Hyperlink Viewport"),
 		NAME_None,
 		FAppStyle::GetAppStyleSetName())
 {
 }
 
-void FHyperlinkGoToCommands::RegisterCommands()
+void FHyperlinkViewportCommands::RegisterCommands()
 {
-	UI_COMMAND(CopyGoToLink, "Copy GoTo Link", "Copy a link to go to the current viewport position in the level editor",
+	UI_COMMAND(CopyViewportLink, "Copy Viewport Link", "Copy a link to go to the current viewport position in the level editor",
 	           EUserInterfaceActionType::Button, FInputChord(EModifierKey::Alt | EModifierKey::Shift, EKeys::X));
 }
 
@@ -32,43 +32,43 @@ void FHyperlinkGoToCommands::RegisterCommands()
 
 #endif //WITH_EDITOR
 
-UHyperlinkLevelGoTo::UHyperlinkLevelGoTo()
+UHyperlinkViewport::UHyperlinkViewport()
 {
-	DefinitionIdentifier = TEXT("LevelGoTo");
+	DefinitionIdentifier = TEXT("Viewport");
 
 	BodyPattern = FString::Printf(TEXT("(.+)%s([0-9A-F]{%d})"), &FHyperlinkFormat::ArgSeparator, FHyperlinkUtils::VectorStringLength * 2);
 }
 
-void UHyperlinkLevelGoTo::Initialize()
+void UHyperlinkViewport::Initialize()
 {
 #if WITH_EDITOR
 	// Check for editor in case launching game with editor build
 	if (GIsEditor)
 	{
-		FHyperlinkGoToCommands::Register();
-		GoToCommands = MakeShared<FUICommandList>();
-		GoToCommands->MapAction(
-			FHyperlinkGoToCommands::Get().CopyGoToLink,
+		FHyperlinkViewportCommands::Register();
+		ViewportCommands = MakeShared<FUICommandList>();
+		ViewportCommands->MapAction(
+			FHyperlinkViewportCommands::Get().CopyViewportLink,
 			FExecuteAction::CreateUObject(this, &UHyperlinkDefinition::CopyLink));
 
 		const FLevelEditorModule& LevelEditor{ FModuleManager::LoadModuleChecked<FLevelEditorModule>(TEXT("LevelEditor")) };
-		LevelEditor.GetGlobalLevelEditorActions()->Append(GoToCommands.ToSharedRef());
+		LevelEditor.GetGlobalLevelEditorActions()->Append(ViewportCommands.ToSharedRef());
 
 		FHyperlinkUtils::ExtendToolMenuSection(TEXT("LevelEditor.ActorContextMenu"), TEXT("ActorOptions"),
-		GoToCommands, FHyperlinkGoToCommands::Get().CopyGoToLink);
+		ViewportCommands, FHyperlinkViewportCommands::Get().CopyViewportLink);
 	}
 #endif //WITH_EDITOR
 }
 
-void UHyperlinkLevelGoTo::Deinitialize()
+void UHyperlinkViewport::Deinitialize()
 {
 #if WITH_EDITOR
 	// Note that we don't need to unmap the actions from Level Editor Module's GlobalLevelEditorActions
-	FHyperlinkGoToCommands::Unregister();
+	FHyperlinkViewportCommands::Unregister();
 #endif //WITH_EDITOR
 }
 
-bool UHyperlinkLevelGoTo::GenerateLink(FString& OutLink) const
+bool UHyperlinkViewport::GenerateLink(FString& OutLink) const
 {
 	FString LevelPackageName{};
 	FVector Location{};
@@ -107,18 +107,18 @@ bool UHyperlinkLevelGoTo::GenerateLink(FString& OutLink) const
 		OutLink = GenerateLink(LevelPackageName, Location, Rotation);
 	}
 
-	UE_CLOG(!bCameraInfoFound, LogHyperlink, Display, TEXT("Failed to generate LevelGoTo link: could not find viewport camera info."));
+	UE_CLOG(!bCameraInfoFound, LogHyperlink, Display, TEXT("Failed to generate Viewport link: could not find viewport camera info."));
 
 	return bCameraInfoFound;
 }
 
-FString UHyperlinkLevelGoTo::GenerateLink(const FString& InLevelPackageName, const FVector& InLocation, const FRotator& InRotation) const
+FString UHyperlinkViewport::GenerateLink(const FString& InLevelPackageName, const FVector& InLocation, const FRotator& InRotation) const
 {
 	return GetHyperlinkBase() / InLevelPackageName + FHyperlinkFormat::ArgSeparator +
 		FHyperlinkUtils::VectorToHexString(InLocation) + FHyperlinkUtils::VectorToHexString(InRotation.Vector());
 }
 
-/*static*/bool UHyperlinkLevelGoTo::GetGameWorldCameraInfo(const UWorld* const World, FVector& OutLocation, FRotator& OutRotation)
+/*static*/bool UHyperlinkViewport::GetGameWorldCameraInfo(const UWorld* const World, FVector& OutLocation, FRotator& OutRotation)
 {
 	bool bSuccess{ false };
 	
@@ -135,7 +135,7 @@ FString UHyperlinkLevelGoTo::GenerateLink(const FString& InLevelPackageName, con
 }
 
 #if WITH_EDITOR
-void UHyperlinkLevelGoTo::ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments)
+void UHyperlinkViewport::ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments)
 {
 	// Extract link info
 	const FString& LevelPackageName{ LinkArguments[1] };
