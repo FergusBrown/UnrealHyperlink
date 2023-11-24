@@ -10,8 +10,8 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    std::string link{ argv[1] };
-    std::regex projectPattern{ R"(^unreal:\/\/(\w+)\/.*)" };
+    const std::string link{ argv[1] };
+    const std::regex projectPattern{ R"(^unreal:\/\/(\w+)\/.*)" };
 
     std::smatch match{};
     
@@ -26,23 +26,16 @@ int main(int argc, char* argv[])
     std::string pipeName{ R"(\\.\pipe\)" + match.str(1) + "Link" };
 
     // Connect to pipe server
-    constexpr DWORD access{ GENERIC_WRITE };
-    constexpr DWORD shareMode{ 0 };
-    constexpr LPSECURITY_ATTRIBUTES securityAttributes{ nullptr };
-    constexpr DWORD creationDisposition{ OPEN_EXISTING };
-    constexpr DWORD flags{ 0 };
-    constexpr HANDLE templateFile{ nullptr };
-
     HANDLE pipeHandle
     { 
         CreateFileA(
-            pipeName.c_str(), 
-            access, 
-            shareMode, 
-            securityAttributes, 
-            creationDisposition, 
-            flags, 
-            templateFile) 
+            pipeName.c_str(),       // pipe name
+            GENERIC_WRITE,          // desired access
+            0,                      // default share more
+            nullptr,                // default security attributes
+            OPEN_EXISTING,          // creation disposition
+            0,                      // no flags
+            nullptr)                // no template file
     };
     
     // If we fail to connect then pipe is likely busy
@@ -54,12 +47,11 @@ int main(int argc, char* argv[])
     }
 
     // Send message to pipe server
-    LPCSTR message{ link.c_str() };
+    const LPCSTR message{ link.c_str() };
     const DWORD bufferSize{ static_cast<DWORD>((strlen(message) + 1) * sizeof(char)) }; // +1 is for \0 terminator
-    DWORD writtenBytes{};
-    constexpr LPOVERLAPPED overlapped{ nullptr };
+    DWORD bytesWritten{};
 
-    if (!WriteFile(pipeHandle, message, bufferSize, &writtenBytes, overlapped))
+    if (!WriteFile(pipeHandle, message, bufferSize, &bytesWritten, nullptr))
     {
         std::cout << "Failed to write to pipe server " << pipeName << " GLE = " << GetLastError() << std::endl;
         return EXIT_FAILURE;
