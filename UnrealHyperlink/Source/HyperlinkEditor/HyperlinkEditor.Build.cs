@@ -26,6 +26,7 @@ public class HyperlinkEditor : ModuleRules
                 "CoreUObject",
                 "DeveloperSettings",
                 "Engine",
+                "InputCore",
                 "Projects",
                 "Slate",
                 "SlateCore",

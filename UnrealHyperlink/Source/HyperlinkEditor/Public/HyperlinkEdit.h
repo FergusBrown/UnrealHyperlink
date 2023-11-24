@@ -30,6 +30,7 @@ public:
 	virtual void Initialize() override;
 	virtual void Deinitialize() override;
 
+	virtual bool GenerateLink(FString& OutLink) const override;
 	FString GenerateLink(const FString& PackageName) const;
 
 protected:
@@ -37,5 +38,6 @@ protected:
 
 private:
 	FDelegateHandle AssetContextMenuHandle{};
+	FDelegateHandle KeyboardShortcutHandle{};
 	TSharedPtr<FUICommandList> EditCommands{};
 };

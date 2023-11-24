@@ -7,7 +7,7 @@
 #include "HyperlinkEditSettings.h"
 #include "HyperlinkUtils.h"
 #include "IContentBrowserSingleton.h"
-#include "Windows/WindowsPlatformApplicationMisc.h"
+#include "Log.h"
 
 #define LOCTEXT_NAMESPACE "HyperlinkEdit"
 
@@ -22,7 +22,7 @@ FHyperlinkEditCommands::FHyperlinkEditCommands()
 
 void FHyperlinkEditCommands::RegisterCommands()
 {
-	UI_COMMAND(CopyEditLink, "Copy Edit Link", "Copy a link to edit this asset", EUserInterfaceActionType::Button, FInputChord());
+	UI_COMMAND(CopyEditLink, "Copy Edit Link", "Copy a link to edit the selected asset", EUserInterfaceActionType::Button, FInputChord(EModifierKey::Alt | EModifierKey::Shift, EKeys::X));
 }
 
 #undef LOCTEXT_NAMESPACE
@@ -39,23 +39,13 @@ void UHyperlinkEdit::Initialize()
 	EditCommands = MakeShared<FUICommandList>();
 	EditCommands->MapAction(
 		FHyperlinkEditCommands::Get().CopyEditLink,
-		FExecuteAction::CreateLambda([=]()
-			{
-				const FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
-				TArray<FAssetData> SelectedAssets{};
-				ContentBrowser.Get().GetSelectedAssets(SelectedAssets);
-				if (SelectedAssets.Num() > 0)
-				{
-					FPlatformApplicationMisc::ClipboardCopy(*GenerateLink(SelectedAssets[0].PackageName.ToString()));
-				}
-			}
-		)
+		FExecuteAction::CreateUObject(this, &UHyperlinkDefinition::CopyLink)
 	);
 	
 	// Assets context menu
+	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
 	if (GetDefault<UHyperlinkEditSettings>()->bEnableInAssetContextMenu)
 	{
-		FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
 		FContentBrowserMenuExtender_SelectedAssets SelectedAssetsDelegate
 		{
 			FContentBrowserMenuExtender_SelectedAssets::CreateLambda([=](const TArray<FAssetData>&)
@@ -66,6 +56,21 @@ void UHyperlinkEdit::Initialize()
 		AssetContextMenuHandle = SelectedAssetsDelegate.GetHandle();
 		ContentBrowser.GetAllAssetViewContextMenuExtenders().Emplace(MoveTemp(SelectedAssetsDelegate));
 	}
+
+	// Keyboard shortcut command
+	// Note that the keyboard shortcut will only be registered if applied on startup because of the way content
+	// browser commands work
+	FContentBrowserCommandExtender CommandExtender
+	{
+		FContentBrowserCommandExtender::CreateLambda(
+			[this](TSharedRef<FUICommandList> CommandList, FOnContentBrowserGetSelection GetSelectionDelegate)
+			{
+				CommandList->Append(EditCommands.ToSharedRef());
+			}
+		)
+	};
+	KeyboardShortcutHandle = CommandExtender.GetHandle();
+	ContentBrowser.GetAllContentBrowserCommandExtenders().Emplace(MoveTemp(CommandExtender));
 }
 
 void UHyperlinkEdit::Deinitialize()
@@ -74,7 +79,28 @@ void UHyperlinkEdit::Deinitialize()
 
 	ContentBrowser.GetAllAssetViewContextMenuExtenders().RemoveAll(
 		[=](const FContentBrowserMenuExtender_SelectedAssets& Delegate){ return Delegate.GetHandle() == AssetContextMenuHandle; });
+	ContentBrowser.GetAllContentBrowserCommandExtenders().RemoveAll(
+		[=](const FContentBrowserCommandExtender& Delegate){ return Delegate.GetHandle() == KeyboardShortcutHandle; });
 	FHyperlinkEditCommands::Unregister();
+}
+
+bool UHyperlinkEdit::GenerateLink(FString& OutLink) const
+{
+	const FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
+	TArray<FAssetData> SelectedAssets{};
+	ContentBrowser.Get().GetSelectedAssets(SelectedAssets);
+	
+	const bool bSuccess{ SelectedAssets.Num() > 0 };
+	if (bSuccess)
+	{
+		OutLink = GenerateLink(SelectedAssets[0].PackageName.ToString());
+	}
+	else
+	{
+		UE_LOG(LogHyperlinkEditor, Display, TEXT("Cannot generate Edit link with no assets selected in Content Browser"));
+	}
+	
+	return bSuccess;
 }
 
 FString UHyperlinkEdit::GenerateLink(const FString& PackageName) const
