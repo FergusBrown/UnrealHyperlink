@@ -21,7 +21,7 @@ public:
  * 
  */
 UCLASS()
-class UHyperlinkBrowse : public UHyperlinkDefinition
+class HYPERLINKEDITOR_API UHyperlinkBrowse : public UHyperlinkDefinition
 {
 	GENERATED_BODY()
 	

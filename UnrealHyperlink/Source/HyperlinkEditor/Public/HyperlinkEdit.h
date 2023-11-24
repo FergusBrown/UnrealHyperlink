@@ -20,7 +20,7 @@ public:
  * Hyperlink definition for edit links
  */
 UCLASS()
-class UHyperlinkEdit : public UHyperlinkDefinition
+class HYPERLINKEDITOR_API UHyperlinkEdit : public UHyperlinkDefinition
 {
 	GENERATED_BODY()
 
