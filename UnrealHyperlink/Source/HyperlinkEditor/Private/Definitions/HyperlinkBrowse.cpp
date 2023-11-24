@@ -10,7 +10,7 @@
 #include "IContentBrowserSingleton.h"
 #include "Log.h"
 
-#define LOCTEXT_NAMESPACE "HyperlinkEdit"
+#define LOCTEXT_NAMESPACE "HyperlinkBrowse"
 
 FHyperlinkBrowseCommands::FHyperlinkBrowseCommands()
 	: TCommands<FHyperlinkBrowseCommands>(
