@@ -25,7 +25,7 @@ FHyperlinkGoToCommands::FHyperlinkGoToCommands()
 void FHyperlinkGoToCommands::RegisterCommands()
 {
 	UI_COMMAND(CopyGoToLink, "Copy GoTo Link", "Copy a link to go to the specified location in a level",
-	           EUserInterfaceActionType::Button, FInputChord(EModifierKey::Alt | EModifierKey::Shift, EKeys::C));
+	           EUserInterfaceActionType::Button, FInputChord(EModifierKey::Alt | EModifierKey::Shift, EKeys::X));
 }
 
 #undef LOCTEXT_NAMESPACE
