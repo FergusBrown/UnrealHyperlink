@@ -8,7 +8,6 @@
 #include "ContentBrowserModule.h"
 #include "HyperlinkUtils.h"
 #include "IContentBrowserSingleton.h"
-#include "Styling/StarshipCoreStyle.h"
 #include "Windows/WindowsPlatformApplicationMisc.h"
 
 #define LOCTEXT_NAMESPACE "HyperlinkEdit"
@@ -24,9 +23,10 @@ FHyperlinkEditCommands::FHyperlinkEditCommands()
 
 void FHyperlinkEditCommands::RegisterCommands()
 {
-	UI_COMMAND(GenerateEditLink, "Copy Edit Link", "Copy a link to edit this asset", EUserInterfaceActionType::Button, FInputChord());
+	UI_COMMAND(CopyEditLink, "Copy Edit Link", "Copy a link to edit this asset", EUserInterfaceActionType::Button, FInputChord());
 }
 
+#undef LOCTEXT_NAMESPACE
 #endif //WITH_EDITOR
 
 FString UHyperlinkEdit::GetDefinitionName() const
@@ -40,7 +40,7 @@ void UHyperlinkEdit::Initialize()
 	FHyperlinkEditCommands::Register();
 	EditCommands = MakeShared<FUICommandList>();
 	EditCommands->MapAction(
-		FHyperlinkEditCommands::Get().GenerateEditLink,
+		FHyperlinkEditCommands::Get().CopyEditLink,
 		FExecuteAction::CreateLambda([=]()
 			{
 				const FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
@@ -58,7 +58,11 @@ void UHyperlinkEdit::Initialize()
 	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
 	FContentBrowserMenuExtender_SelectedAssets SelectedAssetsDelegate
 	{
-		FContentBrowserMenuExtender_SelectedAssets::CreateUObject(this, &UHyperlinkEdit::OnExtendAssetContextMenu)
+		//FContentBrowserMenuExtender_SelectedAssets::CreateUObject(this, &UHyperlinkEdit::OnExtendAssetContextMenu)
+		FContentBrowserMenuExtender_SelectedAssets::CreateLambda([=](const TArray<FAssetData>&)
+		{
+			return FHyperlinkUtils::GetMenuExtender(TEXT("CommonAssetActions"), EExtensionHook::After, EditCommands, FHyperlinkEditCommands::Get().CopyEditLink, TEXT("Icons.Link"));
+		})
 	};
 	AssetContextMenuHandle = SelectedAssetsDelegate.GetHandle();
 	ContentBrowser.GetAllAssetViewContextMenuExtenders().Emplace(MoveTemp(SelectedAssetsDelegate));
@@ -90,31 +94,3 @@ void UHyperlinkEdit::ExecuteLinkBodyInternal(const TArray<FString>& LinkArgument
 	}
 #endif //WITH_EDITOR
 }
-
-#if WITH_EDITOR
-TSharedRef<FExtender> UHyperlinkEdit::OnExtendAssetContextMenu(const TArray<FAssetData>& SelectedAssets) const
-{
-	TSharedRef<FExtender> Extender{ MakeShared<FExtender>() };
-	Extender->AddMenuExtension(
-		TEXT("CommonAssetActions"),
-		EExtensionHook::After,
-		EditCommands,
-		FMenuExtensionDelegate::CreateLambda(
-			[=](FMenuBuilder& MenuBuilder)
-			{
-				MenuBuilder.AddMenuEntry(
-					FHyperlinkEditCommands::Get().GenerateEditLink,
-					TEXT("CopyEditLink"),
-					TAttribute<FText>(),
-					TAttribute<FText>(),
-					FSlateIcon(FStarshipCoreStyle::GetCoreStyle().GetStyleSetName(), TEXT("Icons.Link"))
-				);
-			}
-		)
-	);
-	
-	return Extender;
-}
-
-#undef LOCTEXT_NAMESPACE
-#endif //WITH_EDITOR

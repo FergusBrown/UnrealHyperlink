@@ -14,7 +14,7 @@ public:
 	virtual void RegisterCommands() override;
 
 public:
-	TSharedPtr<FUICommandInfo> GenerateEditLink{ nullptr };
+	TSharedPtr<FUICommandInfo> CopyEditLink{ nullptr };
 };
 #endif //WITH_EDITOR
 
@@ -36,11 +36,7 @@ public:
 protected:
 	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) override;
 
-
 #if WITH_EDITOR
-private:
-	TSharedRef<FExtender> OnExtendAssetContextMenu(const TArray<FAssetData>& SelectedAssets) const;
-	
 private:
 	FDelegateHandle AssetContextMenuHandle{};
 	TSharedPtr<FUICommandList> EditCommands{};
