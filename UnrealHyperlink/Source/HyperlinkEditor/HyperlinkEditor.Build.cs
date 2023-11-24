@@ -21,7 +21,6 @@ public class HyperlinkEditor : ModuleRules
             {
                 "ApplicationCore",
                 "AssetRegistry",
-                "AssetTools",
                 "ContentBrowser",
                 "ContentBrowserData",
                 "CoreUObject",

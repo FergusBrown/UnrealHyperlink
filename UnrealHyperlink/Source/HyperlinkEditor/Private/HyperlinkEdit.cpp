@@ -3,7 +3,6 @@
 
 #include "HyperlinkEdit.h"
 
-#include "AssetViewUtils.h"
 #include "ContentBrowserModule.h"
 #include "HyperlinkEditSettings.h"
 #include "HyperlinkUtils.h"
@@ -85,8 +84,5 @@ FString UHyperlinkEdit::GenerateLink(const FString& PackageName) const
 
 void UHyperlinkEdit::ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments)
 {
-  	if (UObject* const Object{ FHyperlinkUtils::LoadObjectFromPackageName(LinkArguments[0]) })
-	{
-		AssetViewUtils::OpenEditorForAsset(Object);
-	}
+	FHyperlinkUtils::OpenEditorForAsset(LinkArguments[0]);
 }

@@ -7,10 +7,9 @@
 
 #if WITH_EDITOR
 #include "Styling/StarshipCoreStyle.h"
-#endif //WITH_EDITOR
 
 
-UObject* FHyperlinkUtils::LoadObjectFromPackageName(const FString& PackageName)
+UObject* FHyperlinkUtils::LoadObject(const FString& PackageName)
 {
 	UObject* Ret{ nullptr };
 	
@@ -26,7 +25,16 @@ UObject* FHyperlinkUtils::LoadObjectFromPackageName(const FString& PackageName)
 	return Ret;
 }
 
-#if WITH_EDITOR
+UObject* FHyperlinkUtils::OpenEditorForAsset(const FString& PackageName)
+{
+	UObject* const Object{ LoadObject(PackageName) };
+	if (Object)
+	{
+		GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAsset(Object);
+	}
+	return Object;
+}
+
 TSharedRef<FExtender> FHyperlinkUtils::GetMenuExtender(const FName& ExtensionHook, EExtensionHook::Position HookPosition, const TSharedPtr<FUICommandList> CommandList, const TSharedPtr<const FUICommandInfo> Command, const FName& ExtenderName)
 {
 	TSharedRef<FExtender> Extender{ MakeShared<FExtender>() };
