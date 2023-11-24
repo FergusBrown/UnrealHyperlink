@@ -20,7 +20,7 @@
 			"LoadingPhase": "Default"
 		},
 		{
-			"Name": "HyperlinkRuntime",
+			"Name": "Hyperlink",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"TargetConfigurationDenyList": [ "Shipping" ]

@@ -1,8 +1,8 @@
 ﻿using UnrealBuildTool;
 
-public class HyperlinkRuntime : ModuleRules
+public class Hyperlink : ModuleRules
 {
-    public HyperlinkRuntime(ReadOnlyTargetRules Target) : base(Target)
+    public Hyperlink(ReadOnlyTargetRules Target) : base(Target)
     {
         //OptimizeCode = CodeOptimization.Never;
         

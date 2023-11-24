@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-class FHyperlinkRuntimeModule : public IModuleInterface
+class FHyperlinkModule : public IModuleInterface
 {
 public:
     virtual void StartupModule() override;

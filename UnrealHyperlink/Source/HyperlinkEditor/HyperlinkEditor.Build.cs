@@ -24,7 +24,7 @@ public class HyperlinkEditor : ModuleRules
                 "DeveloperSettings",
                 "EditorSubsystem",
                 "Engine",
-                "HyperlinkRuntime",
+                "Hyperlink",
                 "Projects",
                 "Slate",
                 "SlateCore",
