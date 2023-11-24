@@ -156,7 +156,7 @@ void FHyperlinkEditorModule::StartHttpServer()
 		{
 			// Use route for versioning
 			HttpRequestHandle = HttpRouter->BindRoute(
-				FHttpPath(FString::Printf(TEXT("/%d"), UHyperlinkSettings::LinkVersion)),
+				FHttpPath(FString::Printf(TEXT("/%s"), *GetDefault<UHyperlinkSettings>()->GetProjectIdentifier())),
 				EHttpServerRequestVerbs::VERB_GET,
 				HandleHttpRequest);
 
