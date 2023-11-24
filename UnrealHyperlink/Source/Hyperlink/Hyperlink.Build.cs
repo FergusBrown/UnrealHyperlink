@@ -37,6 +37,8 @@ public class Hyperlink : ModuleRules
                     "AssetRegistry",
                     "AssetTools",
                     "ContentBrowser",
+                    "ContentBrowserData",
+                    "UnrealEd",
                 }
             );
         }

@@ -6,8 +6,10 @@
 #if WITH_EDITOR
 #include "AssetRegistry/IAssetRegistry.h"
 #include "ContentBrowserModule.h"
+#include "Editor.h"
 #include "HyperlinkUtils.h"
 #include "IContentBrowserSingleton.h"
+#include "Log.h"
 #include "Windows/WindowsPlatformApplicationMisc.h"
 
 #define LOCTEXT_NAMESPACE "HyperlinkEdit"
@@ -65,8 +67,19 @@ void UHyperlinkBrowse::Initialize()
 				if (SelectedFolders.Num() > 0)
 				{
 					// TODO: check where this /All prefix has come from
-					SelectedFolders[0].RemoveFromStart(TEXT("/All")); // This does not remove the prefix
-					FPlatformApplicationMisc::ClipboardCopy(*GenerateLink(SelectedFolders[0]));
+					// The path will be an "virtual path" which is usually (always?) the internal path prefixed with "/All"
+					// We need to convert this to the regular internal path
+					const FString& VirtualPath{ SelectedFolders[0] };
+					FString InternalPath;
+					EContentBrowserPathType ConvertedType{ GEditor->GetEditorSubsystem<UContentBrowserDataSubsystem>()->TryConvertVirtualPath(VirtualPath, InternalPath) };
+					if (ConvertedType == EContentBrowserPathType::Internal)
+					{
+						FPlatformApplicationMisc::ClipboardCopy(*GenerateLink(InternalPath));
+					}
+					else
+					{
+						UE_LOG(LogHyperlink, Display, TEXT("Failed to convert %s to an internal path, cannot create browse link."), *VirtualPath);
+					}
 				}
 			}
 		)
