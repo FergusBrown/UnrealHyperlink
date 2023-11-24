@@ -9,11 +9,11 @@ class HyperlinkPythonExample(unreal.HyperlinkDefinitionBlueprintBase):
     
     @unreal.ufunction(override=True)
     def initialize_impl(self) -> None:
-        return super().initialize_impl()
-    
-    @unreal.ufunction(override=True)
-    def deinitialize_impl(self) -> None:
-        return super().deinitialize_impl()
+        unreal.HyperlinkBlueprintFunctionLibrary.add_copy_link_menu_entry("LevelEditor.ActorContextMenu",
+                                                                          "ActorOptions",
+                                                                          "Copy Python Example Link",
+                                                                          "Copy a link to select the selected actor in the current level",
+                                                                          self)
     
     @unreal.ufunction(override=True)
     def generate_payload_string_impl(self) -> str:
