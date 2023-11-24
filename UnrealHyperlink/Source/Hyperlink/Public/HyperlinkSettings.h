@@ -16,8 +16,10 @@ private:
 
 public:
 	virtual void PostInitProperties() override;
-	virtual FName GetCategoryName() const override;
+#if WITH_EDITOR
+  	virtual FName GetCategoryName() const override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif //WITH_EDITOR
 
 public:
 	/* Project identifier used in the link. By default this should be the name of the project. */

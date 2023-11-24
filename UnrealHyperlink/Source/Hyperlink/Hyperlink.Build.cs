@@ -31,9 +31,11 @@ public class Hyperlink : ModuleRules
         if (Target.bBuildEditor)
         {
             PrivateDependencyModuleNames.AddRange(
-                new string[] {
-                "AssetRegistry",
-                "AssetTools",
+                new string[] 
+                {
+                    "AssetRegistry",
+                    "AssetTools",
+                    "ContentBrowser",
                 }
             );
         }

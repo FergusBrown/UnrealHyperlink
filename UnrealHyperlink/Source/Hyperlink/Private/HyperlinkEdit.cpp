@@ -3,8 +3,10 @@
 
 #include "HyperlinkEdit.h"
 
-#include "AssetViewUtils.h"
+#if WITH_EDITOR
+  #include "AssetViewUtils.h"
 #include "HyperlinkUtils.h"
+#endif //WITH_EDITOR
 
 FString UHyperlinkEdit::GetDefinitionName() const
 {
@@ -23,8 +25,10 @@ void UHyperlinkEdit::Deinitialize()
 
 void UHyperlinkEdit::ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments)
 {
-	if (UObject* const Object{ FHyperlinkUtils::LoadObjectFromPackageName(LinkArguments[0]) })
+#if WITH_EDITOR
+  	if (UObject* const Object{ FHyperlinkUtils::LoadObjectFromPackageName(LinkArguments[0]) })
 	{
 		AssetViewUtils::OpenEditorForAsset(Object);
 	}
+#endif //WITH_EDITOR
 }

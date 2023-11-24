@@ -3,9 +3,6 @@
 
 #include "HyperlinkSettings.h"
 
-#include "HyperlinkDefinition.h"
-#include "HyperlinkSubsystem.h"
-
 void UHyperlinkSettings::PostInitProperties()
 {
 	Super::PostInitProperties();
@@ -18,7 +15,8 @@ void UHyperlinkSettings::PostInitProperties()
 	}
 }
 
-FName UHyperlinkSettings::GetCategoryName() const
+#if WITH_EDITOR
+  FName UHyperlinkSettings::GetCategoryName() const
 {
 	return TEXT("Plugins");
 }
@@ -31,3 +29,5 @@ void UHyperlinkSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyC
 		//TODO: pass new selection to subsystem to update
 	}
 }
+#endif //WITH_EDITOR
+

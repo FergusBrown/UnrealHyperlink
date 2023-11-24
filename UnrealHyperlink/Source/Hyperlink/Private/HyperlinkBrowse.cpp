@@ -3,9 +3,11 @@
 
 #include "HyperlinkBrowse.h"
 
-#include "AssetRegistry/IAssetRegistry.h"
+#if WITH_EDITOR
+  #include "AssetRegistry/IAssetRegistry.h"
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"
+#endif //WITH_EDITOR
 
 FString UHyperlinkBrowse::GetDefinitionName() const
 {
@@ -24,7 +26,8 @@ void UHyperlinkBrowse::Deinitialize()
 
 void UHyperlinkBrowse::ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments)
 {
-	TArray<FAssetData> LinkAssetData{};
+#if WITH_EDITOR
+  	TArray<FAssetData> LinkAssetData{};
 	IAssetRegistry::Get()->GetAssetsByPackageName(FName(LinkArguments[0]), LinkAssetData);
 
 	const FContentBrowserModule& ContentBrowserModule{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
@@ -38,4 +41,5 @@ void UHyperlinkBrowse::ExecuteLinkBodyInternal(const TArray<FString>& LinkArgume
 		// Treat as folder
 		ContentBrowserModule.Get().SyncBrowserToFolders(LinkArguments);
 	}
+#endif //WITH_EDITOR
 }
