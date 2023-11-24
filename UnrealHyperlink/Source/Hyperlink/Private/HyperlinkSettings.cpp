@@ -7,6 +7,7 @@
 #if WITH_EDITOR
 #include "HyperlinkDefinition.h"
 #include "HyperlinkDefinitionSettings.h"
+#include "HyperlinkSubsystem.h"
 #include "ISettingsModule.h"
 #endif //WITH_EDITOR
 
@@ -34,15 +35,21 @@ FName UHyperlinkSettings::GetCategoryName() const
 
 void UHyperlinkSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+	
 	const FName PropName{ PropertyChangedEvent.Property->GetFName() };
 	if (PropName == GET_MEMBER_NAME_CHECKED(UHyperlinkSettings, RegisteredDefinitions))
 	{
 		InitDefinitionSettings();
 	}
+
+	GEngine->GetEngineSubsystem<UHyperlinkSubsystem>()->RefreshDefinitions();
 }
 
 void UHyperlinkSettings::PreEditChange(FProperty* PropertyAboutToChange)
 {
+	Super::PreEditChange(PropertyAboutToChange);
+	
 	const FName PropName{ PropertyAboutToChange->GetFName() };
 	if (PropName == GET_MEMBER_NAME_CHECKED(UHyperlinkSettings, RegisteredDefinitions))
 	{

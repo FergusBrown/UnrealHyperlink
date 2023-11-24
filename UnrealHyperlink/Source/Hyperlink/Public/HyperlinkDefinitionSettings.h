@@ -18,5 +18,6 @@ public:
 #if WITH_EDITOR
 	virtual FName GetCategoryName() const override;
 	virtual bool SupportsAutoRegistration() const override;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif //WITH_EDITOR
 };

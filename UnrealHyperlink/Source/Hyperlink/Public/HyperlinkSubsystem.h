@@ -7,6 +7,7 @@
 #include "HyperlinkSubsystem.generated.h"
 
 class UHyperlinkDefinition;
+
 /**
  * 
  */
@@ -26,8 +27,11 @@ public:
 	static FString GetLinkBase();
 	static FString GetLinkFormatHint();
 
-private:
 #if WITH_EDITOR
+	void RefreshDefinitions();
+private:
+	void InitDefinitions();
+	void DeinitDefinitions();
 	void ExecuteLinkConsole(const TArray<FString>& Args) const;
 #endif //WITH_EDITOR
 

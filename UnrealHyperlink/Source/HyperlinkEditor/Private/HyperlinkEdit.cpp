@@ -54,16 +54,19 @@ void UHyperlinkEdit::Initialize()
 	);
 	
 	// Assets context menu
-	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
-	FContentBrowserMenuExtender_SelectedAssets SelectedAssetsDelegate
+	if (GetDefault<UHyperlinkEditSettings>()->bEnableInAssetContextMenu)
 	{
-		FContentBrowserMenuExtender_SelectedAssets::CreateLambda([=](const TArray<FAssetData>&)
+		FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
+		FContentBrowserMenuExtender_SelectedAssets SelectedAssetsDelegate
 		{
-			return FHyperlinkUtils::GetMenuExtender(TEXT("CommonAssetActions"), EExtensionHook::After, EditCommands, FHyperlinkEditCommands::Get().CopyEditLink, TEXT("CopyEditLink"));
-		})
-	};
-	AssetContextMenuHandle = SelectedAssetsDelegate.GetHandle();
-	ContentBrowser.GetAllAssetViewContextMenuExtenders().Emplace(MoveTemp(SelectedAssetsDelegate));
+			FContentBrowserMenuExtender_SelectedAssets::CreateLambda([=](const TArray<FAssetData>&)
+			{
+				return FHyperlinkUtils::GetMenuExtender(TEXT("CommonAssetActions"), EExtensionHook::After, EditCommands, FHyperlinkEditCommands::Get().CopyEditLink, TEXT("CopyEditLink"));
+			})
+		};
+		AssetContextMenuHandle = SelectedAssetsDelegate.GetHandle();
+		ContentBrowser.GetAllAssetViewContextMenuExtenders().Emplace(MoveTemp(SelectedAssetsDelegate));
+	}
 }
 
 void UHyperlinkEdit::Deinitialize()

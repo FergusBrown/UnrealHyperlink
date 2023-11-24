@@ -5,21 +5,12 @@
 
 #include "HyperlinkDefinition.h"
 #include "HyperlinkSettings.h"
+#include "Internationalization/Regex.h"
 #include "Log.h"
 
 void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	// Create object for each of the project definitions
-	for (const TSubclassOf<UHyperlinkDefinition> DefClass : GetDefault<UHyperlinkSettings>()->GetRegisteredDefinitions())
-	{
-		if (DefClass)
-		{
-			TObjectPtr<UHyperlinkDefinition> NewDefinition{ NewObject<UHyperlinkDefinition>(this, DefClass) };
-			NewDefinition->Initialize();
-			Definitions.Emplace(NewDefinition->GetDefinitionIdentifier(), NewDefinition);
-		}
-	}
-	
+	InitDefinitions();
 #if WITH_EDITOR
 	// Register console commands
 	ExecuteConsoleCommand = IConsoleManager::Get().RegisterConsoleCommand(
@@ -31,17 +22,7 @@ void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UHyperlinkSubsystem::Deinitialize()
 {
-	// Deinitialize definitions
-	// TODO: can we make this a set or just make it an array?
-	for (const TPair<FName, TObjectPtr<UHyperlinkDefinition>>& Pair : Definitions)
-	{
-		if (Pair.Value)
-		{
-			Pair.Value->Deinitialize();
-		}
-	}
-	Definitions.Empty();
-	
+	DeinitDefinitions();
 #if WITH_EDITOR
 	IConsoleManager::Get().UnregisterConsoleObject(ExecuteConsoleCommand);
 #endif //WITH_EDITOR
@@ -80,6 +61,39 @@ FString UHyperlinkSubsystem::GetLinkBase()
 FString UHyperlinkSubsystem::GetLinkFormatHint()
 {
 	return GetLinkBase() + TEXT("DEFINITION/BODY");
+}
+
+void UHyperlinkSubsystem::RefreshDefinitions()
+{
+	DeinitDefinitions();
+	InitDefinitions();
+}
+
+void UHyperlinkSubsystem::InitDefinitions()
+{
+	// Create object for each of the project definitions
+	for (const TSubclassOf<UHyperlinkDefinition> DefClass : GetDefault<UHyperlinkSettings>()->GetRegisteredDefinitions())
+	{
+		if (DefClass)
+		{
+			TObjectPtr<UHyperlinkDefinition> NewDefinition{ NewObject<UHyperlinkDefinition>(this, DefClass) };
+			NewDefinition->Initialize();
+			Definitions.Emplace(NewDefinition->GetDefinitionIdentifier(), NewDefinition);
+		}
+	}
+}
+
+void UHyperlinkSubsystem::DeinitDefinitions()
+{
+	// TODO: can we make this a set or just make it an array?
+	for (const TPair<FName, TObjectPtr<UHyperlinkDefinition>>& Pair : Definitions)
+	{
+		if (Pair.Value)
+		{
+			Pair.Value->Deinitialize();
+		}
+	}
+	Definitions.Empty();
 }
 
 #if WITH_EDITOR

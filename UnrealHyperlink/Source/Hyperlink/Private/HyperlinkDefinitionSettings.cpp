@@ -3,7 +3,7 @@
 
 #include "HyperlinkDefinitionSettings.h"
 
-#include "HyperlinkSettings.h"
+#include "HyperlinkSubsystem.h"
 
 FName UHyperlinkDefinitionSettings::GetCategoryName() const
 {
@@ -14,3 +14,11 @@ bool UHyperlinkDefinitionSettings::SupportsAutoRegistration() const
 {
 	return false;
 }
+
+void UHyperlinkDefinitionSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	GEngine->GetEngineSubsystem<UHyperlinkSubsystem>()->RefreshDefinitions();
+}
+
