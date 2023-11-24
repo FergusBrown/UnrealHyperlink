@@ -49,7 +49,7 @@ int wmain(int argc, wchar_t* argv[])
     }
 
     // Write message to pipe server
-    const LPCVOID message{ link.c_str() }; // This needs to be LPCVOID or WriteFile won't run correctly!
+    const wchar_t* message{ link.c_str() };
     const DWORD messageSize{ static_cast<DWORD>((link.length() + 1) * sizeof(wchar_t)) }; // + 1 is for \0 terminator
     DWORD bytesWritten{};
 
