@@ -3,7 +3,6 @@
 
 #include "HyperlinkPipeServer.h"
 
-#include "Async/Async.h"
 #include "HyperlinkSubsystem.h"
 #include "Log.h"
 /* Begin Windows includes */
@@ -64,10 +63,12 @@ uint32 FHyperlinkPipeServer::Run()
 				MessageBuffer[BytesRead] = TEXT('\0');
 
 				UE_LOG(LogHyperlinkEditor, Log, TEXT("Hyperlink message received: %s"), MessageBuffer);
-				AsyncTask(ENamedThreads::GameThread, [=]()
+
+				// Ensure this runs on the game thread
+				FFunctionGraphTask::CreateAndDispatchWhenReady([=]()
 				{
 					GEngine->GetEngineSubsystem<UHyperlinkSubsystem>()->ExecuteLink(MessageBuffer);
-				});
+				}, TStatId(), nullptr, ENamedThreads::GameThread);
 			}
 		}
 
