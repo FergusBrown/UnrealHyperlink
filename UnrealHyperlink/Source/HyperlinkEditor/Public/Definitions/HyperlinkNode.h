@@ -44,7 +44,7 @@ private:
 
 	/* Execution helpers */
 	static void ExecuteBlueprintLink(const UBlueprint& InBlueprint, const FGuid& InGraphGuid, const FGuid& InNodeGuid);
-	static void ExecuteMaterialLink(const UMaterial& InMaterial, const FGuid& InNodeGuid);
+	static void ExecuteMaterialLink(const UObject& InMaterial, const FGuid& InNodeGuid);
 private:
 	TSharedPtr<FUICommandList> NodeCommands{};
 	FDelegateHandle NodeContextMenuHandle{};

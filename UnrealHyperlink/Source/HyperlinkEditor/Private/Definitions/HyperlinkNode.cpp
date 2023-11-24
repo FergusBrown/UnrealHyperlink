@@ -159,6 +159,10 @@ void UHyperlinkNode::ExecuteExtractedArgs(const TArray<FString>& LinkArguments)
 	{
 		ExecuteMaterialLink(*Material, NodeGuid);
 	}
+	else if (const UMaterialFunction* const MaterialFunction{ Cast<UMaterialFunction>(EditedObject) })
+	{
+		ExecuteMaterialLink(*MaterialFunction, NodeGuid);
+	}
 	else
 	{
 		UE_LOG(LogHyperlinkEditor, Error, TEXT("Failed to execute node link: unsupported asset type"));
@@ -252,7 +256,7 @@ void UHyperlinkNode::ExecuteBlueprintLink(const UBlueprint& InBlueprint, const F
 	}
 }
 
-void UHyperlinkNode::ExecuteMaterialLink(const UMaterial& InMaterial, const FGuid& InNodeGuid)
+void UHyperlinkNode::ExecuteMaterialLink(const UObject& InMaterial, const FGuid& InNodeGuid)
 {
 	const TSharedPtr<IMaterialEditor> MaterialEditor
 		{ StaticCastSharedPtr<IMaterialEditor>(FToolkitManager::Get().FindEditorForAsset(&InMaterial)) };
