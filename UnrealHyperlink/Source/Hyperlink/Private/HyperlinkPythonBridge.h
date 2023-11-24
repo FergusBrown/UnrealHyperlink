@@ -9,7 +9,7 @@
 /**
  * Utility class for accessing python functions from C++
  */
-UCLASS(Blueprintable)
+UCLASS(Blueprintable, Hidden)
 class HYPERLINK_API UHyperlinkPythonBridge : public UObject
 {
 	GENERATED_BODY()
