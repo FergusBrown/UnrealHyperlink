@@ -26,6 +26,25 @@ public:
 #endif //WITH_EDITOR
 
 	void RefreshDefinitions();
+
+	/**
+	 * @tparam T the class of the desired definition
+	 * @return the requested definition, nullptr if not registered
+	 */
+	template<typename T>
+	const T* GetDefinition() const
+	{
+		const T* Ret{ nullptr };
+		for (const TPair<FString, TObjectPtr<UHyperlinkDefinition>>& Pair : Definitions)
+		{
+			if (Pair.Value->IsA<T>())
+			{
+				Ret = Pair.Value;
+				break;
+			}
+		}
+		return Ret;
+	}
 	
 private:
 	void InitDefinitions();
