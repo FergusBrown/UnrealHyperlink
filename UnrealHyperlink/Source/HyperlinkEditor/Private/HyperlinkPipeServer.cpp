@@ -3,12 +3,12 @@
 
 #include "HyperlinkPipeServer.h"
 
+#include "Async/Async.h"
+#include "HyperlinkSubsystem.h"
 #include "Log.h"
 /* Begin Windows includes */
 #include "Windows/AllowWindowsPlatformTypes.h"
 #include <Windows.h>
-
-#include "HyperlinkSubsystem.h"
 #include "Windows/HideWindowsPlatformTypes.h"
 /* End Windows includes */
 
