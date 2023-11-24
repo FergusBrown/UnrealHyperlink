@@ -23,29 +23,9 @@ void UHyperlinkSettings::PostInitProperties()
 	}
 
 #if WITH_EDITOR
-	// TODO need to run this code after all other modules are loaded otherwise not all classes may be found
 	if (GIsEditor)
 	{
-		// Remove null classes
-		RegisteredDefinitions.RemoveAll([](const FHyperlinkClassEntry& Entry){ return Entry.Class == nullptr; });
-
-		// Populate the list
-		for(TObjectIterator<UClass> It; It; ++It)
-		{
-			if(It->IsChildOf(UHyperlinkDefinition::StaticClass()) && !It->HasAnyClassFlags(CLASS_Abstract))
-			{
-				UClass* Class{ *It };
-				if (!RegisteredDefinitions.FindByPredicate([=](const FHyperlinkClassEntry& Entry){ return Entry.Class == Class; }))
-				{
-					FHyperlinkClassEntry NewEntry{};
-					NewEntry.Class = Class;
-					NewEntry.Identifier = GetDefault<UHyperlinkDefinition>(*It)->GetIdentifier();
-					RegisteredDefinitions.Add(NewEntry);
-				}
-			}
-		}
-		
-		RegisteredDefinitions.Sort([](const FHyperlinkClassEntry& Lhs, const FHyperlinkClassEntry& Rhs){ return Lhs.Class->GetName() < Rhs.Class->GetName(); });
+		FCoreDelegates::OnAllModuleLoadingPhasesComplete.AddUObject(this, &UHyperlinkSettings::OnAllModulesLoaded);
 	}
 #endif //WITH_EDITOR
 }
@@ -81,3 +61,29 @@ FString UHyperlinkSettings::GetLinkGenerationBase() const
 
 	return LinkBase / ProjectIdentifier;
 }
+
+#if WITH_EDITOR
+void UHyperlinkSettings::OnAllModulesLoaded()
+{
+	// Remove null classes
+	RegisteredDefinitions.RemoveAll([](const FHyperlinkClassEntry& Entry){ return Entry.Class == nullptr; });
+
+	// Populate the list
+	for(TObjectIterator<UClass> It; It; ++It)
+	{
+		if(It->IsChildOf(UHyperlinkDefinition::StaticClass()) && !It->HasAnyClassFlags(CLASS_Abstract))
+		{
+			UClass* Class{ *It };
+			if (!RegisteredDefinitions.FindByPredicate([=](const FHyperlinkClassEntry& Entry){ return Entry.Class == Class; }))
+			{
+				FHyperlinkClassEntry NewEntry{};
+				NewEntry.Class = Class;
+				NewEntry.Identifier = GetDefault<UHyperlinkDefinition>(*It)->GetIdentifier();
+				RegisteredDefinitions.Add(NewEntry);
+			}
+		}
+	}
+		
+	RegisteredDefinitions.Sort([](const FHyperlinkClassEntry& Lhs, const FHyperlinkClassEntry& Rhs){ return Lhs.Class->GetName() < Rhs.Class->GetName(); });
+}
+#endif //WITH_EDITOR

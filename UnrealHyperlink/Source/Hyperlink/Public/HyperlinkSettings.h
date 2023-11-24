@@ -44,6 +44,11 @@ public:
 
 	FString GetLinkGenerationBase() const;
 
+#if WITH_EDITOR
+private:
+	void OnAllModulesLoaded();
+#endif //WITH_EDITOR
+
 protected:
 	/* Project identifier used in the link. By default this should be the name of the project. */
 	UPROPERTY(Config, EditAnywhere, Category = "Project")
