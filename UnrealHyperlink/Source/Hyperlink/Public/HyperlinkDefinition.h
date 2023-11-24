@@ -23,7 +23,7 @@ public:
 	void ExecuteLinkBody(const FString& LinkBody);
 	
 	/* Setup any commands, menu extensions etc. which can be used to generate this link */
-	virtual void Initialize() PURE_VIRTUAL(UHyperlinkDefinition::Initialize, );
+	virtual void Initialize() {}
 
 	/* Tear down anything setup in Initialize*/
 	virtual void Deinitialize() {}
