@@ -10,7 +10,8 @@ int main(int argc, char* argv[])
     }
 
     std::string link{ argv[1] };
-    std::regex project_pattern{ R"(^unreal:\/\/(\w+)\/)" };
+    std::regex project_pattern{ R"(^unreal:\/\/(\w+)\/.*)" };
+
     std::smatch match{};
     
     if (!std::regex_match(link, match, project_pattern))
