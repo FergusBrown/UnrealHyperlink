@@ -11,7 +11,7 @@ class FHyperlinkPipeServer;
  * 
  */
 UCLASS()
-class UHyperlinkSubsystem : public UEditorSubsystem
+class HYPERLINKEDITOR_API UHyperlinkSubsystem : public UEditorSubsystem
 {
 	GENERATED_BODY()
 	
