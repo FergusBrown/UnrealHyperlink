@@ -4,6 +4,7 @@
 #include "HyperlinkDefinition.h"
 
 #include "HyperlinkSettings.h"
+#include "Internationalization/Regex.h"
 #include "Log.h"
 
 FString UHyperlinkDefinition::GetDefinitionIdentifier() const
