@@ -19,10 +19,11 @@ public class HyperlinkEditor : ModuleRules
             new string[]
             {
                 "CoreUObject",
+                "EditorSubsystem",
                 "Engine",
+                "Projects",
                 "Slate",
-                "SlateCore", 
-                "Projects"
+                "SlateCore",
             }
         );
     }
