@@ -4,8 +4,11 @@
 #include "HyperlinkEditor.h"
 
 #include "HyperlinkPipeServer.h"
+#include "HyperlinkSubsystem.h"
+#include "Interfaces/IMainFrameModule.h"
 #include "Interfaces/IPluginManager.h"
 #include "Log.h"
+#include "Windows/WindowsPlatformApplicationMisc.h"
 /* Begin Windows includes */
 #include "Windows/AllowWindowsPlatformTypes.h"
 #include <Windows.h>
@@ -14,17 +17,52 @@
 
 #define LOCTEXT_NAMESPACE "FHyperlinkEditorModule"
 
+FHyperlinkEditorCommands::FHyperlinkEditorCommands()
+	: TCommands<FHyperlinkEditorCommands>(
+			TEXT("HyperlinkEditor"),
+			NSLOCTEXT("Contexts", "HyperlinkEditor", "Hyperlink Editor"),
+			NAME_None,
+			FAppStyle::GetAppStyleSetName())
+{
+}
+
+void FHyperlinkEditorCommands::RegisterCommands()
+{
+	UI_COMMAND(PasteLink, "Paste Link", "Execute a link stored in the clipboard.", EUserInterfaceActionType::Button, FInputChord(EModifierKey::Alt | EModifierKey::Shift, EKeys::V));
+}
+
 void FHyperlinkEditorModule::StartupModule()
 {
 	PipeServer = MakeUnique<FHyperlinkPipeServer>();
 
 	SetupRegistry();
-	SetupProtcolHandler();
+	SetupProtocolHandler();
+
+	// Map actions
+	FHyperlinkEditorCommands::Register();
+	IMainFrameModule& MainFrame{ FModuleManager::LoadModuleChecked<IMainFrameModule>(TEXT("MainFrame")) };
+	
+	FUICommandList& ActionList{ *MainFrame.GetMainFrameCommandBindings() };
+
+	ActionList.MapAction(
+		FHyperlinkEditorCommands::Get().PasteLink,
+		FExecuteAction::CreateLambda([]()
+		{
+			FString ClipboardContents{};
+			FPlatformApplicationMisc::ClipboardPaste(ClipboardContents);
+			GEngine->GetEngineSubsystem<UHyperlinkSubsystem>()->ExecuteLink(ClipboardContents);
+		}));
 }
 
 void FHyperlinkEditorModule::ShutdownModule()
 {
-    
+    // Unmap actions
+	FHyperlinkEditorCommands::Register();
+	IMainFrameModule& MainFrame{ FModuleManager::LoadModuleChecked<IMainFrameModule>(TEXT("MainFrame")) };
+	
+	FUICommandList& ActionList{ *MainFrame.GetMainFrameCommandBindings() };
+	ActionList.UnmapAction(FHyperlinkEditorCommands::Get().PasteLink);
+	FHyperlinkEditorCommands::Unregister();
 }
 
 void FHyperlinkEditorModule::SetupRegistry() const
@@ -48,7 +86,7 @@ void FHyperlinkEditorModule::SetupRegistry() const
 	}
 }
 
-void FHyperlinkEditorModule::SetupProtcolHandler() const
+void FHyperlinkEditorModule::SetupProtocolHandler() const
 {
 	 FPlatformMisc::GetEnvironmentVariable(TEXT("LocalAppData"));
 	const FString DestPath{ GetProtocolHandlerPath() };
