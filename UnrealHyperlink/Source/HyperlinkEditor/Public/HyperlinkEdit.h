@@ -31,7 +31,7 @@ public:
 	virtual void Deinitialize() override;
 
 	virtual bool GenerateLink(FString& OutLink) const override;
-	FString GenerateLink(const FString& PackageName) const;
+	FString GenerateLinkFromPackageName(const FString& PackageName) const;
 
 protected:
 	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) override;

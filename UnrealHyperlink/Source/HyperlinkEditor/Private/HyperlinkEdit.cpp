@@ -93,7 +93,7 @@ bool UHyperlinkEdit::GenerateLink(FString& OutLink) const
 	const bool bSuccess{ SelectedAssets.Num() > 0 };
 	if (bSuccess)
 	{
-		OutLink = GenerateLink(SelectedAssets[0].PackageName.ToString());
+		OutLink = GenerateLinkFromPackageName(SelectedAssets[0].PackageName.ToString());
 	}
 	else
 	{
@@ -103,7 +103,7 @@ bool UHyperlinkEdit::GenerateLink(FString& OutLink) const
 	return bSuccess;
 }
 
-FString UHyperlinkEdit::GenerateLink(const FString& PackageName) const
+FString UHyperlinkEdit::GenerateLinkFromPackageName(const FString& PackageName) const
 {
 	return GetHyperlinkBase() / PackageName;
 }
