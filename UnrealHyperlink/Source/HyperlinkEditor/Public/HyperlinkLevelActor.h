@@ -6,6 +6,16 @@
 #include "HyperlinkDefinition.h"
 #include "HyperlinkLevelActor.generated.h"
 
+class FHyperlinkLevelActorCommands : public TCommands<FHyperlinkLevelActorCommands>
+{
+public:
+	FHyperlinkLevelActorCommands();
+	virtual void RegisterCommands() override;
+
+public:
+	TSharedPtr<FUICommandInfo> CopyLevelActorLink{ nullptr };
+};
+
 /**
  * Hyperlink for opening a level and focusing on an actor in the level
  */
@@ -23,4 +33,8 @@ public:
 
 protected:
 	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) override;
+	
+private:
+	TSharedPtr<FUICommandList> LevelActorCommands{};
+	FDelegateHandle ActorContextMenuHandle{};
 };
