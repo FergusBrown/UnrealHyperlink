@@ -2,7 +2,7 @@
 
 #include "DetailCategoryBuilder.h"
 #include "DetailLayoutBuilder.h"
-#include "HyperlinkClassEntryCustomization.h"
+#include "Customization/HyperlinkClassEntryCustomization.h"
 #include "HyperlinkSettings.h"
 
 TSharedRef<IDetailCustomization> FHyperlinkSettingsCustomization::MakeInstance()
@@ -18,5 +18,5 @@ void FHyperlinkSettingsCustomization::CustomizeDetails(IDetailLayoutBuilder& Det
 	DefinitionsCategory.AddCustomBuilder(ArrayBuilder.ToSharedRef());
 	
 	IDetailCategoryBuilder& GeneralCategory = DetailBuilder.EditCategory(TEXT("General"));
-	GeneralCategory.SetSortOrder(0);
+	GeneralCategory.SetSortOrder(0); // TODO: sort order does not work
 }

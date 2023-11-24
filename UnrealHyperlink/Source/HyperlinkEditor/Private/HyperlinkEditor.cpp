@@ -5,7 +5,7 @@
 
 #include "HyperlinkPipeServer.h"
 #include "HyperlinkSettings.h"
-#include "HyperlinkSettingsCustomization.h"
+#include "Customization/HyperlinkSettingsCustomization.h"
 #include "HyperlinkSubsystem.h"
 #include "Interfaces/IMainFrameModule.h"
 #include "Interfaces/IPluginManager.h"

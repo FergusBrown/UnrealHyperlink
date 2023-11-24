@@ -1,7 +1,7 @@
 // Copyright (c) 2023 Fergus Brown. Licensed under the MIT license. See "LICENSE" file for details.
 
 
-#include "HyperlinkBrowse.h"
+#include "Definitions/HyperlinkBrowse.h"
 
 #include "AssetRegistry/IAssetRegistry.h"
 #include "ContentBrowserModule.h"
