@@ -7,7 +7,6 @@
 #include "HyperlinkFormat.h"
 #include "HyperlinkUtils.h"
 #include "Log.h"
-#include "Windows/WindowsPlatformApplicationMisc.h"
 #if WITH_EDITOR
 #include "Subsystems/UnrealEditorSubsystem.h"
 
@@ -44,21 +43,14 @@ void UHyperlinkLevelGoTo::Initialize()
 	GoToCommands = MakeShared<FUICommandList>();
 	GoToCommands->MapAction(
 		FHyperlinkGoToCommands::Get().CopyGoToLink,
-		FExecuteAction::CreateUObject(this, &UHyperlinkLevelGoTo::CopyLink));
+		FExecuteAction::CreateUObject(this, &UHyperlinkDefinition::CopyLink));
 
 	// TODO: need to add these commands to the level editor module
 #endif //WITH_EDITOR
-
-	// Register console commands
-	CopyConsoleCommand = IConsoleManager::Get().RegisterConsoleCommand(
-		TEXT("uhl.CopyGoTo"),
-		TEXT("Copy a link which can be used to navigate to this location in the level."),
-		FConsoleCommandDelegate::CreateUObject(this, &UHyperlinkLevelGoTo::CopyLink));
 }
 
 void UHyperlinkLevelGoTo::Deinitialize()
 {
-	IConsoleManager::Get().UnregisterConsoleObject(CopyConsoleCommand);
 }
 
 bool UHyperlinkLevelGoTo::GenerateLink(FString& OutLink) const
@@ -109,15 +101,6 @@ bool UHyperlinkLevelGoTo::GenerateLink(FString& OutLink) const
 FString UHyperlinkLevelGoTo::GenerateLink(const FString& InLevelPackageName, const FVector& InLocation, const FRotator& InRotation) const
 {
 	return GetHyperlinkBase() / InLevelPackageName + FHyperlinkFormat::ArgSeparator + FHyperlinkUtils::VectorToHexString(InLocation) + FHyperlinkUtils::VectorToHexString(InRotation.Vector());
-}
-
-void UHyperlinkLevelGoTo::CopyLink() const
-{
-	FString LinkToCopy{ TEXT("") };
-	if (GenerateLink(LinkToCopy))
-	{
-		FPlatformApplicationMisc::ClipboardCopy(*LinkToCopy);
-	}
 }
 
 // bool UHyperlinkLevelGoTo::GetLevelPackageName(const UWorld* const World, FString& OutLevelPackageName)

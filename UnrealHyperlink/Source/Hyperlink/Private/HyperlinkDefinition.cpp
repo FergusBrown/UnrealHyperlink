@@ -6,6 +6,7 @@
 #include "HyperlinkSettings.h"
 #include "Internationalization/Regex.h"
 #include "Log.h"
+#include "Windows/WindowsPlatformApplicationMisc.h"
 
 FString UHyperlinkDefinition::GetDefinitionIdentifier() const
 {
@@ -42,4 +43,17 @@ void UHyperlinkDefinition::ExecuteLinkBody(const FString& LinkBody)
 FString UHyperlinkDefinition::GetHyperlinkBase() const
 {
 	return GetDefault<UHyperlinkSettings>()->GetLinkGenerationBase() / DefinitionIdentifier;
+}
+
+void UHyperlinkDefinition::CopyLink() const
+{
+	FString Link{}; 
+	if (GenerateLink(Link))
+	{
+		FPlatformApplicationMisc::ClipboardCopy(*Link);
+	}
+	else
+	{
+		UE_LOG(LogHyperlink, Error, TEXT("Failed to generated %s link"), *DefinitionIdentifier);
+	}
 }

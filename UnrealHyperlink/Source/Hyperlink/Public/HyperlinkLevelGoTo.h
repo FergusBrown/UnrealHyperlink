@@ -34,8 +34,8 @@ public:
 	virtual void Initialize() override;
 	virtual void Deinitialize() override;
 
-	/* Generate link using the active viewport. Fails if viewport not found */
-	bool GenerateLink(FString& OutLink) const;
+	/* Generate link using the active level editor viewport (editor) or player controller (game). Fails if viewport not found */
+	virtual bool GenerateLink(FString& OutLink) const override;
 
 	/* Generate link using the provided parameters*/
 	FString GenerateLink(const FString& InLevelPackageName, const FVector& InLocation, const FRotator& InRotation) const;

@@ -31,8 +31,11 @@ public:
 	/* Construct the base of the link without the body */
 	FString GetHyperlinkBase() const;
 
-	/* Define your own GenerateLink function */
-	/* FString GenerateLink(Args...); */
+	/* Generate a link using current editor/game state */
+	virtual bool GenerateLink(FString& OutLink) const { return false; }
+
+	/* Generate a link using the GenerateLink function and copy it to clipboard */
+	void CopyLink() const;
 
 #if WITH_EDITOR
 protected:

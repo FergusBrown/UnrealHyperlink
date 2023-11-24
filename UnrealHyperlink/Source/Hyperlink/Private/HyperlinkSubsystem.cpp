@@ -11,8 +11,13 @@
 void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	InitDefinitions();
-#if WITH_EDITOR
+
 	// Register console commands
+	CopyConsoleCommand = IConsoleManager::Get().RegisterConsoleCommand(
+		TEXT("uhl.CopyLink"),
+		TEXT(R"(Copy a link of the specified type. For example: "uhl.CopyLink Edit")"),
+		FConsoleCommandWithArgsDelegate::CreateUObject(this, &UHyperlinkSubsystem::CopyLinkConsole));
+#if WITH_EDITOR
 	ExecuteConsoleCommand = IConsoleManager::Get().RegisterConsoleCommand(
 		TEXT("uhl.ExecuteLink"),
 		*FString::Format(TEXT(R"(Execute a hyperlink in the format "{0}". Note the link must be surrounded in quotes.)"), { GetLinkFormatHint() }),
@@ -23,6 +28,7 @@ void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 void UHyperlinkSubsystem::Deinitialize()
 {
 	DeinitDefinitions();
+	IConsoleManager::Get().UnregisterConsoleObject(CopyConsoleCommand);
 #if WITH_EDITOR
 	IConsoleManager::Get().UnregisterConsoleObject(ExecuteConsoleCommand);
 #endif //WITH_EDITOR
@@ -36,6 +42,25 @@ FString UHyperlinkSubsystem::GetLinkBase()
 FString UHyperlinkSubsystem::GetLinkFormatHint()
 {
 	return GetLinkBase() + TEXT("DEFINITION/BODY");
+}
+
+void UHyperlinkSubsystem::CopyLinkConsole(const TArray<FString>& Args)
+{
+	if (Args.Num() != 1)
+	{
+		UE_LOG(LogHyperlink, Display, TEXT(R"(Invalid arguments, must have only 1 argument)"), *GetLinkFormatHint());
+	}
+	else
+	{
+		if (const TObjectPtr<UHyperlinkDefinition>* Def{ Definitions.Find(Args[0]) })
+		{
+			(*Def)->CopyLink();
+		}
+		else
+		{
+			UE_LOG(LogHyperlink, Error, TEXT("No registered definited with the identifier %s"), *Args[0]);
+		}
+	}
 }
 
 void UHyperlinkSubsystem::RefreshDefinitions()
@@ -100,7 +125,7 @@ void UHyperlinkSubsystem::ExecuteLinkConsole(const TArray<FString>& Args)
 	}
 }
 
-void UHyperlinkSubsystem::ExecuteLinkDeferred(FString Link) const
+void UHyperlinkSubsystem::ExecuteLinkDeferred(const FString Link) const
 {
 	const FRegexPattern TypePattern{GetLinkBase() + TEXT(R"((\w+)(/.*))")};
 	FRegexMatcher Matcher{TypePattern, Link};
