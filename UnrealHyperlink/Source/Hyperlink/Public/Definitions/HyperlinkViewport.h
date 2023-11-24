@@ -18,6 +18,20 @@ public:
 };
 #endif //WITH_EDITOR
 
+USTRUCT()
+struct FHyperlinkViewportPayload
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FName LevelPackageName{};
+
+	UPROPERTY()
+	FVector Location{};
+
+	UPROPERTY()
+	FRotator Rotation{};
+};
 
 /**
  * Link type for teleporting viewport to a given location + rotation. Can be generated in-game
@@ -33,15 +47,14 @@ public:
 	virtual void Initialize() override;
 	virtual void Deinitialize() override;
 
-	/* Generate link using the active level editor viewport (editor) or player controller (game). Fails if viewport not found */
-	virtual bool GenerateLink(FString& OutLink) const override;
+	/* Generate payload using the active level editor viewport (editor) or player controller (game). Fails if viewport not found */
+	virtual TSharedPtr<FJsonObject> GeneratePayload() const override;
 
-	/* Generate link using the provided parameters */
-	FString GenerateLink(const FString& InLevelPackageName, const FVector& InLocation, const FRotator& InRotation) const;
+	/* Generate payload using the provided parameters */
+	TSharedPtr<FJsonObject> GeneratePayload(const FName& InLevelPackageName, const FVector& InLocation, const FRotator& InRotation) const;
 
 #if WITH_EDITOR
-protected:
-	virtual void ExecuteExtractedArgs(const TArray<FString>& LinkArguments) override;
+	virtual void ExecutePayload(const TSharedRef<FJsonObject>& InPayload) override;
 #endif //WITH_EDITOR
 
 private:

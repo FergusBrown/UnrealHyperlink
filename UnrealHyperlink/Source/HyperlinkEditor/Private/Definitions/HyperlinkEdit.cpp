@@ -4,9 +4,12 @@
 #include "Definitions/HyperlinkEdit.h"
 
 #include "ContentBrowserModule.h"
+#include "HyperlinkCommonPayload.h"
 #include "HyperlinkUtility.h"
 #include "IContentBrowserSingleton.h"
+#include "JsonObjectConverter.h"
 #include "Log.h"
+#include "Dom/JsonObject.h"
 
 #define LOCTEXT_NAMESPACE "HyperlinkEdit"
 
@@ -72,31 +75,37 @@ void UHyperlinkEdit::Deinitialize()
 	FHyperlinkEditCommands::Unregister();
 }
 
-bool UHyperlinkEdit::GenerateLink(FString& OutLink) const
+TSharedPtr<FJsonObject> UHyperlinkEdit::GeneratePayload() const
 {
+	TSharedPtr<FJsonObject> Payload{ nullptr };
+	
 	const FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
 	TArray<FAssetData> SelectedAssets{};
 	ContentBrowser.Get().GetSelectedAssets(SelectedAssets);
 	
-	const bool bSuccess{ SelectedAssets.Num() > 0 };
-	if (bSuccess)
+	if (SelectedAssets.Num() > 0)
 	{
-		OutLink = GenerateLinkFromPackageName(SelectedAssets[0].PackageName.ToString());
+		Payload = GeneratePayloadFromPackageName(SelectedAssets[0].PackageName);
 	}
 	else
 	{
 		UE_LOG(LogHyperlinkEditor, Display, TEXT("Cannot generate Edit link with no assets selected in Content Browser"));
 	}
 	
-	return bSuccess;
+	return Payload;
 }
 
-FString UHyperlinkEdit::GenerateLinkFromPackageName(const FString& PackageName) const
+TSharedPtr<FJsonObject> UHyperlinkEdit::GeneratePayloadFromPackageName(const FName& PackageName) const
 {
-	return GetHyperlinkBase() / PackageName;
+	const FHyperlinkNamePayload PayloadStruct{ PackageName };
+	return FJsonObjectConverter::UStructToJsonObject(PayloadStruct);
 }
 
-void UHyperlinkEdit::ExecuteExtractedArgs(const TArray<FString>& LinkArguments)
+void UHyperlinkEdit::ExecutePayload(const TSharedRef<FJsonObject>& InPayload)
 {
-	UHyperlinkUtility::OpenEditorForAsset(LinkArguments[0]);
+	FHyperlinkNamePayload PayloadStruct{};
+	if (FJsonObjectConverter::JsonObjectToUStruct(InPayload, &PayloadStruct))
+	{
+		UHyperlinkUtility::OpenEditorForAsset(PayloadStruct.Name);
+	}
 }

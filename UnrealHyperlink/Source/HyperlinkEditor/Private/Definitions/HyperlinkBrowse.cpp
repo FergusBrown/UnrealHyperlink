@@ -6,8 +6,10 @@
 #include "AssetRegistry/IAssetRegistry.h"
 #include "ContentBrowserModule.h"
 #include "Editor.h"
+#include "HyperlinkCommonPayload.h"
 #include "HyperlinkUtility.h"
 #include "IContentBrowserSingleton.h"
+#include "JsonObjectConverter.h"
 #include "Log.h"
 
 #define LOCTEXT_NAMESPACE "HyperlinkBrowse"
@@ -79,18 +81,20 @@ void UHyperlinkBrowse::Deinitialize()
 	FHyperlinkBrowseCommands::Unregister();
 }
 
-bool UHyperlinkBrowse::GenerateLink(FString& OutLink) const
+TSharedPtr<FJsonObject> UHyperlinkBrowse::GeneratePayload() const
 {
-	const FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
+	TSharedPtr<FJsonObject> Payload{ nullptr };
+	
+	const FContentBrowserModule& ContentBrowser =
+		FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser"));
 	TArray<FAssetData> SelectedAssets{};
 	ContentBrowser.Get().GetSelectedAssets(SelectedAssets);
-	bool bSuccess{ SelectedAssets.Num() > 0 };
-	if (bSuccess)
-	{
-		OutLink = GenerateLinkFromPath(SelectedAssets[0].PackageName.ToString());
-	}
 
-	if (!bSuccess)
+	if (SelectedAssets.Num() > 0 )
+	{
+		Payload = GeneratePayloadFromPath(SelectedAssets[0].PackageName);
+	}
+	else
 	{
 		TArray<FString> SelectedFolders{};
 		ContentBrowser.Get().GetSelectedFolders(SelectedFolders);
@@ -100,11 +104,12 @@ bool UHyperlinkBrowse::GenerateLink(FString& OutLink) const
 			// We need to convert this to the regular internal path
 			const FString& VirtualPath{ SelectedFolders[0] };
 			FString InternalPath;
-			const EContentBrowserPathType ConvertedType{ GEditor->GetEditorSubsystem<UContentBrowserDataSubsystem>()->TryConvertVirtualPath(VirtualPath, InternalPath) };
+			const EContentBrowserPathType ConvertedType{ GEditor->GetEditorSubsystem<UContentBrowserDataSubsystem>()->
+				TryConvertVirtualPath(VirtualPath, InternalPath) };
+			
 			if (ConvertedType == EContentBrowserPathType::Internal)
 			{
-				OutLink = GenerateLinkFromPath(InternalPath);
-				bSuccess = true;
+				Payload = GeneratePayloadFromPath(FName(InternalPath));
 			}
 			else
 			{
@@ -117,8 +122,7 @@ bool UHyperlinkBrowse::GenerateLink(FString& OutLink) const
 			const FContentBrowserItemPath CurrentPath{ ContentBrowser.Get().GetCurrentPath() };
 			if (CurrentPath.HasInternalPath())
 			{
-				OutLink = GenerateLinkFromPath(CurrentPath.GetInternalPathString());
-				bSuccess = true;
+				Payload = GeneratePayloadFromPath(CurrentPath.GetInternalPathName());
 			}
 			else
 			{
@@ -127,28 +131,35 @@ bool UHyperlinkBrowse::GenerateLink(FString& OutLink) const
 		}
 	}
 	
-	return bSuccess;
+	return Payload;
 }
 
-FString UHyperlinkBrowse::GenerateLinkFromPath(const FString& PackageOrFolderName) const
+TSharedPtr<FJsonObject> UHyperlinkBrowse::GeneratePayloadFromPath(const FName& PackageOrFolderName) const
 {
-	return GetHyperlinkBase() / PackageOrFolderName;
+	const FHyperlinkNamePayload PayloadStruct{ PackageOrFolderName };
+	return FJsonObjectConverter::UStructToJsonObject(PayloadStruct);
 }
 
-void UHyperlinkBrowse::ExecuteExtractedArgs(const TArray<FString>& LinkArguments)
+void UHyperlinkBrowse::ExecutePayload(const TSharedRef<FJsonObject>& InPayload)
 {
-  	TArray<FAssetData> LinkAssetData{};
-	IAssetRegistry::Get()->GetAssetsByPackageName(FName(LinkArguments[0]), LinkAssetData);
+	FHyperlinkNamePayload PayloadStruct{};
+	if (FJsonObjectConverter::JsonObjectToUStruct(InPayload, &PayloadStruct))
+	{
+		TArray<FAssetData> LinkAssetData{};
+		IAssetRegistry::Get()->GetAssetsByPackageName(PayloadStruct.Name, LinkAssetData);
 
-	const FContentBrowserModule& ContentBrowserModule{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
-	if (LinkAssetData.Num() > 0)
-	{
-		// Treat as asset
-		ContentBrowserModule.Get().SyncBrowserToAssets(LinkAssetData);
-	}
-	else
-	{
-		// Treat as folder
-		ContentBrowserModule.Get().SyncBrowserToFolders(LinkArguments);
+		const FContentBrowserModule& ContentBrowserModule =
+			FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser"));
+		
+		if (LinkAssetData.Num() > 0)
+		{
+			// Treat as asset
+			ContentBrowserModule.Get().SyncBrowserToAssets(LinkAssetData);
+		}
+		else
+		{
+			// Treat as folder
+			ContentBrowserModule.Get().SyncBrowserToFolders({ PayloadStruct.Name.ToString() });
+		}
 	}
 }

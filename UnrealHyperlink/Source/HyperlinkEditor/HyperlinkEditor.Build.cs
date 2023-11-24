@@ -12,7 +12,9 @@ public class HyperlinkEditor : ModuleRules
             new string[]
             {
                 "Core",
-                "Hyperlink",
+                "HTTPServer", 
+                "Hyperlink", 
+                "Json"
             }
         );
 
@@ -28,12 +30,13 @@ public class HyperlinkEditor : ModuleRules
                 "EditorFramework",
                 "Engine",
                 "InputCore",
+                "JsonUtilities",
                 "MaterialEditor",
                 "Projects",
                 "PropertyEditor",
                 "Slate",
                 "SlateCore",
-                "UnrealEd", 
+                "UnrealEd",
             }
         );
     }

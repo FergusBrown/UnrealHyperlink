@@ -13,6 +13,7 @@ public class Hyperlink : ModuleRules
             {
                 "Core", 
                 "DeveloperSettings",
+                "Json",
                 "Engine",
             }
         );
@@ -22,6 +23,7 @@ public class Hyperlink : ModuleRules
             {
                 "CoreUObject",
                 "Engine",
+                "JsonUtilities",
                 "Slate",
                 "SlateCore",
             }

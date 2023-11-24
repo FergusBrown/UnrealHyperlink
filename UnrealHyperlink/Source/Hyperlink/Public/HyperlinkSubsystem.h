@@ -7,6 +7,7 @@
 #include "HyperlinkSubsystem.generated.h"
 
 class UHyperlinkDefinition;
+struct FHyperlinkExecutePayload;
 
 /**
  * 
@@ -21,8 +22,12 @@ public:
 	virtual void Deinitialize() override;
 	
 #if WITH_EDITOR
-	/* Decode the provided unreal://... link and execute the associated action */
-	void ExecuteLink(const FString& Link);
+	/* Static so that we can easily call this function from remote control API */
+	UFUNCTION(BlueprintCallable, Category = "Hyperlink")
+	static void StaticExecuteLink(const FHyperlinkExecutePayload& ExecutePayload);
+	
+	void ExecuteLink(const FHyperlinkExecutePayload& ExecutePayload);
+	void ExecuteLink(const FString& InString);
 #endif //WITH_EDITOR
 
 	void RefreshDefinitions();
@@ -32,19 +37,12 @@ public:
 	 * @return the requested definition, nullptr if not registered
 	 */
 	template<typename T>
-	const T* GetDefinition() const
+	T* GetDefinition() const
 	{
-		const T* Ret{ nullptr };
-		for (const TPair<FString, TObjectPtr<UHyperlinkDefinition>>& Pair : Definitions)
-		{
-			if (Pair.Value->IsA<T>())
-			{
-				Ret = Pair.Value;
-				break;
-			}
-		}
-		return Ret;
+		return GetDefinition(T::StaticClass());
 	}
+
+	UHyperlinkDefinition* GetDefinition(const TSubclassOf<UHyperlinkDefinition> DefinitionClass) const;
 	
 private:
 	void InitDefinitions();
@@ -53,7 +51,16 @@ private:
 	void CopyLinkConsole(const TArray<FString>& Args);
 #if WITH_EDITOR
 	void ExecuteLinkConsole(const TArray<FString>& Args);
-	void ExecuteLinkDeferred(FString Link) const;
+	void ExecuteLinkDeferred(FHyperlinkExecutePayload ExecutePayload) const;
+	
+	// TODO: move this to utility?
+	/**
+	 * @brief Attempts to extract a JSON substring from the provided string and deserialize it
+	 * @param InString InString String which contains a JSON substring
+	 * @param OutPayload Deserialized payload object
+	 * @return true if operation was successful
+	 */
+	static bool TryGetPayloadFromString(const FString& InString, FHyperlinkExecutePayload& OutPayload);
 #endif //WITH_EDITOR
 
 private:

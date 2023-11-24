@@ -4,8 +4,8 @@
 #include "Definitions/HyperlinkViewport.h"
 
 #include "GameFramework/PlayerController.h"
-#include "HyperlinkFormat.h"
 #include "HyperlinkUtility.h"
+#include "JsonObjectConverter.h"
 #include "LevelEditor.h"
 #include "Log.h"
 #if WITH_EDITOR
@@ -35,8 +35,6 @@ void FHyperlinkViewportCommands::RegisterCommands()
 UHyperlinkViewport::UHyperlinkViewport()
 {
 	DefinitionIdentifier = TEXT("Viewport");
-
-	BodyPattern = FString::Printf(TEXT("(.+)%s([0-9A-F]{%d})"), &FHyperlinkFormat::ArgSeparator, UHyperlinkUtility::VectorStringLength * 2);
 }
 
 void UHyperlinkViewport::Initialize()
@@ -68,9 +66,11 @@ void UHyperlinkViewport::Deinitialize()
 #endif //WITH_EDITOR
 }
 
-bool UHyperlinkViewport::GenerateLink(FString& OutLink) const
+TSharedPtr<FJsonObject> UHyperlinkViewport::GeneratePayload() const
 {
-	FString LevelPackageName{};
+	TSharedPtr<FJsonObject> Payload{ nullptr };
+	
+	FName LevelPackageName{};
 	FVector Location{};
 	FRotator Rotation{};
 	bool bCameraInfoFound{ false };
@@ -83,14 +83,14 @@ bool UHyperlinkViewport::GenerateLink(FString& OutLink) const
 		{
 			if (const UWorld* const PieWorld{ PieWorldContext->World() })
 			{
-				LevelPackageName = PieWorld->PersistentLevel->GetPackage()->GetName();
+				LevelPackageName = PieWorld->PersistentLevel->GetPackage()->GetFName();
 				bCameraInfoFound |= GetGameWorldCameraInfo(PieWorld, Location, Rotation);
 			}
 		}
 		else
 		{
 			UUnrealEditorSubsystem* const UnrealEditorSubsystem{ GEditor->GetEditorSubsystem<UUnrealEditorSubsystem>() };
-			LevelPackageName = UnrealEditorSubsystem->GetEditorWorld()->PersistentLevel->GetPackage()->GetName();
+			LevelPackageName = UnrealEditorSubsystem->GetEditorWorld()->PersistentLevel->GetPackage()->GetFName();
 			bCameraInfoFound = UnrealEditorSubsystem->GetLevelViewportCameraInfo(Location, Rotation);
 		}
 	}
@@ -98,24 +98,33 @@ bool UHyperlinkViewport::GenerateLink(FString& OutLink) const
 #endif //WITH_EDITOR
 	if (GetWorld())
 	{
-		LevelPackageName = GetWorld()->PersistentLevel->GetPackage()->GetName();
+		LevelPackageName = GetWorld()->PersistentLevel->GetPackage()->GetFName();
 		bCameraInfoFound = GetGameWorldCameraInfo(GetWorld(), Location, Rotation);
 	}
 	
 	if (bCameraInfoFound)
 	{
-		OutLink = GenerateLink(LevelPackageName, Location, Rotation);
+		Payload = GeneratePayload(LevelPackageName, Location, Rotation);
 	}
+	else
+	{
+		UE_LOG(LogHyperlink, Display, TEXT("Failed to generate Viewport link: could not find viewport camera info."));
 
-	UE_CLOG(!bCameraInfoFound, LogHyperlink, Display, TEXT("Failed to generate Viewport link: could not find viewport camera info."));
-
-	return bCameraInfoFound;
+	}
+	
+	return Payload;
 }
 
-FString UHyperlinkViewport::GenerateLink(const FString& InLevelPackageName, const FVector& InLocation, const FRotator& InRotation) const
+TSharedPtr<FJsonObject> UHyperlinkViewport::GeneratePayload(const FName& InLevelPackageName,
+	const FVector& InLocation, const FRotator& InRotation) const
 {
-	return GetHyperlinkBase() / InLevelPackageName + FHyperlinkFormat::ArgSeparator +
-		UHyperlinkUtility::VectorToHexString(InLocation) + UHyperlinkUtility::VectorToHexString(InRotation.Vector());
+	const FHyperlinkViewportPayload PayloadStruct
+	{
+		InLevelPackageName,
+		InLocation,
+		InRotation
+	};
+	return FJsonObjectConverter::UStructToJsonObject(PayloadStruct);
 }
 
 /*static*/bool UHyperlinkViewport::GetGameWorldCameraInfo(const UWorld* const World, FVector& OutLocation, FRotator& OutRotation)
@@ -135,40 +144,39 @@ FString UHyperlinkViewport::GenerateLink(const FString& InLevelPackageName, cons
 }
 
 #if WITH_EDITOR
-void UHyperlinkViewport::ExecuteExtractedArgs(const TArray<FString>& LinkArguments)
+void UHyperlinkViewport::ExecutePayload(const TSharedRef<FJsonObject>& InPayload)
 {
-	// Extract link info
-	const FString& LevelPackageName{ LinkArguments[1] };
-	
-	const FString& VectorStrings{ LinkArguments[2] };
-	const FString LocationString{ VectorStrings.Mid(0, UHyperlinkUtility::VectorStringLength) };
-	const FString RotationString{ VectorStrings.Mid(UHyperlinkUtility::VectorStringLength, UHyperlinkUtility::VectorStringLength) };
+	FHyperlinkViewportPayload PayloadStruct{};
 
-	const FVector Location{ UHyperlinkUtility::HexStringToVector(LocationString) };
-	const FRotator Rotation{ UHyperlinkUtility::HexStringToVector(RotationString).Rotation() };
-	
-	// Attempt to teleport pawn in PIE
-	if (const FWorldContext* const PieWorldContext{ GEditor->GetPIEWorldContext() })
+	if (FJsonObjectConverter::JsonObjectToUStruct(InPayload, &PayloadStruct))
 	{
-		if (const UWorld* const PieWorld{ PieWorldContext->World() })
+		const FName& LevelPackageName{ PayloadStruct.LevelPackageName };
+		const FVector& Location{ PayloadStruct.Location };
+		const FRotator& Rotation{ PayloadStruct.Rotation };
+	
+		// Attempt to teleport pawn in PIE
+		if (const FWorldContext* const PieWorldContext{ GEditor->GetPIEWorldContext() })
 		{
-			const FString EditorWorldPackageName{ GEditor->EditorWorld->PersistentLevel->GetPackage()->GetName() };
-			if (EditorWorldPackageName == LevelPackageName)
+			if (const UWorld* const PieWorld{ PieWorldContext->World() })
 			{
-				if (APawn* const Pawn{ PieWorld->GetFirstPlayerController()->GetPawn() })
+				const FName EditorWorldPackageName{ GEditor->EditorWorld->PersistentLevel->GetPackage()->GetFName() };
+				if (EditorWorldPackageName == LevelPackageName)
 				{
-					Pawn->TeleportTo(Location, Rotation);
-					return;
+					if (APawn* const Pawn{ PieWorld->GetFirstPlayerController()->GetPawn() })
+					{
+						Pawn->TeleportTo(Location, Rotation);
+						return;
+					}
 				}
 			}
 		}
-	}
 	
-	// If PIE teleport fails open the level and move viewport to location
-	if(UHyperlinkUtility::OpenEditorForAsset(LevelPackageName))
-	{
+		// If PIE teleport fails open the level and move viewport to location
+		if(UHyperlinkUtility::OpenEditorForAsset(LevelPackageName))
+		{
 			UUnrealEditorSubsystem* const UnrealEditorSubsystem{ GEditor->GetEditorSubsystem<UUnrealEditorSubsystem>() };
 			UnrealEditorSubsystem->SetLevelViewportCameraInfo(Location, Rotation);
+		}
 	}
 }
 #endif //WITH_EDITOR

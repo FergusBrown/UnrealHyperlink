@@ -3,15 +3,54 @@
 
 #include "HyperlinkUtility.h"
 
+#include "HyperlinkDefinition.h"
+#include "HyperlinkExecutePayload.h"
+#include "HyperlinkSettings.h"
+#include "JsonObjectConverter.h"
 #include "Log.h"
+#include "Serialization/JsonSerializer.h"
 
 #if WITH_EDITOR
 #include "Styling/StarshipCoreStyle.h"
 
 #define LOCTEXT_NAMESPACE "Hyperlink"
 
+FString UHyperlinkUtility::GetLinkBaseAddress()
+{
+	// TODO: get v1 string from common location
+	return FString::Printf(TEXT("http://localhost:%d/v1"), GetDefault<UHyperlinkSettings>()->GetLocalServerPort());
+}
+
+FString UHyperlinkUtility::CreateLinkFromPayload(const TSubclassOf<UHyperlinkDefinition> DefinitionClass,
+                                                 const FJsonObjectWrapper& InPayload)
+{
+	FString PayloadString{};
+	if (DefinitionClass)
+	{
+		// Create execute payload
+		FHyperlinkExecutePayload ExecutePayload{};
+		{
+			ExecutePayload.Class = DefinitionClass;;
+			ExecutePayload.DefinitionPayload = InPayload;
+		}
+		
+		FJsonObjectConverter::UStructToJsonObjectString(ExecutePayload, PayloadString);
+	}
+	
+	return GetLinkBaseAddress() / PayloadString;
+}
+
+FString UHyperlinkUtility::CreateLinkFromPayload(const TSubclassOf<UHyperlinkDefinition> DefinitionClass,
+                                                 const TSharedRef<FJsonObject>& InPayload)
+{
+	FJsonObjectWrapper ObjectWrapper{};
+	ObjectWrapper.JsonObject = InPayload.ToSharedPtr();
+	
+	return CreateLinkFromPayload(DefinitionClass, ObjectWrapper);
+}
+
 void UHyperlinkUtility::ExtendToolMenuSection(const FName& MenuName, const FName& SectionName,
-	const TSharedPtr<FUICommandList>& CommandList, const TSharedPtr<const FUICommandInfo>& Command)
+                                              const TSharedPtr<FUICommandList>& CommandList, const TSharedPtr<const FUICommandInfo>& Command)
 {
 	//TODO: provide mechanism for unregistering tool menu extensions with UToolMenu::RemoveEntry or UToolMenus::UnregisterOwner
 	
@@ -92,10 +131,10 @@ UObject* UHyperlinkUtility::LoadObject(const FString& PackageName)
 #endif //WITH_EDITOR
 }
 
-UObject* UHyperlinkUtility::OpenEditorForAsset(const FString& PackageName)
+UObject* UHyperlinkUtility::OpenEditorForAsset(const FName& PackageName)
 {
 #if WITH_EDITOR
-	UObject* const Object{ LoadObject(PackageName) };
+	UObject* const Object{ LoadObject(PackageName.ToString()) };
 	if (Object)
 	{
 		// Need to check if this is a level first. Levels will be reopened rather than focused by OpenEditorForAsset
@@ -103,7 +142,7 @@ UObject* UHyperlinkUtility::OpenEditorForAsset(const FString& PackageName)
 		bool bSkipOpen{ false };
 		if (const UWorld* const EditorWorld{ GEditor->GetEditorWorldContext().World() })
 		{
-			bSkipOpen = PackageName == EditorWorld->PersistentLevel->GetPackage()->GetName();
+			bSkipOpen = PackageName == EditorWorld->PersistentLevel->GetPackage()->GetFName();
 		}
 		if (!bSkipOpen)
 		{

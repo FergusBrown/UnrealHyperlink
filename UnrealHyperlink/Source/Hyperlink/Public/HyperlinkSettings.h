@@ -42,6 +42,7 @@ public:
 	const FString& GetProjectIdentifier() const{ return ProjectIdentifier; };
 	EHyperlinkHandlingMethod GetLinkHandlingMethod()const { return LinkHandlingMethod; };
 	const FString& GetLinkHandlerAddress() const{ return LinkHandlerAddress; };
+	uint32 GetLocalServerPort() const{ return LocalServerPort; };
 	
 #if WITH_EDITOR
 private:
@@ -69,6 +70,10 @@ protected:
 	/* Web address which is used to handle links */
 	UPROPERTY(Config, EditAnywhere, Category = "Project", meta = (EditCondition = "HandlingMethod == EHyperlinkHandlingMethod::Web"))
 	FString LinkHandlerAddress{ TEXT("uehyper.link") };
+
+	/** The port of the web server used for handling links. */
+	UPROPERTY(config, EditAnywhere, Category = "Project")
+	uint32 LocalServerPort{ 10416 }; // (Rudy's Birthday, hopefully unused)
 	
 	/*
 	 * List of definitions discovered in this project and whether each definition is enabled

@@ -3,6 +3,8 @@
 
 #include "Definitions/HyperlinkDefinitionBlueprintBase.h"
 
+#include "JsonObjectWrapper.h"
+
 void UHyperlinkDefinitionBlueprintBase::Initialize()
 {
 	InitializeImpl();
@@ -13,12 +15,14 @@ void UHyperlinkDefinitionBlueprintBase::Deinitialize()
 	DeinitializeImpl();
 }
 
-bool UHyperlinkDefinitionBlueprintBase::GenerateLink(FString& OutLink) const
+TSharedPtr<FJsonObject> UHyperlinkDefinitionBlueprintBase::GeneratePayload() const
 {
-	return GenerateLinkImpl(OutLink);
+	return GeneratePayloadImpl().JsonObject;
 }
 
-void UHyperlinkDefinitionBlueprintBase::ExecuteExtractedArgs(const TArray<FString>& LinkArguments)
+void UHyperlinkDefinitionBlueprintBase::ExecutePayload(const TSharedRef<FJsonObject>& InPayload)
 {
-	ExecuteExtractedArgsImpl(LinkArguments);
+	FJsonObjectWrapper JsonWrapper{};
+	JsonWrapper.JsonObject = InPayload;
+	ExecutePayloadImpl(JsonWrapper);
 }

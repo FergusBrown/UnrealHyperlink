@@ -13,6 +13,12 @@
 	"IsBetaVersion": true,
 	"IsExperimentalVersion": false,
 	"Installed": false,
+	"Plugins": [
+		{
+			"Name": "JsonBlueprintUtilities",
+			"Enabled": true
+		}
+	],
 	"Modules": [
 		{
 			"Name": "HyperlinkEditor",

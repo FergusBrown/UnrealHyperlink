@@ -16,6 +16,18 @@ public:
 	TSharedPtr<FUICommandInfo> CopyLevelActorLink{ nullptr };
 };
 
+USTRUCT()
+struct FHyperlinkLevelActorPayload
+{
+	GENERATED_BODY()
+	
+	UPROPERTY()
+	FName LevelPackageName{};
+
+	UPROPERTY()
+	FName ActorName{};
+};
+
 /**
  * Hyperlink for opening a level and focusing on an actor in the level
  */
@@ -29,10 +41,10 @@ public:
 
 	virtual void Initialize() override;
 	virtual void Deinitialize() override;
-	virtual bool GenerateLink(FString& OutLink) const override;
-
-protected:
-	virtual void ExecuteExtractedArgs(const TArray<FString>& LinkArguments) override;
+	
+	virtual TSharedPtr<FJsonObject> GeneratePayload() const override;
+	
+	virtual void ExecutePayload(const TSharedRef<FJsonObject>& InPayload) override;
 	
 private:
 	TSharedPtr<FUICommandList> LevelActorCommands{};

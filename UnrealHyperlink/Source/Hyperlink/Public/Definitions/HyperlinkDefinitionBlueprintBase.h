@@ -6,6 +6,7 @@
 #include "HyperlinkDefinition.h"
 #include "HyperlinkDefinitionBlueprintBase.generated.h"
 
+struct FJsonObjectWrapper;
 /**
  * Base class for implementing hyperlink definitions with blueprints
  */
@@ -17,10 +18,10 @@ class HYPERLINK_API UHyperlinkDefinitionBlueprintBase : public UHyperlinkDefinit
 public:
 	virtual void Initialize() override;
 	virtual void Deinitialize() override;
-	virtual bool GenerateLink(FString& OutLink) const override;
+	virtual TSharedPtr<FJsonObject> GeneratePayload() const override;
 
 protected:
-	virtual void ExecuteExtractedArgs(const TArray<FString>& LinkArguments) override;
+	virtual void ExecutePayload(const TSharedRef<FJsonObject>& InPayload) override;
 
 	// Blueprint Implementable versions
 	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="Initialize"))
@@ -29,9 +30,9 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="Deinitialize"))
 	void DeinitializeImpl();
 
-	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="GenerateLink"))
-	bool GenerateLinkImpl(FString& OutLink) const;
+	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="GeneratePayload"))
+	FJsonObjectWrapper GeneratePayloadImpl() const;
 
 	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="ExecuteExtractedArgs"))
-	void ExecuteExtractedArgsImpl(const TArray<FString>& LinkArguments);
+	void ExecutePayloadImpl(const FJsonObjectWrapper& Payload);
 };

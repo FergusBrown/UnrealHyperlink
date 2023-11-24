@@ -16,6 +16,21 @@ public:
 	TSharedPtr<FUICommandInfo> CopyNodeLink{ nullptr };
 };
 
+USTRUCT()
+struct FHyperlinkNodePayload
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FName PackageName{};
+
+	UPROPERTY()
+	FGuid GraphGuid{};
+
+	UPROPERTY()
+	FGuid NodeGuid{};
+};
+
 /**
  * Hyperlink for opening a graph editor and focusing on a node
  * Works with blueprints and materials for now
@@ -30,16 +45,16 @@ public:
 	
 	virtual void Initialize() override;
 	virtual void Deinitialize() override;
-	virtual bool GenerateLink(FString& OutLink) const override;
-	FString GenerateLink(const FString& AssetPackageName, const FGuid& GraphGuid, const FGuid& NodeGuid) const;
-
-protected:
-	virtual void ExecuteExtractedArgs(const TArray<FString>& LinkArguments) override;
+	
+	virtual TSharedPtr<FJsonObject> GeneratePayload() const override;
+	TSharedPtr<FJsonObject> GeneratePayload(const FName& AssetPackageName, const FGuid& GraphGuid, const FGuid& NodeGuid) const;
+	
+	virtual void ExecutePayload(const TSharedRef<FJsonObject>& InPayload) override;
 	
 private:
 	/* Generation helpers */
 	static bool TryGetExtensionPoint(const UClass* Class, FName& OutExtensionPoint);
-	bool TryGetMaterialParams(const UMaterial& InMaterial, FString& OutPackageName, FGuid& OutGraphGuid,
+	bool TryGetMaterialParams(const UMaterial& InMaterial, FName& OutPackageName, FGuid& OutGraphGuid,
 		FGuid& OutNodeGuid) const;
 
 	/* Execution helpers */

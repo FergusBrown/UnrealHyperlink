@@ -3,8 +3,8 @@
 
 #include "Definitions/HyperlinkLevelActor.h"
 
-#include "HyperlinkFormat.h"
 #include "HyperlinkUtility.h"
+#include "JsonObjectConverter.h"
 #include "LevelEditor.h"
 #include "Log.h"
 #include "Selection.h"
@@ -31,8 +31,6 @@ void FHyperlinkLevelActorCommands::RegisterCommands()
 UHyperlinkLevelActor::UHyperlinkLevelActor()
 {
 	DefinitionIdentifier = TEXT("LevelActor");
-
-	BodyPattern = FString::Printf(TEXT("(.*)%s(.*)"), &FHyperlinkFormat::ArgSeparator);
 }
 
 void UHyperlinkLevelActor::Initialize()
@@ -57,39 +55,48 @@ void UHyperlinkLevelActor::Deinitialize()
 	FHyperlinkLevelActorCommands::Unregister();
 }
 
-bool UHyperlinkLevelActor::GenerateLink(FString& OutLink) const
+TSharedPtr<FJsonObject> UHyperlinkLevelActor::GeneratePayload() const
 {
-	bool bSuccess{ false };
+	TSharedPtr<FJsonObject> Payload{ nullptr };
 	
-	const FString& LevelPackageName{ GEditor->GetEditorWorldContext().World()->PersistentLevel->GetPackage()->GetName() };
 	if (const USelection* const Selection{ GEditor->GetSelectedActors() })
 	{
-		bSuccess = Selection->Num() > 0;
-		if (bSuccess)
+		if (Selection->Num() > 0)
 		{
-			const FString& ObjectName{ Selection->GetSelectedObject(0)->GetName() };
-			OutLink = GetHyperlinkBase() / LevelPackageName + FHyperlinkFormat::ArgSeparator + ObjectName;
+			const FHyperlinkLevelActorPayload PayloadStruct
+			{
+				GEditor->GetEditorWorldContext().World()->PersistentLevel->GetPackage()->GetFName(),
+				Selection->GetSelectedObject(0)->GetFName()
+			};
+			Payload = FJsonObjectConverter::UStructToJsonObject(PayloadStruct);
+		}
+		else
+		{
+			UE_LOG(LogHyperlinkEditor, Error, TEXT("Could not generate actor link: no actor selected"));
 		}
 	}
-	UE_CLOG(!bSuccess, LogHyperlinkEditor, Error, TEXT("Could not generate actor link: no actor selected"));
 	
-	return bSuccess;
+	return Payload;
 }
 
-void UHyperlinkLevelActor::ExecuteExtractedArgs(const TArray<FString>& LinkArguments)
+void UHyperlinkLevelActor::ExecutePayload(const TSharedRef<FJsonObject>& InPayload)
 {
-	const FString& LevelPackageName{ LinkArguments[1] };
-	const FString& ActorName{ LinkArguments[2] };
+	FHyperlinkLevelActorPayload PayloadStruct{};
+	if (FJsonObjectConverter::JsonObjectToUStruct(InPayload, &PayloadStruct))
+	{
+		const FName& LevelPackageName{ PayloadStruct.LevelPackageName };
+		const FName& ActorName{ PayloadStruct.ActorName };
 
-	UHyperlinkUtility::OpenEditorForAsset(LevelPackageName);
-	if (AActor* const ActorToSelect{ GEditor->SelectNamedActor(*ActorName) })
-	{
-		GEditor->SelectNone(true, true);
-		GEditor->SelectActor(ActorToSelect, true, true);
-		GEditor->MoveViewportCamerasToActor(*ActorToSelect, true);
-	}
-	else
-	{
-		UE_LOG(LogHyperlinkEditor, Error, TEXT("Could not find actor named %s"), *ActorName);
+		UHyperlinkUtility::OpenEditorForAsset(LevelPackageName);
+		if (AActor* const ActorToSelect{ GEditor->SelectNamedActor(*ActorName.ToString()) })
+		{
+			GEditor->SelectNone(true, true);
+			GEditor->SelectActor(ActorToSelect, true, true);
+			GEditor->MoveViewportCamerasToActor(*ActorToSelect, true);
+		}
+		else
+		{
+			UE_LOG(LogHyperlinkEditor, Error, TEXT("Could not find actor named %s"), *ActorName.ToString());
+		}
 	}
 }

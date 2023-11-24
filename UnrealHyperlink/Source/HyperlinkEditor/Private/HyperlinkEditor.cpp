@@ -3,10 +3,12 @@
 
 #include "HyperlinkEditor.h"
 
-#include "HyperlinkPipeServer.h"
-#include "HyperlinkSettings.h"
 #include "Customization/HyperlinkSettingsCustomization.h"
+#include "HttpServerModule.h"
+#include "HttpServerRequest.h"
+#include "HyperlinkSettings.h"
 #include "HyperlinkSubsystem.h"
+#include "IHttpRouter.h"
 #include "Interfaces/IMainFrameModule.h"
 #include "Interfaces/IPluginManager.h"
 #include "Log.h"
@@ -35,47 +37,24 @@ void FHyperlinkEditorCommands::RegisterCommands()
 
 void FHyperlinkEditorModule::StartupModule()
 {
-	PipeServer = MakeUnique<FHyperlinkPipeServer>();
-
 	SetupRegistry();
 	SetupProtocolHandler();
-
-	// Map actions
-	FHyperlinkEditorCommands::Register();
-	IMainFrameModule& MainFrame{ FModuleManager::LoadModuleChecked<IMainFrameModule>(TEXT("MainFrame")) };
 	
-	FUICommandList& ActionList{ *MainFrame.GetMainFrameCommandBindings() };
-
-	ActionList.MapAction(
-		FHyperlinkEditorCommands::Get().PasteLink,
-		FExecuteAction::CreateStatic(&FHyperlinkEditorModule::PasteLink));
-
-	// Console command
-	PasteConsoleCommand = IConsoleManager::Get().RegisterConsoleCommand(
-		TEXT("uhl.PasteLink"),
-		TEXT("Execute a link stored in the clipboard"),
-		FConsoleCommandDelegate::CreateStatic(&FHyperlinkEditorModule::PasteLink));
-
-	// Register Customization
-	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor"));
-	PropertyEditorModule.RegisterCustomClassLayout(UHyperlinkSettings::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FHyperlinkSettingsCustomization::MakeInstance));
+	RegisterCustomisation();
+	RegisterPaste();
+	StartHttpServer();
 }
 
 void FHyperlinkEditorModule::ShutdownModule()
 {
-    // Unmap actions
-	FHyperlinkEditorCommands::Register();
-	IMainFrameModule& MainFrame{ FModuleManager::LoadModuleChecked<IMainFrameModule>(TEXT("MainFrame")) };
-	
-	FUICommandList& ActionList{ *MainFrame.GetMainFrameCommandBindings() };
-	ActionList.UnmapAction(FHyperlinkEditorCommands::Get().PasteLink);
-	FHyperlinkEditorCommands::Unregister();
+	ShutdownHttpServer();
+    UnregisterPaste();
 }
 
 void FHyperlinkEditorModule::SetupRegistry() const
 {
 	HKEY OutCreatedKey{ nullptr };
-	if(RegCreateKey(HKEY_CURRENT_USER, TEXT(R"(SOFTWARE\Classes\unreal)"), &OutCreatedKey) == ERROR_SUCCESS)
+	if(RegCreateKey(HKEY_CURRENT_USER, TEXT(R"(SOFTWARE\Classes\unrealhyperlink)"), &OutCreatedKey) == ERROR_SUCCESS)
 	{
 		// If we get this far then we can create the rest of the sub keys without checks
 		DWORD Temp{ 0 };
@@ -95,29 +74,139 @@ void FHyperlinkEditorModule::SetupRegistry() const
 
 void FHyperlinkEditorModule::SetupProtocolHandler() const
 {
-	 FPlatformMisc::GetEnvironmentVariable(TEXT("LocalAppData"));
+	FPlatformMisc::GetEnvironmentVariable(TEXT("LocalAppData"));
 	const FString DestPath{ GetProtocolHandlerPath() };
 	if (!FPaths::FileExists(DestPath))
 	{
 		const TSharedPtr<IPlugin> HyperlinkPlugin{ IPluginManager::Get().FindPlugin(TEXT("UnrealHyperlink")) };
-		const FString SourcePath{ HyperlinkPlugin->GetBaseDir() / TEXT("Resources") / TEXT("ProtocolHandler.exe") };
+		const FString SourcePath{ HyperlinkPlugin->GetBaseDir() / TEXT("Resources") / TEXT("UnrealHyperlink.bat") };
 		if (FPaths::FileExists(SourcePath))
 		{
 			IFileManager::Get().Copy(*DestPath, *SourcePath);
+		}
+		else
+		{
+			UE_LOG(LogHyperlinkEditor, Error, TEXT("Could not find protocol handler at path: %s"), *SourcePath);
 		}
 	}
 }
 
 FString FHyperlinkEditorModule::GetProtocolHandlerPath()
 {
-	return FPlatformMisc::GetEnvironmentVariable(TEXT("LocalAppData")) + TEXT(R"(\UnrealHyperlink\ProtocolHandler.exe)");
+	return FPlatformMisc::GetEnvironmentVariable(TEXT("LocalAppData")) + TEXT(R"(\UnrealHyperlink\UnrealHyperlink.bat)");
+}
+
+void FHyperlinkEditorModule::RegisterCustomisation()
+{
+	FPropertyEditorModule& PropertyEditorModule =
+	FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor"));
+	PropertyEditorModule.RegisterCustomClassLayout(UHyperlinkSettings::StaticClass()->GetFName(),
+		FOnGetDetailCustomizationInstance::CreateStatic(&FHyperlinkSettingsCustomization::MakeInstance));
+}
+
+void FHyperlinkEditorModule::RegisterPaste()
+{
+	// Map actions
+	FHyperlinkEditorCommands::Register();
+	IMainFrameModule& MainFrame{ FModuleManager::LoadModuleChecked<IMainFrameModule>(TEXT("MainFrame")) };
+	
+	FUICommandList& ActionList{ *MainFrame.GetMainFrameCommandBindings() };
+
+	ActionList.MapAction(
+		FHyperlinkEditorCommands::Get().PasteLink,
+		FExecuteAction::CreateStatic(&FHyperlinkEditorModule::PasteLink));
+
+	// Console command
+	PasteConsoleCommand = IConsoleManager::Get().RegisterConsoleCommand(
+		TEXT("uhl.PasteLink"),
+		TEXT("Execute a link stored in the clipboard"),
+		FConsoleCommandDelegate::CreateStatic(&FHyperlinkEditorModule::PasteLink));
+}
+
+void FHyperlinkEditorModule::UnregisterPaste()
+{
+	IMainFrameModule* const MainFrame{ FModuleManager::LoadModulePtr<IMainFrameModule>(TEXT("MainFrame")) };
+	if (MainFrame)
+	{
+		FUICommandList& ActionList = *MainFrame->GetMainFrameCommandBindings();
+		ActionList.UnmapAction(FHyperlinkEditorCommands::Get().PasteLink);
+	}
+	
+	FHyperlinkEditorCommands::Unregister();
+
+	IConsoleManager::Get().UnregisterConsoleObject(PasteConsoleCommand);
+	PasteConsoleCommand = nullptr;
 }
 
 /*static*/void FHyperlinkEditorModule::PasteLink()
 {
 	FString ClipboardContents{};
 	FPlatformApplicationMisc::ClipboardPaste(ClipboardContents);
-	GEngine->GetEngineSubsystem<UHyperlinkSubsystem>()->ExecuteLink(ClipboardContents);
+	ExecuteLinkFromString(ClipboardContents);
+}
+
+void FHyperlinkEditorModule::StartHttpServer()
+{
+	if (!HttpRouter.IsValid())
+	{
+		// TODO: we need to restart the server if the user changes this port
+		const uint32 ServerPort{ GetDefault<UHyperlinkSettings>()->GetLocalServerPort() };
+		HttpRouter = FHttpServerModule::Get().GetHttpRouter(ServerPort, /*bFailOnBindFailure = */true);
+		if (HttpRouter.IsValid())
+		{
+			// Use v1, v2, v3 etc for versioning
+			HttpRequestHandle = HttpRouter->BindRoute(
+				FHttpPath(TEXT("/v1/")),
+				EHttpServerRequestVerbs::VERB_GET,
+				HandleHttpRequest);
+
+			FHttpServerModule::Get().StartAllListeners();
+		}
+		else
+		{
+			UE_LOG(LogHyperlinkEditor, Error, TEXT("Hyperlink local server couldn't be started on port %d"),
+				ServerPort);
+		}
+	}
+}
+
+void FHyperlinkEditorModule::ShutdownHttpServer()
+{
+	if (HttpRouter.IsValid())
+	{
+		HttpRouter->UnbindRoute(HttpRequestHandle);
+	}
+
+	HttpRequestHandle.Reset();
+	HttpRouter.Reset();
+}
+
+bool FHyperlinkEditorModule::HandleHttpRequest(const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete)
+{
+	const FString& PathString = Request.RelativePath.GetPath();
+	const FString JsonString{ PathString.TrimChar('/') };
+	ExecuteLinkFromString(JsonString);
+
+	// Redirect to the local URL scheme as a workaround to close the opened tab (this only works on chrome but it's
+	// better than nothing
+	TUniquePtr<FHttpServerResponse> Response{ MakeUnique<FHttpServerResponse>() };
+	Response->Headers.Add(TEXT("Location"), { TEXT("unrealhyperlink://open") });
+	Response->Code = EHttpServerResponseCodes::Moved;
+	
+	OnComplete(MoveTemp(Response));
+	return true; // true = request handled
+}
+
+/*static*/void FHyperlinkEditorModule::ExecuteLinkFromString(const FString& InString)
+{
+	if (UHyperlinkSubsystem* const HyperlinkSubsystem{ GEngine->GetEngineSubsystem<UHyperlinkSubsystem>() })
+	{
+		HyperlinkSubsystem->ExecuteLink(InString);
+	}
+	else
+	{
+		UE_LOG(LogHyperlinkEditor, Error, TEXT("Could not execute link, could not find Hyperlink Subsystem!"));
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

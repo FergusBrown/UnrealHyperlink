@@ -15,6 +15,17 @@ class HYPERLINK_API UHyperlinkUtility : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
+	/* LINK HANDLING UTILITY */
+	UFUNCTION(BlueprintCallable, Category = "Hyperlink | Link Handling Utility")
+	static FString GetLinkBaseAddress();
+	
+	UFUNCTION(BlueprintCallable, Category = "Hyperlink | Link Handling Utility")
+	static FString CreateLinkFromPayload(TSubclassOf<UHyperlinkDefinition> DefinitionClass,
+		const FJsonObjectWrapper& InPayload);
+	
+	static FString CreateLinkFromPayload(TSubclassOf<UHyperlinkDefinition> DefinitionClass,
+		const TSharedRef<FJsonObject>& InPayload);
+	
 #if WITH_EDITOR
 	/* CODE ONLY UTILITY */
 	
@@ -28,7 +39,7 @@ public:
 #endif //WITH_EDITOR
 	
 	/* EDITOR UTILITY */
-	/* These functions should only be called in editor, never at runtime! */
+	/* These functions should only be called in editor, they'll do nothing at runtime! */
 	
 	UFUNCTION(BlueprintCallable, Category = "Hyperlink | Editor Utility")
 	static UObject* LoadObject(const FString& PackageName);
@@ -39,7 +50,7 @@ public:
 	 * @return The UObject the editor was opened for
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Hyperlink | Editor Utility")
-	static UObject* OpenEditorForAsset(const FString& PackageName);
+	static UObject* OpenEditorForAsset(const FName& PackageName);
 	
 	/* PARSING */
 	

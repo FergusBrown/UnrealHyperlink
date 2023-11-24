@@ -7,6 +7,7 @@
 #include "HyperlinkDefinition.h"
 #include "HyperlinkFormat.h"
 #include "HyperlinkSettings.h"
+#include "JsonObjectConverter.h"
 #include "Internationalization/Regex.h"
 #include "Log.h"
 
@@ -37,10 +38,45 @@ void UHyperlinkSubsystem::Deinitialize()
 #endif //WITH_EDITOR
 }
 
+void UHyperlinkSubsystem::StaticExecuteLink(const FHyperlinkExecutePayload& ExecutePayload)
+{
+	if (UHyperlinkSubsystem* const HyperlinkSubsystem{ GEngine->GetEngineSubsystem<UHyperlinkSubsystem>() })
+	{
+		HyperlinkSubsystem->ExecuteLink(ExecutePayload);
+		// if (Payload.JsonObject.IsValid())
+		// {
+		// 	//HyperlinkSubsystem->ExecuteLink(*Payload.JsonObject);
+		// }
+		// else
+		// {
+		// 	UE_LOG(LogHyperlink, Warning, TEXT("Failed to execute link: no valid JSON payload."));
+		// }
+	}
+	else
+	{
+		UE_LOG(LogHyperlink, Warning, TEXT("Cannot execute link: UHyperlinkSubsystem not yet initialised."));
+	}
+}
+
 void UHyperlinkSubsystem::RefreshDefinitions()
 {
 	DeinitDefinitions();
 	InitDefinitions();
+}
+
+UHyperlinkDefinition* UHyperlinkSubsystem::GetDefinition(
+	const TSubclassOf<UHyperlinkDefinition> DefinitionClass) const
+{
+	UHyperlinkDefinition* Ret{ nullptr };
+	for (const TPair<FString, TObjectPtr<UHyperlinkDefinition>>& Pair : Definitions)
+	{
+		if (Pair.Value->IsA(DefinitionClass))
+		{
+			Ret = Pair.Value;
+			break;
+		}
+	}
+	return Ret;
 }
 
 void UHyperlinkSubsystem::InitDefinitions()
@@ -98,19 +134,33 @@ void UHyperlinkSubsystem::CopyLinkConsole(const TArray<FString>& Args)
 }
 
 #if WITH_EDITOR
-void UHyperlinkSubsystem::ExecuteLink(const FString& Link)
+void UHyperlinkSubsystem::ExecuteLink(const FHyperlinkExecutePayload& ExecutePayload)
 {
+	// Proceed if we're not already executing a link
 	if (!PostEditorTickHandle.IsValid())
 	{
 		// Need to defer this to after editor tick is complete to ensure we avoid any crashes
 		// This is particularly important when the link handles opening a level
-		PostEditorTickHandle = GEngine->OnPostEditorTick().AddWeakLambda(this, [this, Link](float DeltaTime)
+		PostEditorTickHandle = GEngine->OnPostEditorTick().AddWeakLambda(this, [=](float DeltaTime)
 		{
-			ExecuteLinkDeferred(Link);
+			ExecuteLinkDeferred(ExecutePayload);
 			// Clear delegate
 			GEngine->OnPostEditorTick().Remove(PostEditorTickHandle);
 			PostEditorTickHandle.Reset();
 		});
+	}
+}
+
+void UHyperlinkSubsystem::ExecuteLink(const FString& InString)
+{
+	FHyperlinkExecutePayload Payload{};
+	if (TryGetPayloadFromString(InString, Payload))
+	{
+		ExecuteLink(Payload);
+	}
+	else
+	{
+		UE_LOG(LogHyperlink, Error, TEXT("Failed to deserialize link payload: %s"), *InString);
 	}
 }
 
@@ -127,32 +177,37 @@ void UHyperlinkSubsystem::ExecuteLinkConsole(const TArray<FString>& Args)
 }
 
 // NOLINTNEXTLINE(performance-unnecessary-value-param) : when passed by ref passed variable goes out of scope
-void UHyperlinkSubsystem::ExecuteLinkDeferred(const FString Link) const
+void UHyperlinkSubsystem::ExecuteLinkDeferred(const FHyperlinkExecutePayload ExecutePayload) const
 {
-	const FRegexPattern TypePattern{ FHyperlinkFormat::GetLinkRegexBase() +
-		TEXT(R"(\/(\w+)(\/\S+))") };
-	
-	FRegexMatcher Matcher{ TypePattern, Link };
-	if (Matcher.FindNext())
+	if (ExecutePayload.Class && ExecutePayload.DefinitionPayload.JsonObject.IsValid())
 	{
-		const FString DefName{Matcher.GetCaptureGroup(1)};
-		if (const TObjectPtr<UHyperlinkDefinition>* Def{Definitions.Find(DefName)})
+		if (UHyperlinkDefinition* const Definition{ GetDefinition(ExecutePayload.Class) })
 		{
-			const FString LinkBody{Matcher.GetCaptureGroup(2)};
-			UE_LOG(LogHyperlink, Display, TEXT("Executing %s link with body %s"), *DefName, *LinkBody);
-
-			(*Def)->ExecuteLinkBody(LinkBody);
+			Definition->ExecutePayload(ExecutePayload.DefinitionPayload.JsonObject.ToSharedRef());
 		}
 		else
 		{
-			UE_LOG(LogHyperlink, Error, TEXT("Could not find definition with name %s"), *DefName);
+			UE_LOG(LogHyperlink, Error, TEXT("Could not find registered definition with class %s"),
+				*ExecutePayload.Class->GetDisplayNameText().ToString()	);
 		}
 	}
 	else
 	{
-		UE_LOG(LogHyperlink, Error,
-			   TEXT("Failed to extract definition name from %s. Ensure link is in the format %s"), *Link,
-			   FHyperlinkFormat::StructureHint);
+		UE_LOG(LogHyperlink, Warning, TEXT("Invalid payload, link execution aborted."));
+		
 	}
+}
+
+/*static*/bool UHyperlinkSubsystem::TryGetPayloadFromString(const FString& InString, FHyperlinkExecutePayload& OutPayload)
+{
+	bool bResult{ false };
+	
+	FRegexMatcher Matcher{ FRegexPattern(TEXT("{.*}$")), InString };
+	if (Matcher.FindNext())
+	{
+		bResult = FJsonObjectConverter::JsonObjectStringToUStruct(Matcher.GetCaptureGroup(0), &OutPayload);
+	}
+
+	return bResult;
 }
 #endif //WITH_EDITOR

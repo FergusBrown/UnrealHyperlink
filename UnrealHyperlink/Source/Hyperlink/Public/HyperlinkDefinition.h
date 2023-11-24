@@ -6,8 +6,6 @@
 #include "UObject/Object.h"
 #include "HyperlinkDefinition.generated.h"
 
-class UHyperlinkDefinitionSettings;
-
 /**
  * Abstract class for defining hyperlink types
  */
@@ -20,40 +18,31 @@ public:
 	FString GetIdentifier() const;
 	void SetIdentifier(const FString& InIdentifier);
 	
-	void ExecuteLinkBody(const FString& InLinkBody);
-	
 	/* Setup any commands, menu extensions etc. which can be used to generate this link */
 	virtual void Initialize() {}
 
 	/* Tear down anything setup in Initialize */
 	virtual void Deinitialize() {}
 
-	/* Construct the base of the link without the body */
-	FString GetHyperlinkBase() const;
-
-	/* Generate a link using current editor/game state */
-	virtual bool GenerateLink(FString& OutLink) const { return false; }
-
-	/* Generate a link using the GenerateLink function and copy it to clipboard */
+	/* Generate payload using current editor/game state */
+	virtual TSharedPtr<FJsonObject> GeneratePayload() const { return TSharedPtr<FJsonObject>(); }
+	
+	/* Generate a link using the GeneratePayload function and copy it to clipboard */
 	void CopyLink() const;
 
-	/* Generate a link using the GenerateLink function and log it */
+	/* Generate a link using the GeneratePayload function and log it */
 	void PrintLink() const;
+
+#if WITH_EDITOR
+	virtual void ExecutePayload(const TSharedRef<FJsonObject>& InPayload) PURE_VIRTUAL(UHyperlinkDefinition::ExecutePayload, );
+#endif //WITH_EDITOR
 
 protected:
 	static void CopyLink(const FString& InLink);
-
-#if WITH_EDITOR
-	virtual void ExecuteExtractedArgs(const TArray<FString>& LinkArguments) PURE_VIRTUAL(UHyperlinkDefinition::ExecuteExtractedArgs, );
-#endif //WITH_EDITOR
 	
 protected:
 	/* The name used to identify this type of link */
 	UPROPERTY(EditDefaultsOnly, Transient)
 	FString DefinitionIdentifier{ TEXT("") };
-
-	/* Used to validate a received link */
-	UPROPERTY(EditDefaultsOnly, Transient)
-	FString BodyPattern{ TEXT(".*") };
 	
 };

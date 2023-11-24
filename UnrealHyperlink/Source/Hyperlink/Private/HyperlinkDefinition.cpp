@@ -5,6 +5,8 @@
 
 #include "HyperlinkFormat.h"
 #include "HyperlinkSettings.h"
+#include "HyperlinkUtility.h"
+#include "JsonObjectConverter.h"
 #include "Internationalization/Regex.h"
 #include "Log.h"
 #include "Windows/WindowsPlatformApplicationMisc.h"
@@ -19,39 +21,12 @@ void UHyperlinkDefinition::SetIdentifier(const FString& InIdentifier)
 	DefinitionIdentifier = InIdentifier;
 }
 
-void UHyperlinkDefinition::ExecuteLinkBody(const FString& InLinkBody)
-{
-	const FRegexPattern LinkPattern{ BodyPattern };
-	FRegexMatcher LinkMatcher{ LinkPattern, InLinkBody };
-
-	if (LinkMatcher.FindNext())
-	{
-		TArray<FString> LinkArgs{};
-		int32 Idx{ 0 };
-		while (!LinkMatcher.GetCaptureGroup(Idx).IsEmpty())
-		{
-			LinkArgs.Emplace(LinkMatcher.GetCaptureGroup(Idx));
-			++Idx;
-		}
-		ExecuteExtractedArgs(LinkArgs);
-	}
-	else
-	{
-		UE_LOG(LogHyperlink, Warning, TEXT("Link did not match %s pattern %s"), *DefinitionIdentifier, *BodyPattern);
-	}
-}
-
-FString UHyperlinkDefinition::GetHyperlinkBase() const
-{
-	return FHyperlinkFormat::GetLinkGenerationBase() / DefinitionIdentifier;
-}
-
 void UHyperlinkDefinition::CopyLink() const
 {
-	FString Link{}; 
-	if (GenerateLink(Link))
+	if (const TSharedPtr<FJsonObject> Payload{ GeneratePayload() })
 	{
-		CopyLink(*Link);
+		const FString ExecutePayloadString{ UHyperlinkUtility::CreateLinkFromPayload(this->GetClass(), Payload.ToSharedRef()) };
+		CopyLink(ExecutePayloadString);
 	}
 	else
 	{
@@ -61,10 +36,10 @@ void UHyperlinkDefinition::CopyLink() const
 
 void UHyperlinkDefinition::PrintLink() const
 {
-	FString Link{}; 
-	if (GenerateLink(Link))
+	if (const TSharedPtr<FJsonObject> Payload{ GeneratePayload() })
 	{
-		UE_LOG(LogHyperlink, Display, TEXT("%s"), *Link);
+		UE_LOG(LogHyperlink, Display, TEXT("%s"),
+			*UHyperlinkUtility::CreateLinkFromPayload(this->GetClass(), Payload.ToSharedRef()));
 	}
 	else
 	{

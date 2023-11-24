@@ -30,11 +30,10 @@ public:
 	virtual void Initialize() override;
 	virtual void Deinitialize() override;
 
-	virtual bool GenerateLink(FString& OutLink) const override;
-	FString GenerateLinkFromPackageName(const FString& PackageName) const;
-
-protected:
-	virtual void ExecuteExtractedArgs(const TArray<FString>& LinkArguments) override;
+	virtual TSharedPtr<FJsonObject> GeneratePayload() const override;
+	TSharedPtr<FJsonObject> GeneratePayloadFromPackageName(const FName& PackageName) const;
+	
+	virtual void ExecutePayload(const TSharedRef<FJsonObject>& InPayload) override;
 	
 private:
 	FDelegateHandle KeyboardShortcutHandle{};

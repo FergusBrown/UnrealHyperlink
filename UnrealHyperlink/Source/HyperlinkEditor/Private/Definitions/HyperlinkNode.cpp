@@ -5,9 +5,9 @@
 
 #include "BlueprintEditor.h"
 #include "GraphEditorModule.h"
-#include "HyperlinkFormat.h"
 #include "HyperlinkUtility.h"
 #include "IMaterialEditor.h"
+#include "JsonObjectConverter.h"
 #include "Log.h"
 #include "Toolkits/ToolkitManager.h"
 
@@ -33,14 +33,14 @@ void FHyperlinkNodeCommands::RegisterCommands()
 UHyperlinkNode::UHyperlinkNode()
 {
 	DefinitionIdentifier = TEXT("Node");
-
-	// TODO: make final group optional (materials only need the node GUID)
-	BodyPattern = FString::Printf(TEXT(R"((.*)%s(\S{32})%s(\S{32}))"),
-		&FHyperlinkFormat::ArgSeparator, &FHyperlinkFormat::ArgSeparator);
 }
 
 void UHyperlinkNode::Initialize()
 {
+	FString ObjectPath = this->GetPathName();
+	UE_LOG(LogHyperlinkEditor, Error, TEXT("NODE: %s"), *ObjectPath);
+	
+	
 	FHyperlinkNodeCommands::Register();
 	NodeCommands = MakeShared<FUICommandList>();
 	NodeCommands->MapAction(
@@ -87,15 +87,15 @@ void UHyperlinkNode::Deinitialize()
 	FHyperlinkNodeCommands::Unregister();
 }
 
-bool UHyperlinkNode::GenerateLink(FString& OutLink) const
+TSharedPtr<FJsonObject> UHyperlinkNode::GeneratePayload() const
 {
-	const bool bGraphObjectsValid{ SelectedNode.IsValid() && ActiveGraph.IsValid() };
-	
-	if (bGraphObjectsValid)
+	TSharedPtr<FJsonObject> Payload{ nullptr };
+
+	if (SelectedNode.IsValid() && ActiveGraph.IsValid())
 	{
 		UObject* const AssetObject{ ActiveGraph->GetOuter() };
 		
-		FString AssetPackageName{};
+		FName AssetPackageName{};
 		FGuid GraphGuid{};
 		FGuid NodeGuid{};
 		bool bLinkParamsFound{ false };
@@ -112,7 +112,7 @@ bool UHyperlinkNode::GenerateLink(FString& OutLink) const
 		}
 		else
 		{
-			AssetPackageName = AssetObject->GetPackage()->GetName();
+			AssetPackageName = AssetObject->GetPackage()->GetFName();
 			GraphGuid = ActiveGraph->GraphGuid;
 			NodeGuid = SelectedNode->NodeGuid;
 			bLinkParamsFound = true;
@@ -120,7 +120,7 @@ bool UHyperlinkNode::GenerateLink(FString& OutLink) const
 			
 		if (bLinkParamsFound)
 		{
-			OutLink = GenerateLink(AssetPackageName, GraphGuid, NodeGuid);
+			Payload = GeneratePayload(AssetPackageName, GraphGuid, NodeGuid);
 		}
 		else
 		{
@@ -132,40 +132,47 @@ bool UHyperlinkNode::GenerateLink(FString& OutLink) const
 		UE_LOG(LogHyperlinkEditor, Display, TEXT("Cannot generate Node link: no graph editor node is selected."));
 	}
 
-	return bGraphObjectsValid;
+	return Payload;
 }
 
-FString UHyperlinkNode::GenerateLink(const FString& AssetPackageName, const FGuid& GraphGuid, const FGuid& NodeGuid) const
+TSharedPtr<FJsonObject> UHyperlinkNode::GeneratePayload(const FName& AssetPackageName, const FGuid& GraphGuid, const FGuid& NodeGuid) const
 {
-	return GetHyperlinkBase() / AssetPackageName + FHyperlinkFormat::ArgSeparator + GraphGuid.ToString() +
-		FHyperlinkFormat::ArgSeparator + NodeGuid.ToString();
+	const FHyperlinkNodePayload PayloadStruct
+	{
+		AssetPackageName,
+		GraphGuid,
+		NodeGuid
+	};
+	return FJsonObjectConverter::UStructToJsonObject(PayloadStruct);
 }
 
-void UHyperlinkNode::ExecuteExtractedArgs(const TArray<FString>& LinkArguments)
+void UHyperlinkNode::ExecutePayload(const TSharedRef<FJsonObject>& InPayload)
 {
-	const FString& PackageName{ LinkArguments[1] };
-	const FString& GraphGuidString{ LinkArguments[2] };
-	const FString& NodeGuidString{ LinkArguments[3] };
+	FHyperlinkNodePayload PayloadStruct{};
+	if (FJsonObjectConverter::JsonObjectToUStruct(InPayload, &PayloadStruct))
+	{
+		const FName& PackageName{ PayloadStruct.PackageName };
+		const FGuid GraphGuid{ PayloadStruct.GraphGuid };
+		const FGuid NodeGuid{ PayloadStruct.NodeGuid };
 
-	const FGuid GraphGuid{ FGuid(GraphGuidString) };
-	const FGuid NodeGuid{ FGuid(NodeGuidString) };
-
-	const UObject* const EditedObject{ UHyperlinkUtility::OpenEditorForAsset(PackageName) };
-	if (const UBlueprint* const Blueprint{ Cast<UBlueprint>(EditedObject) })
-	{
-		ExecuteBlueprintLink(*Blueprint, GraphGuid, NodeGuid);
-	}
-	else if (const UMaterial* const Material{ Cast<UMaterial>(EditedObject) })
-	{
-		ExecuteMaterialLink(*Material, NodeGuid);
-	}
-	else if (const UMaterialFunction* const MaterialFunction{ Cast<UMaterialFunction>(EditedObject) })
-	{
-		ExecuteMaterialLink(*MaterialFunction, NodeGuid);
-	}
-	else
-	{
-		UE_LOG(LogHyperlinkEditor, Error, TEXT("Failed to execute node link: unsupported asset type"));
+		const UObject* const EditedObject{ UHyperlinkUtility::OpenEditorForAsset(PackageName) };
+		if (const UBlueprint* const Blueprint{ Cast<UBlueprint>(EditedObject) })
+		{
+			ExecuteBlueprintLink(*Blueprint, GraphGuid, NodeGuid);
+		}
+		else if (const UMaterial* const Material{ Cast<UMaterial>(EditedObject) })
+		{
+			// TODO: bug with materials when there's a node that's used more than once in a graph
+			ExecuteMaterialLink(*Material, NodeGuid);
+		}
+		else if (const UMaterialFunction* const MaterialFunction{ Cast<UMaterialFunction>(EditedObject) })
+		{
+			ExecuteMaterialLink(*MaterialFunction, NodeGuid);
+		}
+		else
+		{
+			UE_LOG(LogHyperlinkEditor, Error, TEXT("Failed to execute node link: unsupported asset type"));
+		}
 	}
 }
 
@@ -189,7 +196,7 @@ bool UHyperlinkNode::TryGetExtensionPoint(const UClass* const Class, FName& OutE
 	return bResult;
 }
 
-bool UHyperlinkNode::TryGetMaterialParams(const UMaterial& InMaterial, FString& OutPackageName, FGuid& OutGraphGuid,
+bool UHyperlinkNode::TryGetMaterialParams(const UMaterial& InMaterial, FName& OutPackageName, FGuid& OutGraphGuid,
 	FGuid& OutNodeGuid) const
 {
 	bool bResult{ false };
@@ -222,7 +229,7 @@ bool UHyperlinkNode::TryGetMaterialParams(const UMaterial& InMaterial, FString& 
 			
 			if (MaterialPtr)
 			{
-				OutPackageName = (*MaterialPtr)->GetPackage()->GetName();
+				OutPackageName = (*MaterialPtr)->GetPackage()->GetFName();
 				bResult = true;
 			}
 		}
