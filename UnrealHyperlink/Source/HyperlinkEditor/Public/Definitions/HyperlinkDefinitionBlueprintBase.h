@@ -6,12 +6,11 @@
 #include "HyperlinkDefinition.h"
 #include "HyperlinkDefinitionBlueprintBase.generated.h"
 
-struct FJsonObjectWrapper;
 /**
  * Base class for implementing hyperlink definitions with blueprints
  */
 UCLASS(Abstract, Blueprintable)
-class HYPERLINK_API UHyperlinkDefinitionBlueprintBase : public UHyperlinkDefinition
+class HYPERLINKEDITOR_API UHyperlinkDefinitionBlueprintBase : public UHyperlinkDefinition
 {
 	GENERATED_BODY()
 
@@ -31,8 +30,8 @@ protected:
 	void DeinitializeImpl();
 
 	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="GeneratePayload"))
-	FJsonObjectWrapper GeneratePayloadImpl() const;
+	FString GeneratePayloadImpl() const;
 
-	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="ExecuteExtractedArgs"))
-	void ExecutePayloadImpl(const FJsonObjectWrapper& Payload);
+	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="ExecutePayload"))
+	void ExecutePayloadImpl(const FString& Payload);
 };
