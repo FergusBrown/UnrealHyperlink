@@ -21,7 +21,6 @@ public class HyperlinkEditor : ModuleRules
                 "AssetRegistry",
                 "AssetTools",
                 "CoreUObject",
-                "DeveloperSettings",
                 "EditorSubsystem",
                 "Engine",
                 "Hyperlink",
