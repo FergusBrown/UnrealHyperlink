@@ -41,7 +41,7 @@ public:
 
 #if WITH_EDITOR
 protected:
-	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) override;
+	virtual void ExecuteExtractedArgs(const TArray<FString>& LinkArguments) override;
 #endif //WITH_EDITOR
 
 private:

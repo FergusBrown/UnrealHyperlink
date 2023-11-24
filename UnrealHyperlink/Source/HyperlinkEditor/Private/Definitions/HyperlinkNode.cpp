@@ -6,7 +6,7 @@
 #include "BlueprintEditor.h"
 #include "GraphEditorModule.h"
 #include "HyperlinkFormat.h"
-#include "HyperlinkUtils.h"
+#include "HyperlinkUtility.h"
 #include "Log.h"
 
 #define LOCTEXT_NAMESPACE "HyperlinkNode"
@@ -48,7 +48,7 @@ void UHyperlinkNode::Initialize()
 	// TODO: See if it's possible to add keyboard shortcut to graph editor. Would have to be added SGraphEditor on creation
 	FGraphEditorModule::FGraphEditorMenuExtender_SelectedNode SelectedNodesDelegate
 	{
-		FGraphEditorModule::FGraphEditorMenuExtender_SelectedNode::CreateLambda([=](const TSharedRef<FUICommandList>,
+		FGraphEditorModule::FGraphEditorMenuExtender_SelectedNode::CreateLambda([=](const TSharedRef<FUICommandList>&,
 			const UEdGraph* Graph, const UEdGraphNode* Node, const UEdGraphPin*, bool)
 			{
 				ActiveGraph = Graph;
@@ -58,7 +58,7 @@ void UHyperlinkNode::Initialize()
 				if (Cast<UBlueprint>(Graph->GetOuter()))
 				{
 					// TODO: current extension point doesn't work for all node types
-					return FHyperlinkUtils::GetMenuExtender(TEXT("EdGraphSchemaNodeActions"), EExtensionHook::After,
+					return UHyperlinkUtility::GetMenuExtender(TEXT("EdGraphSchemaNodeActions"), EExtensionHook::After,
 						NodeCommands, FHyperlinkNodeCommands::Get().CopyNodeLink, TEXT("CopyNodeLink"));
 				}
 				else
@@ -106,7 +106,7 @@ FString UHyperlinkNode::GenerateLink(const FString& AssetPackageName, const FGui
 		FHyperlinkFormat::ArgSeparator + NodeGuid.ToString();
 }
 
-void UHyperlinkNode::ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments)
+void UHyperlinkNode::ExecuteExtractedArgs(const TArray<FString>& LinkArguments)
 {
 	const FString& PackageName{ LinkArguments[1] };
 	const FString& GraphGuidString{ LinkArguments[2] };
@@ -115,7 +115,7 @@ void UHyperlinkNode::ExecuteLinkBodyInternal(const TArray<FString>& LinkArgument
 	const FGuid GraphGuid{ FGuid(GraphGuidString) };
 	const FGuid NodeGuid{ FGuid(NodeGuidString) };
 
-	if (UBlueprint* const Blueprint{ Cast<UBlueprint>(FHyperlinkUtils::OpenEditorForAsset(PackageName)) })
+	if (UBlueprint* const Blueprint{ Cast<UBlueprint>(UHyperlinkUtility::OpenEditorForAsset(PackageName)) })
 	{
 		TArray<UEdGraph*> AllGraphs{};
 		Blueprint->GetAllGraphs(AllGraphs);

@@ -35,7 +35,7 @@ public:
 	FString GenerateLinkFromPath(const FString& PackageOrFolderName) const;
 
 protected:
-	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) override;
+	virtual void ExecuteExtractedArgs(const TArray<FString>& LinkArguments) override;
 	
 private:
 	FDelegateHandle KeyboardShortcutHandle{};

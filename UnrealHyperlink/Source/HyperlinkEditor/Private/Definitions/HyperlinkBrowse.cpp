@@ -6,7 +6,7 @@
 #include "AssetRegistry/IAssetRegistry.h"
 #include "ContentBrowserModule.h"
 #include "Editor.h"
-#include "HyperlinkUtils.h"
+#include "HyperlinkUtility.h"
 #include "IContentBrowserSingleton.h"
 #include "Log.h"
 
@@ -47,10 +47,10 @@ void UHyperlinkBrowse::Initialize()
 		FExecuteAction::CreateUObject(this, &UHyperlinkDefinition::CopyLink));
 	
 	// Context menu extensions
-	FHyperlinkUtils::ExtendToolMenuSection(TEXT("ContentBrowser.AssetContextMenu"), TEXT("CommonAssetActions"),
+	UHyperlinkUtility::ExtendToolMenuSection(TEXT("ContentBrowser.AssetContextMenu"), TEXT("CommonAssetActions"),
 	BrowseCommands, FHyperlinkBrowseCommands::Get().CopyBrowseLink);
 
-	FHyperlinkUtils::ExtendToolMenuSection(TEXT("ContentBrowser.FolderContextMenu"), TEXT("PathViewFolderOptions"),
+	UHyperlinkUtility::ExtendToolMenuSection(TEXT("ContentBrowser.FolderContextMenu"), TEXT("PathViewFolderOptions"),
 	BrowseCommands, FHyperlinkBrowseCommands::Get().CopyFolderLink);
 	
 	// Keyboard shortcut command
@@ -59,7 +59,7 @@ void UHyperlinkBrowse::Initialize()
 	FContentBrowserCommandExtender CommandExtender
 	{
 		FContentBrowserCommandExtender::CreateLambda(
-			[this](TSharedRef<FUICommandList> CommandList, FOnContentBrowserGetSelection GetSelectionDelegate)
+			[this](TSharedRef<FUICommandList> CommandList, FOnContentBrowserGetSelection GetSelectionDelegate) // NOLINT (performance-unnecessary-value-param) Delegate signature
 			{
 				CommandList->Append(BrowseCommands.ToSharedRef());
 			}
@@ -135,7 +135,7 @@ FString UHyperlinkBrowse::GenerateLinkFromPath(const FString& PackageOrFolderNam
 	return GetHyperlinkBase() / PackageOrFolderName;
 }
 
-void UHyperlinkBrowse::ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments)
+void UHyperlinkBrowse::ExecuteExtractedArgs(const TArray<FString>& LinkArguments)
 {
   	TArray<FAssetData> LinkAssetData{};
 	IAssetRegistry::Get()->GetAssetsByPackageName(FName(LinkArguments[0]), LinkAssetData);

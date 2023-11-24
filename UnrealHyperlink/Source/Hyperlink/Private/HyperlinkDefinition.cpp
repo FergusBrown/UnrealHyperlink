@@ -33,7 +33,7 @@ void UHyperlinkDefinition::ExecuteLinkBody(const FString& InLinkBody)
 			LinkArgs.Emplace(LinkMatcher.GetCaptureGroup(Idx));
 			++Idx;
 		}
-		ExecuteLinkBodyInternal(LinkArgs);
+		ExecuteExtractedArgs(LinkArgs);
 	}
 	else
 	{

@@ -33,7 +33,7 @@ public:
 	FString GenerateLink(const FString& AssetPackageName, const FGuid& GraphGuid, const FGuid& NodeGuid) const;
 
 protected:
-	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) override;
+	virtual void ExecuteExtractedArgs(const TArray<FString>& LinkArguments) override;
 
 private:
 	TSharedPtr<FUICommandList> NodeCommands{};

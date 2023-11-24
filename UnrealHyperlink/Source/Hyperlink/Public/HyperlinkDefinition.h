@@ -11,7 +11,7 @@ class UHyperlinkDefinitionSettings;
 /**
  * Abstract class for defining hyperlink types
  */
-UCLASS(Abstract, Config = Hyperlink) // TODO: consider making blueprintable. All the virtuals will need to be made into blueprint native events
+UCLASS(Abstract, Config = Hyperlink)
 class HYPERLINK_API UHyperlinkDefinition : public UObject
 {
 	GENERATED_BODY()
@@ -25,7 +25,7 @@ public:
 	/* Setup any commands, menu extensions etc. which can be used to generate this link */
 	virtual void Initialize() {}
 
-	/* Tear down anything setup in Initialize*/
+	/* Tear down anything setup in Initialize */
 	virtual void Deinitialize() {}
 
 	/* Construct the base of the link without the body */
@@ -48,14 +48,16 @@ protected:
 	static void CopyLink(const FString& InLink);
 
 #if WITH_EDITOR
-	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) PURE_VIRTUAL(UHyperlinkDefinition::ExecuteLinkBodyInternal, );
+	virtual void ExecuteExtractedArgs(const TArray<FString>& LinkArguments) PURE_VIRTUAL(UHyperlinkDefinition::ExecuteExtractedArgs, );
 #endif //WITH_EDITOR
 	
 protected:
 	/* The name used to identify this type of link */
+	UPROPERTY(EditDefaultsOnly, Transient)
 	FString DefinitionIdentifier{ TEXT("") };
 
 	/* Used to validate a received link */
+	UPROPERTY(EditDefaultsOnly, Transient)
 	FString BodyPattern{ TEXT(".*") };
 	
 };

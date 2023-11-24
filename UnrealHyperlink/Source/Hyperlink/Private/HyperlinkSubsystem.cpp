@@ -126,6 +126,7 @@ void UHyperlinkSubsystem::ExecuteLinkConsole(const TArray<FString>& Args)
 	}
 }
 
+// NOLINTNEXTLINE(performance-unnecessary-value-param) : when passed by ref passed variable goes out of scope
 void UHyperlinkSubsystem::ExecuteLinkDeferred(const FString Link) const
 {
 	const FRegexPattern TypePattern{ FHyperlinkFormat::GetLinkRegexBase() +

@@ -4,7 +4,7 @@
 #include "Definitions/HyperlinkLevelActor.h"
 
 #include "HyperlinkFormat.h"
-#include "HyperlinkUtils.h"
+#include "HyperlinkUtility.h"
 #include "LevelEditor.h"
 #include "Log.h"
 #include "Selection.h"
@@ -48,7 +48,7 @@ void UHyperlinkLevelActor::Initialize()
 	LevelEditor.GetGlobalLevelEditorActions()->Append(LevelActorCommands.ToSharedRef());
 
 	// TODO: There's a bug where this doesn't work in the world outliner context menu
-	FHyperlinkUtils::ExtendToolMenuSection(TEXT("LevelEditor.ActorContextMenu"), TEXT("ActorOptions"),
+	UHyperlinkUtility::ExtendToolMenuSection(TEXT("LevelEditor.ActorContextMenu"), TEXT("ActorOptions"),
 	LevelActorCommands, FHyperlinkLevelActorCommands::Get().CopyLevelActorLink);
 }
 
@@ -76,12 +76,12 @@ bool UHyperlinkLevelActor::GenerateLink(FString& OutLink) const
 	return bSuccess;
 }
 
-void UHyperlinkLevelActor::ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments)
+void UHyperlinkLevelActor::ExecuteExtractedArgs(const TArray<FString>& LinkArguments)
 {
 	const FString& LevelPackageName{ LinkArguments[1] };
 	const FString& ActorName{ LinkArguments[2] };
 
-	FHyperlinkUtils::OpenEditorForAsset(LevelPackageName);
+	UHyperlinkUtility::OpenEditorForAsset(LevelPackageName);
 	if (AActor* const ActorToSelect{ GEditor->SelectNamedActor(*ActorName) })
 	{
 		GEditor->SelectNone(true, true);

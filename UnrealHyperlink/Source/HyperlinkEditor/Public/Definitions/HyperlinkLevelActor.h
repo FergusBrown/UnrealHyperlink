@@ -32,7 +32,7 @@ public:
 	virtual bool GenerateLink(FString& OutLink) const override;
 
 protected:
-	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) override;
+	virtual void ExecuteExtractedArgs(const TArray<FString>& LinkArguments) override;
 	
 private:
 	TSharedPtr<FUICommandList> LevelActorCommands{};

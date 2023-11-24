@@ -15,7 +15,7 @@ class FHyperlinkClassEntryArrayBuilder
 public:
 	FHyperlinkClassEntryArrayBuilder(const TSharedRef<IPropertyHandle>& InBaseProperty);
 	
-	static TSharedRef<FHyperlinkClassEntryArrayBuilder> MakeInstance(TSharedRef<IPropertyHandle> InPropertyHandle);
+	static TSharedRef<FHyperlinkClassEntryArrayBuilder> MakeInstance(const TSharedRef<IPropertyHandle>& InPropertyHandle);
 	
 	// FDetailArrayBuilder Interface
 	virtual void GenerateHeaderRowContent(FDetailWidgetRow& NodeRow) override;

@@ -5,7 +5,7 @@
 
 #include "GameFramework/PlayerController.h"
 #include "HyperlinkFormat.h"
-#include "HyperlinkUtils.h"
+#include "HyperlinkUtility.h"
 #include "LevelEditor.h"
 #include "Log.h"
 #if WITH_EDITOR
@@ -36,7 +36,7 @@ UHyperlinkViewport::UHyperlinkViewport()
 {
 	DefinitionIdentifier = TEXT("Viewport");
 
-	BodyPattern = FString::Printf(TEXT("(.+)%s([0-9A-F]{%d})"), &FHyperlinkFormat::ArgSeparator, FHyperlinkUtils::VectorStringLength * 2);
+	BodyPattern = FString::Printf(TEXT("(.+)%s([0-9A-F]{%d})"), &FHyperlinkFormat::ArgSeparator, UHyperlinkUtility::VectorStringLength * 2);
 }
 
 void UHyperlinkViewport::Initialize()
@@ -54,7 +54,7 @@ void UHyperlinkViewport::Initialize()
 		const FLevelEditorModule& LevelEditor{ FModuleManager::LoadModuleChecked<FLevelEditorModule>(TEXT("LevelEditor")) };
 		LevelEditor.GetGlobalLevelEditorActions()->Append(ViewportCommands.ToSharedRef());
 
-		FHyperlinkUtils::ExtendToolMenuSection(TEXT("LevelEditor.ActorContextMenu"), TEXT("ActorOptions"),
+		UHyperlinkUtility::ExtendToolMenuSection(TEXT("LevelEditor.ActorContextMenu"), TEXT("ActorOptions"),
 		ViewportCommands, FHyperlinkViewportCommands::Get().CopyViewportLink);
 	}
 #endif //WITH_EDITOR
@@ -115,7 +115,7 @@ bool UHyperlinkViewport::GenerateLink(FString& OutLink) const
 FString UHyperlinkViewport::GenerateLink(const FString& InLevelPackageName, const FVector& InLocation, const FRotator& InRotation) const
 {
 	return GetHyperlinkBase() / InLevelPackageName + FHyperlinkFormat::ArgSeparator +
-		FHyperlinkUtils::VectorToHexString(InLocation) + FHyperlinkUtils::VectorToHexString(InRotation.Vector());
+		UHyperlinkUtility::VectorToHexString(InLocation) + UHyperlinkUtility::VectorToHexString(InRotation.Vector());
 }
 
 /*static*/bool UHyperlinkViewport::GetGameWorldCameraInfo(const UWorld* const World, FVector& OutLocation, FRotator& OutRotation)
@@ -135,17 +135,17 @@ FString UHyperlinkViewport::GenerateLink(const FString& InLevelPackageName, cons
 }
 
 #if WITH_EDITOR
-void UHyperlinkViewport::ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments)
+void UHyperlinkViewport::ExecuteExtractedArgs(const TArray<FString>& LinkArguments)
 {
 	// Extract link info
 	const FString& LevelPackageName{ LinkArguments[1] };
 	
 	const FString& VectorStrings{ LinkArguments[2] };
-	const FString LocationString{ VectorStrings.Mid(0, FHyperlinkUtils::VectorStringLength) };
-	const FString RotationString{ VectorStrings.Mid(FHyperlinkUtils::VectorStringLength, FHyperlinkUtils::VectorStringLength) };
+	const FString LocationString{ VectorStrings.Mid(0, UHyperlinkUtility::VectorStringLength) };
+	const FString RotationString{ VectorStrings.Mid(UHyperlinkUtility::VectorStringLength, UHyperlinkUtility::VectorStringLength) };
 
-	const FVector Location{ FHyperlinkUtils::HexStringToVector(LocationString) };
-	const FRotator Rotation{ FHyperlinkUtils::HexStringToVector(RotationString).Rotation() };
+	const FVector Location{ UHyperlinkUtility::HexStringToVector(LocationString) };
+	const FRotator Rotation{ UHyperlinkUtility::HexStringToVector(RotationString).Rotation() };
 	
 	// Attempt to teleport pawn in PIE
 	if (const FWorldContext* const PieWorldContext{ GEditor->GetPIEWorldContext() })
@@ -165,7 +165,7 @@ void UHyperlinkViewport::ExecuteLinkBodyInternal(const TArray<FString>& LinkArgu
 	}
 	
 	// If PIE teleport fails open the level and move viewport to location
-	if(FHyperlinkUtils::OpenEditorForAsset(LevelPackageName))
+	if(UHyperlinkUtility::OpenEditorForAsset(LevelPackageName))
 	{
 			UUnrealEditorSubsystem* const UnrealEditorSubsystem{ GEditor->GetEditorSubsystem<UUnrealEditorSubsystem>() };
 			UnrealEditorSubsystem->SetLevelViewportCameraInfo(Location, Rotation);

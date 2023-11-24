@@ -45,7 +45,16 @@ public:
 	
 #if WITH_EDITOR
 private:
+	/* Delegates functions for different stages of editor initialisation */
 	void OnAllModulesLoaded();
+	void OnAssetRegistryReady();
+
+	/* Functions for registering hyperlink classes */
+	bool RegisterCppClasses();
+	bool RegisterBlueprintClasses();
+	bool RegisterDefinitionClass(UClass* Class);
+	
+	void PostRegister();
 #endif //WITH_EDITOR
 
 protected:

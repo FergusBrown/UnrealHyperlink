@@ -4,7 +4,7 @@
 #include "Definitions/HyperlinkEdit.h"
 
 #include "ContentBrowserModule.h"
-#include "HyperlinkUtils.h"
+#include "HyperlinkUtility.h"
 #include "IContentBrowserSingleton.h"
 #include "Log.h"
 
@@ -42,7 +42,7 @@ void UHyperlinkEdit::Initialize()
 	);
 
 	// Assets context menu
-	FHyperlinkUtils::ExtendToolMenuSection(TEXT("ContentBrowser.AssetContextMenu"), TEXT("CommonAssetActions"),
+	UHyperlinkUtility::ExtendToolMenuSection(TEXT("ContentBrowser.AssetContextMenu"), TEXT("CommonAssetActions"),
 		EditCommands, FHyperlinkEditCommands::Get().CopyEditLink);
 	
 	// Keyboard shortcut command
@@ -51,7 +51,7 @@ void UHyperlinkEdit::Initialize()
 	FContentBrowserCommandExtender CommandExtender
 	{
 		FContentBrowserCommandExtender::CreateLambda(
-			[this](TSharedRef<FUICommandList> CommandList, FOnContentBrowserGetSelection GetSelectionDelegate)
+			[this](TSharedRef<FUICommandList> CommandList, FOnContentBrowserGetSelection GetSelectionDelegate) // NOLINT (performance-unnecessary-value-param) Delegate signature
 			{
 				CommandList->Append(EditCommands.ToSharedRef());
 			}
@@ -96,7 +96,7 @@ FString UHyperlinkEdit::GenerateLinkFromPackageName(const FString& PackageName) 
 	return GetHyperlinkBase() / PackageName;
 }
 
-void UHyperlinkEdit::ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments)
+void UHyperlinkEdit::ExecuteExtractedArgs(const TArray<FString>& LinkArguments)
 {
-	FHyperlinkUtils::OpenEditorForAsset(LinkArguments[0]);
+	UHyperlinkUtility::OpenEditorForAsset(LinkArguments[0]);
 }

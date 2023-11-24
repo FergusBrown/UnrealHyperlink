@@ -13,7 +13,10 @@ struct FHyperlinkClassEntry
 	UPROPERTY(EditAnywhere)
 	bool bEnabled{ true };
 	
-	/* A class which inherits from UHyperlinkDefinition */
+	/*
+	 * A C++ class which inherits from UHyperlinkDefinition
+	 * or a Blueprint which inherits from UHyperlinkDefinitionBlueprintBase
+	 */
 	UPROPERTY(VisibleAnywhere, NoClear, DisplayName = "Definition Class")
 	TSubclassOf<UHyperlinkDefinition> Class{ nullptr };
 

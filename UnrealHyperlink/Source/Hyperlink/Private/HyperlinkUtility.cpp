@@ -1,54 +1,17 @@
 ﻿// Copyright (c) 2023 Fergus Brown. Licensed under the MIT license. See "LICENSE" file for details.
 
 
-#include "HyperlinkUtils.h"
+#include "HyperlinkUtility.h"
 
 #include "Log.h"
 
 #if WITH_EDITOR
 #include "Styling/StarshipCoreStyle.h"
 
-
-UObject* FHyperlinkUtils::LoadObject(const FString& PackageName)
-{
-	UObject* Ret{ nullptr };
-	
-	if (UPackage* const Package{ LoadPackage(nullptr, *PackageName, LOAD_NoRedirects) })
-	{
-		Package->FullyLoad();
-
-		const FString AssetName{ FPaths::GetBaseFilename(PackageName) };
-		Ret = FindObject<UObject>(Package, *AssetName);
-	}
-	UE_CLOG(!Ret, LogHyperlink, Error, TEXT("Failed to load %s"), *PackageName);
-
-	return Ret;
-}
-
-UObject* FHyperlinkUtils::OpenEditorForAsset(const FString& PackageName)
-{
-	UObject* const Object{ LoadObject(PackageName) };
-	if (Object)
-	{
-		// Need to check if this is a level first. Levels will be reopened rather than focused by OpenEditorForAsset
-		// so we need skip this step if the level is already open in the level editor
-		bool bSkipOpen{ false };
-		if (const UWorld* const EditorWorld{ GEditor->GetEditorWorldContext().World() })
-		{
-			bSkipOpen = PackageName == EditorWorld->PersistentLevel->GetPackage()->GetName();
-		}
-		if (!bSkipOpen)
-		{
-			GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAsset(Object);
-		}
-	}
-	return Object;
-}
-
 #define LOCTEXT_NAMESPACE "Hyperlink"
 
-void FHyperlinkUtils::ExtendToolMenuSection(const FName& MenuName, const FName& SectionName,
-	const TSharedPtr<FUICommandList> CommandList, const TSharedPtr<const FUICommandInfo> Command)
+void UHyperlinkUtility::ExtendToolMenuSection(const FName& MenuName, const FName& SectionName,
+	const TSharedPtr<FUICommandList>& CommandList, const TSharedPtr<const FUICommandInfo>& Command)
 {
 	//TODO: provide mechanism for unregistering tool menu extensions with UToolMenu::RemoveEntry or UToolMenus::UnregisterOwner
 	
@@ -80,9 +43,9 @@ void FHyperlinkUtils::ExtendToolMenuSection(const FName& MenuName, const FName& 
 
 #undef LOCTEXT_NAMESPACE
 
-TSharedRef<FExtender> FHyperlinkUtils::GetMenuExtender(const FName& ExtensionHook,
-	const EExtensionHook::Position HookPosition, const TSharedPtr<FUICommandList> CommandList,
-	const TSharedPtr<const FUICommandInfo> Command, const FName& ExtenderName)
+TSharedRef<FExtender> UHyperlinkUtility::GetMenuExtender(const FName& ExtensionHook,
+	const EExtensionHook::Position HookPosition, const TSharedPtr<FUICommandList>& CommandList,
+	const TSharedPtr<const FUICommandInfo>& Command, const FName& ExtenderName)
 {
 	TSharedRef<FExtender> Extender{ MakeShared<FExtender>() };
 	
@@ -108,12 +71,58 @@ TSharedRef<FExtender> FHyperlinkUtils::GetMenuExtender(const FName& ExtensionHoo
 }
 #endif //WITH_EDITOR
 
-FString FHyperlinkUtils::VectorToHexString(const FVector& InVector)
+UObject* UHyperlinkUtility::LoadObject(const FString& PackageName)
+{
+#if WITH_EDITOR
+	UObject* Ret{ nullptr };
+	
+	if (UPackage* const Package{ LoadPackage(nullptr, *PackageName, LOAD_NoRedirects) })
+	{
+		Package->FullyLoad();
+
+		const FString AssetName{ FPaths::GetBaseFilename(PackageName) };
+		Ret = FindObject<UObject>(Package, *AssetName);
+	}
+	UE_CLOG(!Ret, LogHyperlink, Error, TEXT("Failed to load %s"), *PackageName);
+
+	return Ret;
+#else //WITH_EDITOR
+	LogEditorOnlyCall(TEXT("LoadObject"));
+	return nullptr;
+#endif //WITH_EDITOR
+}
+
+UObject* UHyperlinkUtility::OpenEditorForAsset(const FString& PackageName)
+{
+#if WITH_EDITOR
+	UObject* const Object{ LoadObject(PackageName) };
+	if (Object)
+	{
+		// Need to check if this is a level first. Levels will be reopened rather than focused by OpenEditorForAsset
+		// so we need skip this step if the level is already open in the level editor
+		bool bSkipOpen{ false };
+		if (const UWorld* const EditorWorld{ GEditor->GetEditorWorldContext().World() })
+		{
+			bSkipOpen = PackageName == EditorWorld->PersistentLevel->GetPackage()->GetName();
+		}
+		if (!bSkipOpen)
+		{
+			GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAsset(Object);
+		}
+	}
+	return Object;
+#else //WITH_EDITOR
+	LogEditorOnlyCall(TEXT("OpenEditorForAsset"));
+	return nullptr;
+#endif //WITH_EDITOR
+}
+
+FString UHyperlinkUtility::VectorToHexString(const FVector& InVector)
 {
 	return DoubleToHexString(InVector.X) + DoubleToHexString(InVector.Y) + DoubleToHexString(InVector.Z);
 }
 
-FString FHyperlinkUtils::DoubleToHexString(double InDouble)
+FString UHyperlinkUtility::DoubleToHexString(double InDouble)
 {
 	const uint64 Bytes{ NETWORK_ORDER64(*reinterpret_cast<uint64*>(&InDouble)) };
 
@@ -123,7 +132,7 @@ FString FHyperlinkUtils::DoubleToHexString(double InDouble)
 	return Result;
 }
 
-FVector FHyperlinkUtils::HexStringToVector(const FString& InHexString)
+FVector UHyperlinkUtility::HexStringToVector(const FString& InHexString)
 {
 	check(InHexString.Len() == VectorStringLength);
 
@@ -137,10 +146,18 @@ FVector FHyperlinkUtils::HexStringToVector(const FString& InHexString)
 	return RetVector;
 }
 
-double FHyperlinkUtils::HexStringToDouble(const FString& InHexString)
+double UHyperlinkUtility::HexStringToDouble(const FString& InHexString)
 {
 	check(InHexString.Len() == DoubleStringLength);
 	uint64 DoubleAsInt{ FParse::HexNumber64(*InHexString) };
 	
 	return *reinterpret_cast<double*>(&DoubleAsInt);
 }
+
+#if WITH_EDITOR
+void UHyperlinkUtility::LogEditorOnlyCall(const TCHAR* FunctionName)
+{
+	UE_LOG(LogHyperlink, Log, TEXT("Editor only hyperlink utility called at runtime (UHyperlinkUtility::%s)"), FunctionName);
+}
+#endif //WITH_EDITOR
+

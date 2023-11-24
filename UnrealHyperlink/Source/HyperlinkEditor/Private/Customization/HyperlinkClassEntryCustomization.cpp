@@ -10,7 +10,7 @@ FHyperlinkClassEntryArrayBuilder::FHyperlinkClassEntryArrayBuilder(const TShared
 {
 }
 
-/*static*/TSharedRef<FHyperlinkClassEntryArrayBuilder> FHyperlinkClassEntryArrayBuilder::MakeInstance(TSharedRef<IPropertyHandle> InPropertyHandle)
+/*static*/TSharedRef<FHyperlinkClassEntryArrayBuilder> FHyperlinkClassEntryArrayBuilder::MakeInstance(const TSharedRef<IPropertyHandle>& InPropertyHandle)
 {
 	TSharedRef<FHyperlinkClassEntryArrayBuilder> Builder{ MakeShared<FHyperlinkClassEntryArrayBuilder>(InPropertyHandle) };
 
@@ -25,7 +25,8 @@ void FHyperlinkClassEntryArrayBuilder::GenerateHeaderRowContent(FDetailWidgetRow
 	FDetailArrayBuilder::GenerateHeaderRowContent(NodeRow);
 }
 
-void FHyperlinkClassEntryArrayBuilder::OnGenerateEntry(TSharedRef<IPropertyHandle> ElementProperty, int32 ElementIndex, IDetailChildrenBuilder& ChildrenBuilder)
+// NOLINTNEXTLINE (performance-unnecessary-value-param) Delegate signature
+void FHyperlinkClassEntryArrayBuilder::OnGenerateEntry(TSharedRef<IPropertyHandle> ElementProperty, const int32 ElementIndex, IDetailChildrenBuilder& ChildrenBuilder)
 {
 	IDetailPropertyRow& PropertyRow = ChildrenBuilder.AddProperty(ElementProperty);
 	PropertyRow.ShowPropertyButtons(false); // Hide entry delete buttons
@@ -142,6 +143,7 @@ TSharedRef<SWidget> FHyperlinkClassEntryArrayBuilder::CreateCustomValueWidget(co
 	}
 }
 
+// NOLINTNEXTLINE (performance-unnecessary-value-param) Delegate signature
 bool FHyperlinkClassEntryArrayBuilder::IsResetToDefaultVisible(TSharedPtr<IPropertyHandle> ElementPropertyHandle)
 {
 	const TSharedPtr<IPropertyHandle> ClassPropertyHandle{ ElementPropertyHandle->GetChildHandle(1) };
@@ -163,6 +165,7 @@ bool FHyperlinkClassEntryArrayBuilder::IsResetToDefaultVisible(TSharedPtr<IPrope
 	return bResult;	
 }
 
+// NOLINTNEXTLINE (performance-unnecessary-value-param) Delegate signature
 void FHyperlinkClassEntryArrayBuilder::ResetToDefaultHandler(TSharedPtr<IPropertyHandle> ElementPropertyHandle)
 {
 	const TSharedPtr<IPropertyHandle> ClassPropertyHandle{ ElementPropertyHandle->GetChildHandle(1) };

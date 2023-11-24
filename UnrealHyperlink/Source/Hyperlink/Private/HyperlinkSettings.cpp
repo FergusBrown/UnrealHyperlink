@@ -3,13 +3,17 @@
 
 #include "HyperlinkSettings.h"
 
-#include "HyperlinkFormat.h"
+#include "Definitions/HyperlinkDefinitionBlueprintBase.h"
+
 #if WITH_EDITOR
+#include "AssetRegistry/IAssetRegistry.h"
 #include "HyperlinkClassEntry.h"
 #include "HyperlinkDefinition.h"
 #include "HyperlinkSubsystem.h"
 #endif //WITH_EDITOR
 
+
+class FAssetRegistryModule;
 
 void UHyperlinkSettings::PostInitProperties()
 {
@@ -26,6 +30,7 @@ void UHyperlinkSettings::PostInitProperties()
 	if (GIsEditor)
 	{
 		FCoreDelegates::OnAllModuleLoadingPhasesComplete.AddUObject(this, &UHyperlinkSettings::OnAllModulesLoaded);
+		IAssetRegistry::GetChecked().OnFilesLoaded().AddUObject(this, &UHyperlinkSettings::OnAssetRegistryReady);
 	}
 #endif //WITH_EDITOR
 }
@@ -56,26 +61,107 @@ void UHyperlinkSettings::OnAllModulesLoaded()
 	// Remove null classes
 	RegisteredDefinitions.RemoveAll([](const FHyperlinkClassEntry& Entry){ return Entry.Class == nullptr; });
 
-	// Populate the list
+	if (RegisterCppClasses())
+	{
+		PostRegister();
+	}
+}
+
+void UHyperlinkSettings::OnAssetRegistryReady()
+{
+	if (RegisterBlueprintClasses())
+	{
+		PostRegister();
+	}
+}
+
+bool UHyperlinkSettings::RegisterCppClasses()
+{
+	bool bResult{ false };
+	
 	for(TObjectIterator<UClass> It; It; ++It)
 	{
-		if(It->IsChildOf(UHyperlinkDefinition::StaticClass()) && !It->HasAnyClassFlags(CLASS_Abstract))
+		if(It->IsChildOf(UHyperlinkDefinition::StaticClass()) &&
+			!It->HasAnyClassFlags(CLASS_Abstract | CLASS_CompiledFromBlueprint))
 		{
-			UClass* Class{ *It };
-			if (!RegisteredDefinitions.FindByPredicate([=](const FHyperlinkClassEntry& Entry)
-				{ return Entry.Class == Class; }))
+			bResult = RegisterDefinitionClass(*It);
+		}
+	}
+
+	return bResult;
+}
+
+bool UHyperlinkSettings::RegisterBlueprintClasses()
+{
+	bool bResult{ false };
+	
+	const IAssetRegistry& AssetRegistry{ IAssetRegistry::GetChecked() };
+	
+	// Get set of all class names deriving from UHyperlinkDefinition
+	TSet<FTopLevelAssetPath> DerivedClassPaths{};
+	const FName BaseClassName{ UHyperlinkDefinitionBlueprintBase::StaticClass()->GetFName() };
+	const FName BaseClassPackageName{ UHyperlinkDefinitionBlueprintBase::StaticClass()->GetPackage()->GetFName() };
+	
+	TArray<FTopLevelAssetPath> BaseClassPaths{};
+	BaseClassPaths.Emplace(BaseClassPackageName, BaseClassName);
+	
+	AssetRegistry.GetDerivedClassNames(BaseClassPaths, TSet<FTopLevelAssetPath>(), DerivedClassPaths);
+
+	TArray<FAssetData> AssetList{};
+	AssetRegistry.GetAssetsByClass(UBlueprint::StaticClass()->GetClassPathName(), AssetList);
+	// Iterate over retrieved blueprint assets
+	for (const FAssetData& Asset : AssetList)
+	{
+		// Get the the blueprint's parent class to check
+		const FAssetTagValueRef ParentClassPath{
+			Asset.TagsAndValues.FindTag(FBlueprintTags::ParentClassPath) };
+		
+		if(ParentClassPath.IsSet())
+		{
+			// Convert path to just the name part
+			const FTopLevelAssetPath ClassObjectPath{
+				FPackageName::ExportTextPathToObjectPath(ParentClassPath.GetValue()) };
+			
+			if (DerivedClassPaths.Contains(ClassObjectPath))
 			{
-				FHyperlinkClassEntry NewEntry{};
-				NewEntry.Class = Class;
-				NewEntry.Identifier = GetDefault<UHyperlinkDefinition>(*It)->GetIdentifier();
-				RegisteredDefinitions.Add(NewEntry);
+				const FAssetTagValueRef GeneratedClassPath{
+					Asset.TagsAndValues.FindTag(FBlueprintTags::GeneratedClassPath) };
+				
+				const TSoftObjectPtr<UClass> SoftObjectPtr(GeneratedClassPath.GetValue());
+				if (UClass* const Class{ SoftObjectPtr.LoadSynchronous() })
+				{
+					bResult = RegisterDefinitionClass(Class);
+				}
 			}
 		}
 	}
-		
+
+	return bResult;
+}
+
+bool UHyperlinkSettings::RegisterDefinitionClass(UClass* const Class)
+{
+	bool bResult{ false };
+	
+	if (!RegisteredDefinitions.FindByPredicate([=](const FHyperlinkClassEntry& Entry)
+		{ return Entry.Class == Class; }))
+	{
+		FHyperlinkClassEntry NewEntry{};
+		NewEntry.Class = Class;
+		NewEntry.Identifier = GetDefault<UHyperlinkDefinition>(Class)->GetIdentifier();
+		RegisteredDefinitions.Emplace(MoveTemp(NewEntry));
+		bResult = true;
+	}
+
+	return bResult;
+}
+
+void UHyperlinkSettings::PostRegister()
+{
+	// Sort registered definitions so they appear in alphabetical order
 	RegisteredDefinitions.Sort([](const FHyperlinkClassEntry& Lhs, const FHyperlinkClassEntry& Rhs)
 		{ return Lhs.Class->GetName() < Rhs.Class->GetName(); });
-
+	
 	// Ensure subsystem is up to date
 	GEngine->GetEngineSubsystem<UHyperlinkSubsystem>()->RefreshDefinitions();
 }
