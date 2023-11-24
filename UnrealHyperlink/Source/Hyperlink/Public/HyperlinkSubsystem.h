@@ -6,6 +6,7 @@
 #include "Subsystems/EngineSubsystem.h"
 #include "HyperlinkSubsystem.generated.h"
 
+class UHyperlinkDefinition;
 /**
  * 
  */
@@ -29,9 +30,15 @@ public:
 	static FString GetLinkFormatHint();
 
 private:
+#if WITH_EDITOR
 	void ExecuteLinkConsole(const TArray<FString>& Args) const;
-	
+#endif //WITH_EDITOR
+
 private:
-	// TODO: move this to editor module
+	UPROPERTY()
+	TArray<TObjectPtr<UHyperlinkDefinition>> Definitions{};
+
+#if WITH_EDITORONLY_DATA
 	IConsoleObject* ExecuteConsoleCommand{ nullptr };
+#endif //WITH_EDITORONLY_DATA
 };

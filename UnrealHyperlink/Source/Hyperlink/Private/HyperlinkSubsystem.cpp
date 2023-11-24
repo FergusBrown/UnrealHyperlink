@@ -6,22 +6,41 @@
 #include "AssetRegistry/IAssetRegistry.h"
 #include "AssetViewUtils.h"
 #include "ContentBrowserModule.h"
+#include "HyperlinkDefinition.h"
+#include "HyperlinkSettings.h"
 #include "HyperlinkUtils.h"
 #include "IContentBrowserSingleton.h"
 #include "Log.h"
 
 void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
+	// Create object for each of the project definitions
+	for (const TSubclassOf<UHyperlinkDefinition> DefClass : GetMutableDefault<UHyperlinkSettings>()->RegisteredDefinitions)
+	{
+		if (DefClass)
+		{
+			TObjectPtr<UHyperlinkDefinition> NewDefinition{ NewObject<UHyperlinkDefinition>(DefClass) };
+			Definitions.Emplace(NewDefinition);
+		}
+	}
+	
+#if WITH_EDITOR
 	// Register console commands
 	ExecuteConsoleCommand = IConsoleManager::Get().RegisterConsoleCommand(
 		TEXT("uhl.ExecuteLink"),
 		*FString::Format(TEXT(R"(Execute a hyperlink in the format "{0}". Note the link must be surrounded in quotes.)"), { GetLinkFormatHint() }),
 		FConsoleCommandWithArgsDelegate::CreateUObject(this, &UHyperlinkSubsystem::ExecuteLinkConsole));
+#endif //WITH_EDITOR
 }
 
 void UHyperlinkSubsystem::Deinitialize()
 {
+	// Destroy definitions
+	Definitions.Empty();
+	
+#if WITH_EDITOR
 	IConsoleManager::Get().UnregisterConsoleObject(ExecuteConsoleCommand);
+#endif //WITH_EDITOR
 }
 
 bool UHyperlinkSubsystem::ExecuteLink(const FString& Link) const
@@ -94,6 +113,7 @@ FString UHyperlinkSubsystem::GetLinkFormatHint()
 	return GetLinkBase() + TEXT("EXECUTOR_ID/BODY");
 }
 
+#if WITH_EDITOR
 void UHyperlinkSubsystem::ExecuteLinkConsole(const TArray<FString>& Args) const
 {
 	if (Args.Num() != 1) // TODO: check link arg is valid
@@ -105,3 +125,4 @@ void UHyperlinkSubsystem::ExecuteLinkConsole(const TArray<FString>& Args) const
 		ExecuteLink(Args[0].TrimQuotes());
 	}
 }
+#endif //WITH_EDITOR
