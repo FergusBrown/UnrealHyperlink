@@ -156,5 +156,21 @@ FString UHyperlinkLevelGoTo::GetBodyPattern() const
 
 void UHyperlinkLevelGoTo::ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments)
 {
-	FHyperlinkUtils::LoadObjectFromPackageName(LinkArguments[1]);
+#if WITH_EDITOR
+	// Open level
+	if(FHyperlinkUtils::OpenEditorForAsset(LinkArguments[1]))
+	{
+		// Set viewport position
+		const FString& VectorStrings{ LinkArguments[2] };
+		const FString LocationString{ VectorStrings.Mid(0, 48) };
+		const FString RotationString{ VectorStrings.Mid(48, 48) };
+
+		const FVector Location{ FHyperlinkUtils::HexStringToVector(LocationString) };
+		const FRotator Rotation{ FHyperlinkUtils::HexStringToVector(RotationString).Rotation() };
+		
+		UUnrealEditorSubsystem* const UnrealEditorSubsystem{ GEditor->GetEditorSubsystem<UUnrealEditorSubsystem>() };
+		UnrealEditorSubsystem->SetLevelViewportCameraInfo(Location, Rotation);
+	}
+
+#endif //WITH_EDITOR
 }
