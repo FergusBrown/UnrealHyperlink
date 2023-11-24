@@ -34,6 +34,9 @@ private:
 
     static FString GetProtocolHandlerPath();
 
+    static void PasteLink();
+    
 private:
+    IConsoleObject* PasteConsoleCommand{ nullptr };
     TUniquePtr<FHyperlinkPipeServer> PipeServer{ nullptr };
 };

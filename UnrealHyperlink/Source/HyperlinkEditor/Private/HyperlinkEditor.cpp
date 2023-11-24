@@ -8,6 +8,7 @@
 #include "Interfaces/IMainFrameModule.h"
 #include "Interfaces/IPluginManager.h"
 #include "Log.h"
+#include "Toolkits/FConsoleCommandExecutor.h"
 #include "Windows/WindowsPlatformApplicationMisc.h"
 /* Begin Windows includes */
 #include "Windows/AllowWindowsPlatformTypes.h"
@@ -46,12 +47,13 @@ void FHyperlinkEditorModule::StartupModule()
 
 	ActionList.MapAction(
 		FHyperlinkEditorCommands::Get().PasteLink,
-		FExecuteAction::CreateLambda([]()
-		{
-			FString ClipboardContents{};
-			FPlatformApplicationMisc::ClipboardPaste(ClipboardContents);
-			GEngine->GetEngineSubsystem<UHyperlinkSubsystem>()->ExecuteLink(ClipboardContents);
-		}));
+		FExecuteAction::CreateStatic(&FHyperlinkEditorModule::PasteLink));
+
+	// Console command
+	PasteConsoleCommand = IConsoleManager::Get().RegisterConsoleCommand(
+		TEXT("uhl.PasteLink"),
+		TEXT("Execute a link stored in the clipboard"),
+		FConsoleCommandDelegate::CreateStatic(&FHyperlinkEditorModule::PasteLink));
 }
 
 void FHyperlinkEditorModule::ShutdownModule()
@@ -104,6 +106,13 @@ void FHyperlinkEditorModule::SetupProtocolHandler() const
 FString FHyperlinkEditorModule::GetProtocolHandlerPath()
 {
 	return FPlatformMisc::GetEnvironmentVariable(TEXT("LocalAppData")) + TEXT(R"(\UnrealHyperlink\ProtocolHandler.exe)");
+}
+
+/*static*/void FHyperlinkEditorModule::PasteLink()
+{
+	FString ClipboardContents{};
+	FPlatformApplicationMisc::ClipboardPaste(ClipboardContents);
+	GEngine->GetEngineSubsystem<UHyperlinkSubsystem>()->ExecuteLink(ClipboardContents);
 }
 
 #undef LOCTEXT_NAMESPACE
