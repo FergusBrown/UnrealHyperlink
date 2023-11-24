@@ -3,8 +3,9 @@
 
 #include "HyperlinkEditor.h"
 
-#include "Log.h"
+#include "HyperlinkPipeServer.h"
 #include "Interfaces/IPluginManager.h"
+#include "Log.h"
 /* Begin Windows includes */
 #include "Windows/AllowWindowsPlatformTypes.h"
 #include <Windows.h>
@@ -15,6 +16,8 @@
 
 void FHyperlinkEditorModule::StartupModule()
 {
+	PipeServer = MakeUnique<FHyperlinkPipeServer>();
+
 	SetupRegistry();
 	SetupProtcolHandler();
 }

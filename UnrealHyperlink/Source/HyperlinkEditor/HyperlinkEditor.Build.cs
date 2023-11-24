@@ -21,12 +21,13 @@ public class HyperlinkEditor : ModuleRules
                 "AssetRegistry",
                 "AssetTools",
                 "CoreUObject",
+                "DeveloperSettings",
                 "EditorSubsystem",
                 "Engine",
+                "HyperlinkRuntime",
                 "Projects",
                 "Slate",
                 "SlateCore",
-                "DeveloperSettings",
             }
         );
     }

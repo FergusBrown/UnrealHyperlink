@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 
 /**
- * 
+ * Named pipe server for receiving link string from the protocol handler
  */
 class FHyperlinkPipeServer : public FRunnable
 {

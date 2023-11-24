@@ -6,15 +6,12 @@
 #include "AssetRegistry/IAssetRegistry.h"
 #include "AssetViewUtils.h"
 #include "ContentBrowserModule.h"
-#include "HyperlinkPipeServer.h"
 #include "HyperlinkUtils.h"
 #include "IContentBrowserSingleton.h"
 #include "Log.h"
 
 void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	PipeServer = MakeUnique<FHyperlinkPipeServer>();
-
 	// Register core link types
 	RegisterHyperlinkExecutor(TEXT("browse"), UHyperlinkSubsystem::ExecuteBrowse);
 	RegisterHyperlinkExecutor(TEXT("edit"), UHyperlinkSubsystem::ExecuteEdit);

@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
+class FHyperlinkPipeServer;
+
 class FHyperlinkEditorModule : public IModuleInterface
 {
 public:
@@ -19,4 +21,7 @@ private:
     void SetupProtcolHandler() const;
 
     static FString GetProtocolHandlerPath();
+
+private:
+    TUniquePtr<FHyperlinkPipeServer> PipeServer{ nullptr };
 };

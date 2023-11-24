@@ -6,7 +6,6 @@
 #include "EditorSubsystem.h"
 #include "HyperlinkSubsystem.generated.h"
 
-class FHyperlinkPipeServer;
 /**
  * 
  */
@@ -37,8 +36,6 @@ private:
 	void ExecuteLinkConsole(const TArray<FString>& Args) const;
 	
 private:
-	TUniquePtr<FHyperlinkPipeServer> PipeServer{ nullptr };
-
 	TMap<FName, FHyperlinkExecutor> LinkExecutorMap{};
 
 	IConsoleObject* ExecuteConsoleCommand{ nullptr };
