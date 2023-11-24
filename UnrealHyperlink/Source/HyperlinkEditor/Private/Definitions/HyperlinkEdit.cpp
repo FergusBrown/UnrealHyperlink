@@ -42,11 +42,11 @@ void UHyperlinkEdit::Initialize()
 	// Content Browser asset context menu
 	UHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("ContentBrowser.AssetContextMenu"), TEXT("CommonAssetActions"),
 		EditCommands, FHyperlinkEditCommands::Get().CopyEditLink);
-
-	// TODO: this one is not appearing
+	
 	// Asset Editor asset menu
-	UHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("MainMenu.Asset"), TEXT("AssetEditorActions"),
-	EditCommands, FHyperlinkEditCommands::Get().CopyEditLink);
+	// Note because of the way asset editor drop down menus work we can't (easily) add this entry in a sub menu
+	UHyperlinkUtility::AddHyperlinkMenuEntry(TEXT("MainFrame.MainMenu.Asset"), EditCommands,
+		FHyperlinkEditCommands::Get().CopyEditLink, false);
 	
 	// Keyboard shortcut command
 	// Note that the keyboard shortcut will only be registered if applied on startup because of the way content

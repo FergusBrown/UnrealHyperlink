@@ -61,6 +61,11 @@ FString UHyperlinkUtility::CreateLinkFromPayload(const TSubclassOf<UHyperlinkDef
 	return CreateLinkFromPayload(DefinitionClass, ObjectWrapper);
 }
 
+FSlateIcon UHyperlinkUtility::GetMenuIcon()
+{
+	return FSlateIcon(FStarshipCoreStyle::GetCoreStyle().GetStyleSetName(), TEXT("Icons.Link"));
+}
+
 void UHyperlinkUtility::AddHyperlinkSubMenu(const FName& MenuName, const FName& SectionName)
 {
 	FToolMenuEntry SubMenuArgs
@@ -80,16 +85,28 @@ void UHyperlinkUtility::AddHyperlinkSubMenu(const FName& MenuName, const FName& 
 }
 
 void UHyperlinkUtility::AddHyperlinkMenuEntry(const FName& MenuName, const TSharedPtr<FUICommandList>& CommandList,
-	const TSharedPtr<const FUICommandInfo>& Command)
+	const TSharedPtr<const FUICommandInfo>& Command, const bool bWithSubMenu/*= true*/)
 {
-	const FName SubMenuPath{ UToolMenus::JoinMenuPaths(MenuName, FHyperlinkUtilityConstants::SubMenuName) };
-	UToolMenu* const SubMenu{ UToolMenus::Get()->ExtendMenu(SubMenuPath) };
+	FName MenuPath;
+	if (bWithSubMenu)
+	{
+		MenuPath = UToolMenus::JoinMenuPaths(MenuName, FHyperlinkUtilityConstants::SubMenuName);
+	}
+	else
+	{
+		MenuPath = MenuName;
+	}
+	UToolMenu* const Menu{ UToolMenus::Get()->ExtendMenu(MenuPath) };
 
-	// Add action entry to the submenu
+	// Add action entry to the menu
 	static const FName CopySectionName{ TEXT("HyperlinkActions") };
 	FToolMenuEntry EntryArgs{ FToolMenuEntry::InitMenuEntryWithCommandList(Command, CommandList) };
 	EntryArgs.Owner = MenuName;
-	SubMenu->AddMenuEntry(CopySectionName, EntryArgs);
+	if (!bWithSubMenu)
+	{
+		EntryArgs.Icon = GetMenuIcon();
+	}
+	Menu->AddMenuEntry(CopySectionName, EntryArgs);
 }
 
 void UHyperlinkUtility::AddHyperlinkSubMenuAndEntry(const FName& MenuName, const FName& SectionName,
@@ -125,7 +142,7 @@ TSharedRef<FExtender> UHyperlinkUtility::GetMenuExtender(const FName& ExtensionH
 					ExtenderName,
 					TAttribute<FText>(),
 					TAttribute<FText>(),
-					FSlateIcon(FStarshipCoreStyle::GetCoreStyle().GetStyleSetName(), TEXT("Icons.Link"))
+					GetMenuIcon()
 				);
 			}
 		)
