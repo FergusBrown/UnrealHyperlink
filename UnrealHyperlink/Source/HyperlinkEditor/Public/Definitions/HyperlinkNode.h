@@ -18,6 +18,7 @@ public:
 
 /**
  * Hyperlink for opening a graph editor and focusing on a node
+ * Works with blueprints and materials for now
  */
 UCLASS()
 class HYPERLINKEDITOR_API UHyperlinkNode : public UHyperlinkDefinition
@@ -34,7 +35,16 @@ public:
 
 protected:
 	virtual void ExecuteExtractedArgs(const TArray<FString>& LinkArguments) override;
+	
+private:
+	/* Generation helpers */
+	static bool TryGetExtensionPoint(const UClass* Class, FName& OutExtensionPoint);
+	bool TryGetMaterialParams(const UMaterial& InMaterial, FString& OutPackageName, FGuid& OutGraphGuid,
+		FGuid& OutNodeGuid) const;
 
+	/* Execution helpers */
+	static void ExecuteBlueprintLink(const UBlueprint& InBlueprint, const FGuid& InGraphGuid, const FGuid& InNodeGuid);
+	static void ExecuteMaterialLink(const UMaterial& InMaterial, const FGuid& InNodeGuid);
 private:
 	TSharedPtr<FUICommandList> NodeCommands{};
 	FDelegateHandle NodeContextMenuHandle{};

@@ -25,13 +25,15 @@ public class HyperlinkEditor : ModuleRules
                 "ContentBrowserData",
                 "CoreUObject",
                 "DeveloperSettings",
+                "EditorFramework",
                 "Engine",
                 "InputCore",
+                "MaterialEditor",
                 "Projects",
                 "PropertyEditor",
                 "Slate",
                 "SlateCore",
-                "UnrealEd",
+                "UnrealEd", 
             }
         );
     }
