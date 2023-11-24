@@ -3,8 +3,7 @@
 
 #include "Definitions/HyperlinkDefinitionBlueprintBase.h"
 
-#include "Policies/CondensedJsonPrintPolicy.h"
-#include "Serialization/JsonReader.h"
+#include "JsonObjectWrapper.h"
 #include "Serialization/JsonSerializer.h"
 
 void UHyperlinkDefinitionBlueprintBase::Initialize()
@@ -19,19 +18,13 @@ void UHyperlinkDefinitionBlueprintBase::Deinitialize()
 
 TSharedPtr<FJsonObject> UHyperlinkDefinitionBlueprintBase::GeneratePayload() const
 {
-	TSharedPtr<FJsonObject> Payload{};
-	const TSharedRef<TJsonReader<>> JsonReader = TJsonReaderFactory<>::Create(GeneratePayloadImpl());
-	FJsonSerializer::Deserialize(JsonReader, Payload);
-	return Payload;
+	FJsonObjectWrapper JsonObjectWrapper{ GeneratePayloadImpl() };
+	return JsonObjectWrapper.JsonObject;
 }
 
 void UHyperlinkDefinitionBlueprintBase::ExecutePayload(const TSharedRef<FJsonObject>& InPayload)
 {
-	FString Str;
-	const TSharedRef<TJsonWriter<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>> JsonWriter
-		{ TJsonWriterFactory<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>::Create(&Str, 0) };
-	if (FJsonSerializer::Serialize(InPayload, JsonWriter, true))
-	{
-		ExecutePayloadImpl(Str);
-	}
+	FJsonObjectWrapper JsonObjectWrapper{};
+	JsonObjectWrapper.JsonObject = InPayload.ToSharedPtr();
+	ExecutePayloadImpl(JsonObjectWrapper);
 }

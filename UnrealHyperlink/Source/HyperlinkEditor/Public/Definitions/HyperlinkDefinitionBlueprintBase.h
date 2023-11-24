@@ -6,6 +6,8 @@
 #include "HyperlinkDefinition.h"
 #include "HyperlinkDefinitionBlueprintBase.generated.h"
 
+struct FJsonObjectWrapper;
+
 /**
  * Base class for implementing hyperlink definitions with blueprints
  */
@@ -30,8 +32,8 @@ protected:
 	void DeinitializeImpl();
 
 	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="GeneratePayload"))
-	FString GeneratePayloadImpl() const;
+	FJsonObjectWrapper GeneratePayloadImpl() const;
 
 	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="ExecutePayload"))
-	void ExecutePayloadImpl(const FString& Payload);
+	void ExecutePayloadImpl(const FJsonObjectWrapper& PayloadObject);
 };
