@@ -39,9 +39,11 @@ public:
 
 	/* Generate link using the provided parameters*/
 	FString GenerateLink(const FString& InLevelPackageName, const FVector& InLocation, const FRotator& InRotation) const;
+
+#if WITH_EDITOR
 protected:
-	virtual FString GetBodyPattern() const override;
 	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) override;
+#endif //WITH_EDITOR
 
 private:
 	void CopyLink() const;

@@ -34,16 +34,18 @@ public:
 	/* Define your own GenerateLink function */
 	/* FString GenerateLink(Args...); */
 
+#if WITH_EDITOR
 protected:
-	/* Used to validate a received link TODO: consider moving to member variable */
-	virtual FString GetBodyPattern() const;
-
 	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) PURE_VIRTUAL(UHyperlinkDefinition::ExecuteLinkBodyInternal, );
+#endif //WITH_EDITOR
 
 protected:
 	/* The name used to identify this type of link */
 	UPROPERTY(Config, EditAnywhere)
 	FString DefinitionIdentifier{ TEXT("") };
+
+	/* Used to validate a received link */
+	FString BodyPattern{ TEXT(R"(.*)") };
 
 	/* The name used to identify this type of link */
 	TSubclassOf<UHyperlinkDefinitionSettings> SettingsClass{ nullptr };

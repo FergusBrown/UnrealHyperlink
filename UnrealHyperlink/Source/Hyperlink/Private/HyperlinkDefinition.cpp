@@ -19,7 +19,7 @@ TSubclassOf<UHyperlinkDefinitionSettings> UHyperlinkDefinition::GetSettingsClass
 
 void UHyperlinkDefinition::ExecuteLinkBody(const FString& LinkBody)
 {
-	const FRegexPattern LinkPattern{ GetBodyPattern() };
+	const FRegexPattern LinkPattern{ BodyPattern };
 	FRegexMatcher LinkMatcher{ LinkPattern, LinkBody };
 
 	if (LinkMatcher.FindNext())
@@ -35,13 +35,8 @@ void UHyperlinkDefinition::ExecuteLinkBody(const FString& LinkBody)
 	}
 	else
 	{
-		UE_LOG(LogHyperlink, Warning, TEXT("Link did not match %s pattern %s"), *DefinitionIdentifier, *GetBodyPattern());
+		UE_LOG(LogHyperlink, Warning, TEXT("Link did not match %s pattern %s"), *DefinitionIdentifier, *BodyPattern);
 	}
-}
-
-FString UHyperlinkDefinition::GetBodyPattern() const
-{
-	return TEXT(R"(.*)");
 }
 
 FString UHyperlinkDefinition::GetHyperlinkBase() const

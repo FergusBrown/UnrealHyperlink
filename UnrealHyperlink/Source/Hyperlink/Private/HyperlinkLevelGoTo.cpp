@@ -34,6 +34,7 @@ void FHyperlinkGoToCommands::RegisterCommands()
 UHyperlinkLevelGoTo::UHyperlinkLevelGoTo()
 {
 	DefinitionIdentifier = TEXT("LevelGoTo");
+	BodyPattern = TEXT(R"((.+):([0-9A-F]{96}))");
 }
 
 void UHyperlinkLevelGoTo::Initialize()
@@ -147,21 +148,15 @@ void UHyperlinkLevelGoTo::CopyLink() const
 	return bSuccess;
 }
 
-FString UHyperlinkLevelGoTo::GetBodyPattern() const
-{
-	// TODO: move to a property
-	return TEXT(R"((.+):([0-9A-F]{96}))");
-	//return FString::Format(TEXT(R"((.+){0}([0-9A-F]{96}))"), { FHyperlinkFormat::ArgSeparator });
-}
-
+#if WITH_EDITOR
 void UHyperlinkLevelGoTo::ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments)
 {
-#if WITH_EDITOR
 	// Open level
 	if(FHyperlinkUtils::OpenEditorForAsset(LinkArguments[1]))
 	{
 		// Set viewport position
 		const FString& VectorStrings{ LinkArguments[2] };
+		// TODO: Remove magic numbers
 		const FString LocationString{ VectorStrings.Mid(0, 48) };
 		const FString RotationString{ VectorStrings.Mid(48, 48) };
 
@@ -171,6 +166,5 @@ void UHyperlinkLevelGoTo::ExecuteLinkBodyInternal(const TArray<FString>& LinkArg
 		UUnrealEditorSubsystem* const UnrealEditorSubsystem{ GEditor->GetEditorSubsystem<UUnrealEditorSubsystem>() };
 		UnrealEditorSubsystem->SetLevelViewportCameraInfo(Location, Rotation);
 	}
-
-#endif //WITH_EDITOR
 }
+#endif //WITH_EDITOR
