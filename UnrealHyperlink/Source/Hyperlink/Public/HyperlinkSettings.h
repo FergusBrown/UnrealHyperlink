@@ -16,10 +16,10 @@ UENUM()
 enum class EHyperlinkHandlingMethod : uint8
 {
 	/* Use the local "unreal://" protocol handler on your PC */
-	Application,
+	Local,
 	/*
 	 * Use the specified web server to handle links.
-	 * This will involve querying a web server which redirects to the application link.
+	 * This will involve querying a web server which redirects to the local "unreal://" link.
 	 * While this method has an added intermediate stage it has the advantage that generated links
 	 * will be treated as regular web links allowing you to past the hyperlinks in applications
 	 * which block the "unreal://" link type
@@ -50,7 +50,7 @@ protected:
 
 	/* What method should be used to generate and handle links */
 	UPROPERTY(Config, EditAnywhere)
-	EHyperlinkHandlingMethod HandlingMethod{ EHyperlinkHandlingMethod::Application };
+	EHyperlinkHandlingMethod LinkHandlingMethod{ EHyperlinkHandlingMethod::Local };
 
 	/* Web address which is used to handle links */
 	UPROPERTY(Config, EditAnywhere, meta = (EditCondition = "HandlingMethod == EHyperlinkHandlingMethod::Web"))

@@ -43,7 +43,7 @@ FString UHyperlinkSettings::GetLinkGenerationBase() const
 {
 	const FString LinkBase
 	{
-		HandlingMethod == EHyperlinkHandlingMethod::Application
+		LinkHandlingMethod == EHyperlinkHandlingMethod::Local
 			? FHyperlinkFormat::ApplicationBase
 			: LinkHandlerAddress
 	};
