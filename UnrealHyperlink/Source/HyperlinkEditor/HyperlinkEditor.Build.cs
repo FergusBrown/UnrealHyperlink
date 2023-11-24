@@ -24,6 +24,7 @@ public class HyperlinkEditor : ModuleRules
                 "Projects",
                 "Slate",
                 "SlateCore",
+                "DeveloperSettings",
             }
         );
     }
