@@ -224,10 +224,10 @@ void UHyperlinkNode::ExecuteBlueprintPayload(const FHyperlinkBlueprintPayload& I
 void UHyperlinkNode::ExecuteMaterialPayload(const FHyperlinkMaterialPayload& InPayload)
 {
 	const UObject* const EditedObject{ UHyperlinkUtility::OpenEditorForAsset(InPayload.MaterialPackageName) };
-	if (const UMaterial* const Material{ Cast<UMaterial>(EditedObject) })
+	if (EditedObject->IsA<UMaterial>() || EditedObject->IsA<UMaterialFunction>())
 	{
 		const TSharedPtr<IMaterialEditor> MaterialEditor
-			{ StaticCastSharedPtr<IMaterialEditor>(FToolkitManager::Get().FindEditorForAsset(Material)) };
+			{ StaticCastSharedPtr<IMaterialEditor>(FToolkitManager::Get().FindEditorForAsset(EditedObject)) };
 
 		if (MaterialEditor.IsValid())
 		{
