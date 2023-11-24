@@ -1,10 +1,10 @@
-#define UNICODE // Ensure we're using unicode string encoding to match unreal windows default
+#define UNICODE // Use unicode for windows API calls 
 
 #include <iostream>
 #include <regex>
 #include <windows.h>
 
-int wmain(int argc, TCHAR* argv[])
+int wmain(int argc, wchar_t* argv[])
 {
     if (argc != 2)
     {
@@ -30,7 +30,7 @@ int wmain(int argc, TCHAR* argv[])
     // Connect to pipe server
     HANDLE pipeHandle
     { 
-        CreateFileW(
+        ::CreateFile(
             pipeName.c_str(),       // pipe name
             GENERIC_WRITE,          // desired access
             0,                      // default share more
@@ -49,16 +49,16 @@ int wmain(int argc, TCHAR* argv[])
     }
 
     // Send message to pipe server
-    const TCHAR* message{ link.c_str() };
-    const DWORD bufferSize{ static_cast<DWORD>((link.length() + 1) * sizeof(TCHAR)) }; // +1 is for \0 terminator
+    const wchar_t* message{ link.c_str() };
+    const DWORD bufferSize{ static_cast<DWORD>((link.length() + 1) * sizeof(wchar_t)) }; // + 1 is for \0 terminator
     DWORD bytesWritten{};
 
-    if (!WriteFile(pipeHandle, message, bufferSize, &bytesWritten, nullptr))
+    if (!::WriteFile(pipeHandle, message, bufferSize, &bytesWritten, nullptr))
     {
         std::wcout << L"Failed to write to pipe server " << pipeName << L" GLE = " << GetLastError() << std::endl;
         return EXIT_FAILURE;
     }
 
-    CloseHandle(pipeHandle);
+    ::CloseHandle(pipeHandle);
     return EXIT_SUCCESS;
 }
