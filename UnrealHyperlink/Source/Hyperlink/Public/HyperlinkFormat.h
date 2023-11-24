@@ -7,7 +7,7 @@
 /**
  * Utilities for formatting a hyperlink
  */
-namespace HyperlinkFormat
+namespace FHyperlinkFormat
 {
 	static const TCHAR* Base{ TEXT("unreal://") };
 };
