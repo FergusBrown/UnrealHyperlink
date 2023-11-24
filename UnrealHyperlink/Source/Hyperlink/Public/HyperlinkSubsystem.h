@@ -20,10 +20,6 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 	
-	// Utility
-	static FString GetLinkBase();
-	static FString GetLinkFormatHint();
-	
 #if WITH_EDITOR
 	/* Decode the provided unreal://... link and execute the associated action */
 	void ExecuteLink(const FString& Link);
@@ -38,7 +34,7 @@ private:
 	void CopyLinkConsole(const TArray<FString>& Args);
 #if WITH_EDITOR
 	void ExecuteLinkConsole(const TArray<FString>& Args);
-	void ExecuteLinkDeferred(const FString Link) const;
+	void ExecuteLinkDeferred(FString Link) const;
 #endif //WITH_EDITOR
 
 private:

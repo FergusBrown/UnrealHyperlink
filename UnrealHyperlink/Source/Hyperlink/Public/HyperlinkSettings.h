@@ -38,11 +38,15 @@ public:
 
 	// Note TConstArrayView means the caller cannot edit the contents of the array
 	TConstArrayView<FHyperlinkClassEntry> GetRegisteredDefinitions() const;
-
+	
 	FString GetLinkGenerationBase() const;
+	FString GetLinkRegexBase() const;
 
-#if WITH_EDITOR
 private:
+	// TODO: Maybe move this to utils
+	static FString RegexEscapeString(const FString& InString);
+	
+#if WITH_EDITOR
 	void OnAllModulesLoaded();
 #endif //WITH_EDITOR
 

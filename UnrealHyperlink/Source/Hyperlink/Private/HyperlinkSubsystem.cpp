@@ -5,6 +5,7 @@
 
 #include "HyperlinkClassEntry.h"
 #include "HyperlinkDefinition.h"
+#include "HyperlinkFormat.h"
 #include "HyperlinkSettings.h"
 #include "Internationalization/Regex.h"
 #include "Log.h"
@@ -22,7 +23,7 @@ void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 #if WITH_EDITOR
 	ExecuteConsoleCommand = IConsoleManager::Get().RegisterConsoleCommand(
 		TEXT("uhl.ExecuteLink"),
-		*FString::Format(TEXT(R"(Execute a hyperlink in the format "{0}". Note the link must be surrounded in quotes.)"), { GetLinkFormatHint() }),
+		*FString::Format(TEXT(R"(Execute a hyperlink in the format "{0}". Note the link must be surrounded in quotes.)"), { FHyperlinkFormat::StructureHint }),
 		FConsoleCommandWithArgsDelegate::CreateUObject(this, &UHyperlinkSubsystem::ExecuteLinkConsole));
 #endif //WITH_EDITOR
 }
@@ -34,16 +35,6 @@ void UHyperlinkSubsystem::Deinitialize()
 #if WITH_EDITOR
 	IConsoleManager::Get().UnregisterConsoleObject(ExecuteConsoleCommand);
 #endif //WITH_EDITOR
-}
-
-FString UHyperlinkSubsystem::GetLinkBase()
-{
-	return FString::Format(TEXT("unreal://{0}/"), { FApp::GetProjectName() });
-}
-
-FString UHyperlinkSubsystem::GetLinkFormatHint()
-{
-	return GetLinkBase() + TEXT("DEFINITION/BODY");
 }
 
 void UHyperlinkSubsystem::RefreshDefinitions()
@@ -127,7 +118,7 @@ void UHyperlinkSubsystem::ExecuteLinkConsole(const TArray<FString>& Args)
 {
 	if (Args.Num() != 1)
 	{
-		UE_LOG(LogHyperlink, Display, TEXT(R"(Invalid argument, requires 1 argument in the format "%s")"), *GetLinkFormatHint());
+		UE_LOG(LogHyperlink, Display, TEXT(R"(Invalid argument, requires 1 argument in the format "%s")"), FHyperlinkFormat::StructureHint);
 	}
 	else
 	{
@@ -137,8 +128,10 @@ void UHyperlinkSubsystem::ExecuteLinkConsole(const TArray<FString>& Args)
 
 void UHyperlinkSubsystem::ExecuteLinkDeferred(const FString Link) const
 {
-	const FRegexPattern TypePattern{GetLinkBase() + TEXT(R"((\w+)(/.*))")};
-	FRegexMatcher Matcher{TypePattern, Link};
+	const FRegexPattern TypePattern{ GetDefault<UHyperlinkSettings>()->GetLinkRegexBase() +
+		TEXT(R"(\/(\w+)(\/\S+))") };
+	
+	FRegexMatcher Matcher{ TypePattern, Link };
 	if (Matcher.FindNext())
 	{
 		const FString DefName{Matcher.GetCaptureGroup(1)};
@@ -158,7 +151,7 @@ void UHyperlinkSubsystem::ExecuteLinkDeferred(const FString Link) const
 	{
 		UE_LOG(LogHyperlink, Error,
 			   TEXT("Failed to extract definition name from %s. Ensure link is in the format %s"), *Link,
-			   *GetLinkFormatHint());
+			   FHyperlinkFormat::StructureHint);
 	}
 }
 #endif //WITH_EDITOR

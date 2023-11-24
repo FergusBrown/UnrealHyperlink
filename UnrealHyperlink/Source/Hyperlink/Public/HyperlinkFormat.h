@@ -13,4 +13,6 @@ namespace FHyperlinkFormat
 	/* Use colon to separate link args as it's illegal to have it in UE paths */
 	static constexpr TCHAR ArgSeparator{ TEXT(':') };
 	static const TCHAR* BaseFormat{ TEXT("{0}/{1}/{2}") };
+
+	static const TCHAR* StructureHint{ TEXT("Handler/ProjectID/DefinitionID/Body") };
 };
