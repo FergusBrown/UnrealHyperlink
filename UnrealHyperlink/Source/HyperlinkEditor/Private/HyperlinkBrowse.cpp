@@ -6,6 +6,7 @@
 #include "AssetRegistry/IAssetRegistry.h"
 #include "ContentBrowserModule.h"
 #include "Editor.h"
+#include "HyperlinkBrowseSettings.h"
 #include "HyperlinkUtils.h"
 #include "IContentBrowserSingleton.h"
 #include "Log.h"
@@ -33,6 +34,7 @@ void FHyperlinkBrowseCommands::RegisterCommands()
 UHyperlinkBrowse::UHyperlinkBrowse()
 {
 	DefinitionIdentifier = TEXT("Browse");
+	SettingsClass = UHyperlinkBrowseSettings::StaticClass();
 }
 
 void UHyperlinkBrowse::Initialize()
@@ -63,7 +65,6 @@ void UHyperlinkBrowse::Initialize()
 				ContentBrowser.Get().GetSelectedFolders(SelectedFolders);
 				if (SelectedFolders.Num() > 0)
 				{
-					// TODO: check where this /All prefix has come from
 					// The path will be an "virtual path" which is usually (always?) the internal path prefixed with "/All"
 					// We need to convert this to the regular internal path
 					const FString& VirtualPath{ SelectedFolders[0] };
@@ -83,26 +84,36 @@ void UHyperlinkBrowse::Initialize()
 	);
 	
 	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
-	
-	FContentBrowserMenuExtender_SelectedAssets SelectedAssetsDelegate
-	{
-		FContentBrowserMenuExtender_SelectedAssets::CreateLambda([=](const TArray<FAssetData>&)
-		{
-			return FHyperlinkUtils::GetMenuExtender(TEXT("CommonAssetActions"), EExtensionHook::After, BrowseCommands, FHyperlinkBrowseCommands::Get().CopyBrowseLink, TEXT("CopyBrowseLink"));
-		})
-	};
-	AssetContextMenuHandle = SelectedAssetsDelegate.GetHandle();
-	ContentBrowser.GetAllAssetViewContextMenuExtenders().Emplace(MoveTemp(SelectedAssetsDelegate));
 
-	FContentBrowserMenuExtender_SelectedPaths SelectedFoldersDelegate
+	if (GetDefault<UHyperlinkBrowseSettings>()->bEnableInAssetContextMenu)
 	{
-		FContentBrowserMenuExtender_SelectedPaths::CreateLambda([=](const TArray<FString>&)
+		FContentBrowserMenuExtender_SelectedAssets SelectedAssetsDelegate
 		{
-			return FHyperlinkUtils::GetMenuExtender(TEXT("PathViewFolderOptions"), EExtensionHook::After, BrowseCommands, FHyperlinkBrowseCommands::Get().CopyFolderLink, TEXT("CopyBrowseLink"));
-		})
-	};
-	FolderContextMenuHandle = SelectedFoldersDelegate.GetHandle();
-	ContentBrowser.GetAllPathViewContextMenuExtenders().Emplace(MoveTemp(SelectedFoldersDelegate));
+			FContentBrowserMenuExtender_SelectedAssets::CreateLambda([=](const TArray<FAssetData>&)
+			{
+				return FHyperlinkUtils::GetMenuExtender(
+					TEXT("CommonAssetActions"), EExtensionHook::After, BrowseCommands,
+					FHyperlinkBrowseCommands::Get().CopyBrowseLink, TEXT("CopyBrowseLink"));
+			})
+		};
+		AssetContextMenuHandle = SelectedAssetsDelegate.GetHandle();
+		ContentBrowser.GetAllAssetViewContextMenuExtenders().Emplace(MoveTemp(SelectedAssetsDelegate));
+	}
+
+	if (GetDefault<UHyperlinkBrowseSettings>()->bEnableInFolderContextMenu)
+	{
+		FContentBrowserMenuExtender_SelectedPaths SelectedFoldersDelegate
+		{
+			FContentBrowserMenuExtender_SelectedPaths::CreateLambda([=](const TArray<FString>&)
+			{
+				return FHyperlinkUtils::GetMenuExtender(
+					TEXT("PathViewFolderOptions"), EExtensionHook::After, BrowseCommands,
+					FHyperlinkBrowseCommands::Get().CopyFolderLink, TEXT("CopyBrowseLink"));
+			})
+		};
+		FolderContextMenuHandle = SelectedFoldersDelegate.GetHandle();
+		ContentBrowser.GetAllPathViewContextMenuExtenders().Emplace(MoveTemp(SelectedFoldersDelegate));
+	}
 }
 
 void UHyperlinkBrowse::Deinitialize()
