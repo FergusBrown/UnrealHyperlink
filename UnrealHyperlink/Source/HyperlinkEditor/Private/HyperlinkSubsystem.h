@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "EditorSubsystem.h"
+#include "HyperlinkPipeServer.h"
 #include "HyperlinkSubsystem.generated.h"
 
 /**
@@ -23,8 +24,10 @@ private:
 	bool Tick(float DeltaTime);
 	
 private:
-	
 	/** Holds a delegate to be invoked on a tick. */
 	FTickerDelegate TickDelegate{};
 	FTSTicker::FDelegateHandle TickHandle{};
+
+	/* Pipe server instance */
+	TUniquePtr<FHyperlinkPipeServer> PipeServer{ nullptr };
 };
