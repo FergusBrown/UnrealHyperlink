@@ -19,6 +19,7 @@ public class HyperlinkEditor : ModuleRules
             new string[]
             {
                 "AssetRegistry",
+                "AssetTools",
                 "CoreUObject",
                 "EditorSubsystem",
                 "Engine",

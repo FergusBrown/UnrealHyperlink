@@ -3,11 +3,13 @@
 
 #include "HyperlinkSubsystem.h"
 
+#include "AssetRegistry/IAssetRegistry.h"
+#include "AssetViewUtils.h"
 #include "ContentBrowserModule.h"
 #include "HyperlinkPipeServer.h"
+#include "HyperlinkUtils.h"
 #include "IContentBrowserSingleton.h"
 #include "Log.h"
-#include "AssetRegistry/IAssetRegistry.h"
 
 void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -32,7 +34,7 @@ void UHyperlinkSubsystem::Deinitialize()
 
 bool UHyperlinkSubsystem::ExecuteLink(const FString& Link) const
 {
-	bool bResult{ false };
+	bool bSuccess{ false };
 	
 	const FRegexPattern TypePattern{ GetLinkBase() + TEXT(R"((\w+)(/.*))") };
 	FRegexMatcher Matcher{ TypePattern, Link };
@@ -44,9 +46,8 @@ bool UHyperlinkSubsystem::ExecuteLink(const FString& Link) const
 			const FString LinkBody{ Matcher.GetCaptureGroup(2) };
 			UE_LOG(LogHyperlinkEditor, Display, TEXT("Executing %s link with body %s"), *ExecutorID, *LinkBody);
 		
-			bResult = (*Executor)(LinkBody);
-
-			UE_CLOG(!bResult, LogHyperlinkEditor, Warning, TEXT("Failed to execute link %s"), *Link);
+			(*Executor)(LinkBody);
+			bSuccess = true;
 		}
 		else
 		{
@@ -58,7 +59,7 @@ bool UHyperlinkSubsystem::ExecuteLink(const FString& Link) const
 		UE_LOG(LogHyperlinkEditor, Error, TEXT("Failed to extract executor ID from %s. Ensure link is in the format %s"), *Link, *GetLinkFormatHint());
 	}
 
-	return bResult;
+	return bSuccess;
 }
 
 void UHyperlinkSubsystem::RegisterHyperlinkExecutor(const FName& ExecutorID, FHyperlinkExecutor Executor)
@@ -66,9 +67,8 @@ void UHyperlinkSubsystem::RegisterHyperlinkExecutor(const FName& ExecutorID, FHy
 	LinkExecutorMap.Emplace(ExecutorID, Executor);
 }
 
-bool UHyperlinkSubsystem::ExecuteBrowse(const FString& LinkBody)
+void UHyperlinkSubsystem::ExecuteBrowse(const FString& LinkBody)
 {
-	UE_LOG(LogHyperlinkEditor, Display, TEXT("Executing browse link (temp log)"))
 	TArray<FAssetData> LinkAssetData{};
 	IAssetRegistry::Get()->GetAssetsByPackageName(FName(LinkBody), LinkAssetData);
 
@@ -83,15 +83,18 @@ bool UHyperlinkSubsystem::ExecuteBrowse(const FString& LinkBody)
 		// Treat as folder
 		ContentBrowserModule.Get().SyncBrowserToFolders({ LinkBody });
 	}
-	
-	return true;
 }
 
-bool UHyperlinkSubsystem::ExecuteEdit(const FString& LinkBody)
+void UHyperlinkSubsystem::ExecuteEdit(const FString& LinkBody)
 {
-	UE_LOG(LogHyperlinkEditor, Display, TEXT("Executing edit link (temp log)"))
-	
-	return true;
+	if (UObject* const Object{ FHyperlinkUtils::LoadObjectFromPackageName(LinkBody) })
+	{
+		AssetViewUtils::OpenEditorForAsset(Object);
+	}
+	else
+	{
+		UE_LOG(LogHyperlinkEditor, Warning, TEXT("Failed to load %s"), *LinkBody);
+	}
 }
 
 FString UHyperlinkSubsystem::GetLinkBase()
