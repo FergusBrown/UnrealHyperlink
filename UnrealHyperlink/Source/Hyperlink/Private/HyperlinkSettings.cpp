@@ -3,6 +3,8 @@
 
 #include "HyperlinkSettings.h"
 
+#include "HyperlinkFormat.h"
+
 void UHyperlinkSettings::PostInitProperties()
 {
 	Super::PostInitProperties();
@@ -16,7 +18,7 @@ void UHyperlinkSettings::PostInitProperties()
 }
 
 #if WITH_EDITOR
-  FName UHyperlinkSettings::GetCategoryName() const
+FName UHyperlinkSettings::GetCategoryName() const
 {
 	return TEXT("Plugins");
 }
@@ -29,5 +31,23 @@ void UHyperlinkSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyC
 		//TODO: pass new selection to subsystem to update
 	}
 }
+
 #endif //WITH_EDITOR
+
+const TSet<TSubclassOf<UHyperlinkDefinition>>& UHyperlinkSettings::GetRegisteredDefinitions() const
+{
+	return RegisteredDefinitions;
+}
+
+FString UHyperlinkSettings::GetLinkGenerationBase() const
+{
+	const FString LinkBase
+	{
+		HandlingMethod == EHyperlinkHandlingMethod::Application
+			? FHyperlinkFormat::ApplicationBase
+			: LinkHandlerAddress
+	};
+
+	return LinkBase / ProjectIdentifier;
+}
 
