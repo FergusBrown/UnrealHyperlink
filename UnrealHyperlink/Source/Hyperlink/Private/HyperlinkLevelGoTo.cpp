@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "HyperlinkFormat.h"
 #include "HyperlinkUtils.h"
+#include "LevelEditor.h"
 #include "Log.h"
 #if WITH_EDITOR
 #include "Subsystems/UnrealEditorSubsystem.h"
@@ -39,18 +40,29 @@ UHyperlinkLevelGoTo::UHyperlinkLevelGoTo()
 void UHyperlinkLevelGoTo::Initialize()
 {
 #if WITH_EDITOR
-	FHyperlinkGoToCommands::Register();
-	GoToCommands = MakeShared<FUICommandList>();
-	GoToCommands->MapAction(
-		FHyperlinkGoToCommands::Get().CopyGoToLink,
-		FExecuteAction::CreateUObject(this, &UHyperlinkDefinition::CopyLink));
+	// Check for GEditor in case launching uncooked game
+	if (GEditor)
+	{
+		FHyperlinkGoToCommands::Register();
+		GoToCommands = MakeShared<FUICommandList>();
+		GoToCommands->MapAction(
+			FHyperlinkGoToCommands::Get().CopyGoToLink,
+			FExecuteAction::CreateUObject(this, &UHyperlinkDefinition::CopyLink));
 
-	// TODO: need to add these commands to the level editor module
+		const FLevelEditorModule& LevelEditor{ FModuleManager::LoadModuleChecked<FLevelEditorModule>(TEXT("LevelEditor")) };
+		LevelEditor.GetGlobalLevelEditorActions()->Append(GoToCommands.ToSharedRef());
+	}
+
 #endif //WITH_EDITOR
 }
 
 void UHyperlinkLevelGoTo::Deinitialize()
 {
+#if WITH_EDITOR
+	const FLevelEditorModule& LevelEditor{ FModuleManager::LoadModuleChecked<FLevelEditorModule>(TEXT("LevelEditor")) };
+	// Note that we don't need to unmap the actions from Level Editor Module's GlobalLevelEditorActions
+	FHyperlinkGoToCommands::Unregister();
+#endif //WITH_EDITOR
 }
 
 bool UHyperlinkLevelGoTo::GenerateLink(FString& OutLink) const
