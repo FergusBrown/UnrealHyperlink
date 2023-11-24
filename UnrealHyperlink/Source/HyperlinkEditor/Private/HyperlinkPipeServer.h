@@ -11,15 +11,16 @@ class FHyperlinkPipeServer : public FRunnable
 {
 public:
 	FHyperlinkPipeServer();
+	~FHyperlinkPipeServer();
 
 	/* FRunnable Interface
 	 * See FRunnableThreadWin::Run() for an example of how these functions are used */
-	virtual bool Init() override;
 	virtual uint32 Run() override;
 	virtual void Stop() override;
 
 private:
 	static FString GetPipeName();
+	bool StartPipeServer();
 	
 private:
 	TUniquePtr<FRunnableThread> Thread{ nullptr };

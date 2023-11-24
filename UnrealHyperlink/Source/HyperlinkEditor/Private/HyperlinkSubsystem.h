@@ -4,12 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "EditorSubsystem.h"
-#include "HyperlinkPipeServer.h"
 #include "HyperlinkSubsystem.generated.h"
 
+class FHyperlinkPipeServer;
 /**
- * Subsystem to manager the pipe server which receives links
- * Periodically checks that the pipe server is running and restarts it if needed
+ * 
  */
 UCLASS()
 class UHyperlinkSubsystem : public UEditorSubsystem
@@ -21,14 +20,5 @@ public:
 	virtual void Deinitialize() override;
 	
 private:
-	bool Tick(float DeltaTime);
-	void LaunchPipeServer();
-private:
-	/** Holds a delegate to be invoked on a tick. */
-	FTickerDelegate TickDelegate{};
-	FTSTicker::FDelegateHandle TickHandle{};
-
-	/* Pipe Server and thread for running it */
-	TUniquePtr<FRunnable> PipeServer{ nullptr };
-	TUniquePtr<FRunnableThread> PipeServerThread{ nullptr };
+	TUniquePtr<FHyperlinkPipeServer> PipeServer{ nullptr };
 };

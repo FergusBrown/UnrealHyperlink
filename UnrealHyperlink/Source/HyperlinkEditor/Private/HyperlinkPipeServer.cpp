@@ -17,40 +17,25 @@ namespace PipeConstants
 
 FHyperlinkPipeServer::FHyperlinkPipeServer()
 {
-
+	Thread = TUniquePtr<FRunnableThread>(FRunnableThread::Create(this, TEXT("HyperlinkPipeServer")));
 }
 
-bool FHyperlinkPipeServer::Init()
+FHyperlinkPipeServer::~FHyperlinkPipeServer()
 {
-	// Attempt to start the pipe server
-	const FString PipeName{ GetPipeName() };
-	UE_LOG(LogHyperlinkEditor, Log, TEXT("Setting up pipe server %s"), *PipeName);
-
-	static constexpr DWORD InBufferSize{ PipeConstants::BufferSize * sizeof(TCHAR) };
-	static constexpr float Timeout{ 500.f };
-	PipeHandle =
-		::CreateNamedPipeW
-		( 
-			*PipeName,					// pipe name 
-			PIPE_ACCESS_INBOUND,        // read incoming messages only
-			PIPE_TYPE_MESSAGE |         // message-type pipe 
-			PIPE_READMODE_MESSAGE |     // message read mode 
-			PIPE_WAIT,                  // blocking mode - wait indefinitely for a client with ConnectNamedPipe
-			1,                          // Only allow 1 instance to exist at any one time
-			0,                          // output buffer size 
-			InBufferSize,				// input buffer size 
-			Timeout,                    // default client time-out (ms)
-			nullptr 					// default security attributes
-		);
-
-	const bool bSuccess{ PipeHandle != INVALID_HANDLE_VALUE };
-	UE_CLOG(!bSuccess, LogHyperlinkEditor, Error, TEXT("Hyperlink Pipe Server CreateNamedPipe failed, GLE = %d"), ::GetLastError());
-	
-	return bSuccess;
+	if (Thread.IsValid())
+	{
+		Thread->Kill();
+	}
 }
 
 uint32 FHyperlinkPipeServer::Run()
 {
+	// Retry every second until the server starts
+	while (bRunThread && !StartPipeServer())
+	{
+		FPlatformProcess::Sleep(1.f);
+	}
+	
 	while (bRunThread)
 	{
 		// Connect to a client (blocks until a client is found)
@@ -109,4 +94,33 @@ void FHyperlinkPipeServer::Stop()
 FString FHyperlinkPipeServer::GetPipeName()
 {
 	return FString::Format(TEXT(R"(\\.\pipe\{0}Link)"), { FApp::GetProjectName() } );
+}
+
+bool FHyperlinkPipeServer::StartPipeServer()
+{
+	// Attempt to start the pipe server
+	const FString PipeName{ GetPipeName() };
+	UE_LOG(LogHyperlinkEditor, Log, TEXT("Setting up pipe server %s"), *PipeName);
+
+	static constexpr DWORD InBufferSize{ PipeConstants::BufferSize * sizeof(TCHAR) };
+	static constexpr float Timeout{ 500.f };
+	PipeHandle =
+		::CreateNamedPipeW
+		( 
+			*PipeName,					// pipe name 
+			PIPE_ACCESS_INBOUND,        // read incoming messages only
+			PIPE_TYPE_MESSAGE |         // message-type pipe 
+			PIPE_READMODE_MESSAGE |     // message read mode 
+			PIPE_WAIT,                  // blocking mode - wait indefinitely for a client with ConnectNamedPipe
+			1,                          // Only allow 1 instance to exist at any one time
+			0,                          // output buffer size 
+			InBufferSize,				// input buffer size 
+			Timeout,                    // default client time-out (ms)
+			nullptr 					// default security attributes
+		);
+
+	const bool bSuccess{ PipeHandle != INVALID_HANDLE_VALUE };
+	UE_CLOG(!bSuccess, LogHyperlinkEditor, Error, TEXT("Hyperlink Pipe Server CreateNamedPipe failed, GLE = %d"), ::GetLastError());
+	
+	return bSuccess;
 }
