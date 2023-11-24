@@ -9,7 +9,7 @@
 /**
  * Base class for implementing any settings specific to a class inheriting from UHyperlinkDefinition
  */
-UCLASS(Abstract, Config = Hyperlink, DefaultConfig, meta = (DisplayName = "Hyperlink"))
+UCLASS(Abstract, Config = Hyperlink)
 class HYPERLINK_API UHyperlinkDefinitionSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
