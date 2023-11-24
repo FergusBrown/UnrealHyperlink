@@ -2,7 +2,7 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "0.1",
-	"FriendlyName": "UnrealHyperlink",
+	"FriendlyName": "Unreal Hyperlink",
 	"Description": "Generate links which can be used to navigate the editor",
 	"Category": "Other",
 	"CreatedBy": "Fergus Brown",
