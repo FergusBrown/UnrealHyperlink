@@ -55,10 +55,12 @@ FString UHyperlinkUtility::CreateLinkFromPayload(const TSubclassOf<UHyperlinkDef
 }
 
 void UHyperlinkUtility::ExtendToolMenuSection(const FName& MenuName, const FName& SectionName,
-                                              const TSharedPtr<FUICommandList>& CommandList, const TSharedPtr<const FUICommandInfo>& Command)
+                                              const TSharedPtr<FUICommandList>& CommandList,
+                                              const TSharedPtr<const FUICommandInfo>& Command)
 {
 	//TODO: provide mechanism for unregistering tool menu extensions with UToolMenu::RemoveEntry or UToolMenus::UnregisterOwner
-	
+
+
 	// Make our submenu entry.
 	static const FName SubMenuName{ TEXT("HyperlinkSubMenu") };
 	FToolMenuEntry Args = FToolMenuEntry::InitSubMenu(
@@ -72,11 +74,9 @@ void UHyperlinkUtility::ExtendToolMenuSection(const FName& MenuName, const FName
 
 	UToolMenu* const ToolMenu{ UToolMenus::Get()->ExtendMenu(MenuName) };
 	ToolMenu->FindOrAddSection(SectionName).AddEntry(Args);
-	
+
 	UToolMenu* const SubMenu
-	{
-		UToolMenus::Get()->ExtendMenu(UToolMenus::JoinMenuPaths(MenuName, SubMenuName))
-	};
+		{	UToolMenus::Get()->ExtendMenu(UToolMenus::JoinMenuPaths(MenuName, SubMenuName)) };
 
 	// Add action entry to the submenu
 	static const FName CopySectionName{ TEXT("HyperlinkActions") };

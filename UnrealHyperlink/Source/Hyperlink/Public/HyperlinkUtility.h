@@ -32,7 +32,8 @@ public:
 	
 	// TODO: make equivalent without commandlist which can be called by blueprint
 	static void ExtendToolMenuSection(const FName& MenuName, const FName& SectionName,
-									  const TSharedPtr<FUICommandList>& CommandList, const TSharedPtr<const FUICommandInfo>& Command);
+									  const TSharedPtr<FUICommandList>& CommandList,
+									  const TSharedPtr<const FUICommandInfo>& Command);
 
 	static TSharedRef<FExtender> GetMenuExtender(const FName& ExtensionHook,
 		EExtensionHook::Position HookPosition, const TSharedPtr<FUICommandList>& CommandList,
