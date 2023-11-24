@@ -158,7 +158,7 @@ bool UHyperlinkSettings::RegisterDefinitionClass(UClass* const Class)
 	{
 		FHyperlinkClassEntry NewEntry{};
 		NewEntry.Class = Class;
-		NewEntry.Identifier = UHyperlinkUtility::CreateClassDisplayString(Class);
+		NewEntry.Identifier = FHyperlinkUtility::CreateClassDisplayString(Class);
 		
 		RegisteredDefinitions.Emplace(MoveTemp(NewEntry));
 		bResult = true;

@@ -41,10 +41,10 @@ void UHyperlinkLevelActor::Initialize()
 	LevelEditor.GetGlobalLevelEditorActions()->Append(LevelActorCommands.ToSharedRef());
 
 	// Just add the menu entry to avoid duplicate sub menus in world outliner
-	UHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("LevelEditor.ActorContextMenu"), TEXT("ActorOptions"),
+	FHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("LevelEditor.ActorContextMenu"), TEXT("ActorOptions"),
 	LevelActorCommands, FHyperlinkLevelActorCommands::Get().CopyLevelActorLink);
 
-	UHyperlinkUtility::AddHyperlinkMenuEntry(TEXT("LevelEditor.LevelEditorSceneOutliner.ContextMenu"),
+	FHyperlinkUtility::AddHyperlinkMenuEntry(TEXT("LevelEditor.LevelEditorSceneOutliner.ContextMenu"),
 	LevelActorCommands, FHyperlinkLevelActorCommands::Get().CopyLevelActorLink);
 }
 
@@ -85,7 +85,7 @@ void UHyperlinkLevelActor::ExecutePayload(const TSharedRef<FJsonObject>& InPaylo
 		const FName& LevelPackageName{ PayloadStruct.LevelPackageName };
 		const FName& ActorName{ PayloadStruct.ActorName };
 
-		UHyperlinkUtility::OpenEditorForAsset(LevelPackageName);
+		FHyperlinkUtility::OpenEditorForAsset(LevelPackageName);
 		if (AActor* const ActorToSelect{ GEditor->SelectNamedActor(*ActorName.ToString()) })
 		{
 			GEditor->SelectNone(true, true);

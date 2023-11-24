@@ -28,7 +28,7 @@ void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	ExecuteConsoleCommand = IConsoleManager::Get().RegisterConsoleCommand(
 		TEXT("uhl.ExecuteLink"),
 		*FString::Printf(TEXT(R"(Execute a hyperlink in the format "%s". Note the link must be surrounded in quotes.)"),
-			*UHyperlinkUtility::GetLinkStructureHint()),
+			*FHyperlinkUtility::GetLinkStructureHint()),
 		FConsoleCommandWithArgsDelegate::CreateUObject(this, &UHyperlinkSubsystem::ExecuteLinkConsole));
 #endif //WITH_EDITOR
 }
@@ -175,7 +175,7 @@ void UHyperlinkSubsystem::ExecuteLinkConsole(const TArray<FString>& Args)
 	if (Args.Num() != 1)
 	{
 		UE_LOG(LogHyperlink, Display, TEXT(R"(Invalid argument, requires 1 argument in the format "%s")"),
-			*UHyperlinkUtility::GetLinkStructureHint());
+			*FHyperlinkUtility::GetLinkStructureHint());
 	}
 	else
 	{

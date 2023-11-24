@@ -3,26 +3,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Kismet/BlueprintFunctionLibrary.h"
-#include "HyperlinkUtility.generated.h"
+
+class UHyperlinkDefinition;
 
 /**
  * 
  */
-UCLASS()
-class HYPERLINK_API UHyperlinkUtility : public UBlueprintFunctionLibrary
+class HYPERLINK_API FHyperlinkUtility
 {
-	GENERATED_BODY()
 
 public:
 	/* LINK HANDLING UTILITY */
-	UFUNCTION(BlueprintCallable, Category = "Hyperlink | Link Handling Utility")
 	static FString GetLinkBaseAddress();
 	static FString GetLinkStructureHint();
-	
-	UFUNCTION(BlueprintCallable, Category = "Hyperlink | Link Handling Utility")
-	static FString CreateLinkFromPayload(TSubclassOf<UHyperlinkDefinition> DefinitionClass,
-		const FJsonObjectWrapper& InPayload);
 	
 	static FString CreateLinkFromPayload(TSubclassOf<UHyperlinkDefinition> DefinitionClass,
 		const TSharedRef<FJsonObject>& InPayload);
@@ -45,15 +38,9 @@ public:
 	static TSharedRef<FExtender> GetMenuExtender(const FName& ExtensionHook,
 		EExtensionHook::Position HookPosition, const TSharedPtr<FUICommandList>& CommandList,
 		const TSharedPtr<const FUICommandInfo>& Command, const FName& ExtenderName);
-#endif //WITH_EDITOR
 
-	/* Use to create a nice display string for a class*/
-	static FString CreateClassDisplayString(const UClass* Class);
-	
 	/* EDITOR UTILITY */
-	/* These functions should only be called in editor, they'll do nothing at runtime! */
 	
-	UFUNCTION(BlueprintCallable, Category = "Hyperlink | Editor Utility")
 	static UObject* LoadObject(const FString& PackageName);
 	
 	/**
@@ -61,12 +48,9 @@ public:
 	 * @param PackageName Package name of the asset we wish to open the editor for
 	 * @return The UObject the editor was opened for
 	 */
-	UFUNCTION(BlueprintCallable, Category = "Hyperlink | Editor Utility")
 	static UObject* OpenEditorForAsset(const FName& PackageName);
-
-private:
-#if WITH_EDITOR
-	/* Log call to editor only function */
-	static void LogEditorOnlyCall(const TCHAR* FunctionName);
 #endif //WITH_EDITOR
+
+	/* Use to create a nice display string for a class*/
+	static FString CreateClassDisplayString(const UClass* Class);
 };

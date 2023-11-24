@@ -17,7 +17,7 @@ void UHyperlinkDefinition::CopyLink() const
 	else
 	{
 		UE_LOG(LogHyperlink, Error, TEXT("Failed to generate and copy %s link"),
-			*UHyperlinkUtility::CreateClassDisplayString(GetClass()));
+			*FHyperlinkUtility::CreateClassDisplayString(GetClass()));
 	}
 }
 
@@ -26,19 +26,19 @@ void UHyperlinkDefinition::PrintLink() const
 	if (const TSharedPtr<FJsonObject> Payload{ GeneratePayload() })
 	{
 		UE_LOG(LogHyperlink, Display, TEXT("%s"),
-			*UHyperlinkUtility::CreateLinkFromPayload(GetClass(), Payload.ToSharedRef()));
+			*FHyperlinkUtility::CreateLinkFromPayload(GetClass(), Payload.ToSharedRef()));
 	}
 	else
 	{
 		UE_LOG(LogHyperlink, Error, TEXT("Failed to generate and print %s link"),
-			*UHyperlinkUtility::CreateClassDisplayString(GetClass()));
+			*FHyperlinkUtility::CreateClassDisplayString(GetClass()));
 	}
 }
 
 void UHyperlinkDefinition::CopyLink(const TSharedRef<FJsonObject>& Payload) const
 {
 	const FString LinkString
-		{ UHyperlinkUtility::CreateLinkFromPayload(GetClass(), Payload) };
+		{ FHyperlinkUtility::CreateLinkFromPayload(GetClass(), Payload) };
 	UE_LOG(LogHyperlink, Display, TEXT("Copied: %s"), *LinkString);
 	FPlatformApplicationMisc::ClipboardCopy(*LinkString);
 }

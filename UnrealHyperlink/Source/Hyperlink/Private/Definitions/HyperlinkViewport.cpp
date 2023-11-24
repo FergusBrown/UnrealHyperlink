@@ -47,14 +47,14 @@ void UHyperlinkViewport::Initialize()
 		const FLevelEditorModule& LevelEditor{ FModuleManager::LoadModuleChecked<FLevelEditorModule>(TEXT("LevelEditor")) };
 		LevelEditor.GetGlobalLevelEditorActions()->Append(ViewportCommands.ToSharedRef());
 
-		UHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("LevelEditor.ActorContextMenu"),
+		FHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("LevelEditor.ActorContextMenu"),
 			TEXT("ActorOptions"), ViewportCommands, FHyperlinkViewportCommands::Get().CopyViewportLink);
 
 		// Just add the menu entry to avoid duplicate sub menus in world outliner
-		UHyperlinkUtility::AddHyperlinkMenuEntry(TEXT("LevelEditor.LevelEditorSceneOutliner.ContextMenu"),
+		FHyperlinkUtility::AddHyperlinkMenuEntry(TEXT("LevelEditor.LevelEditorSceneOutliner.ContextMenu"),
 			ViewportCommands, FHyperlinkViewportCommands::Get().CopyViewportLink);
 		
-		UHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("LevelEditor.LevelViewportToolBar.Options"),
+		FHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("LevelEditor.LevelViewportToolBar.Options"),
 			TEXT("LevelViewportViewportOptions"), ViewportCommands,
 			FHyperlinkViewportCommands::Get().CopyViewportLink);
 	}
@@ -175,7 +175,7 @@ void UHyperlinkViewport::ExecutePayload(const TSharedRef<FJsonObject>& InPayload
 		}
 	
 		// If PIE teleport fails open the level and move viewport to location
-		if(UHyperlinkUtility::OpenEditorForAsset(LevelPackageName))
+		if(FHyperlinkUtility::OpenEditorForAsset(LevelPackageName))
 		{
 			UUnrealEditorSubsystem* const UnrealEditorSubsystem{ GEditor->GetEditorSubsystem<UUnrealEditorSubsystem>() };
 			UnrealEditorSubsystem->SetLevelViewportCameraInfo(Location, Rotation);

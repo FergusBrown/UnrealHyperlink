@@ -51,12 +51,12 @@ void UHyperlinkEdit::Initialize()
 	);
 
 	// Content Browser asset context menu
-	UHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("ContentBrowser.AssetContextMenu"), TEXT("CommonAssetActions"),
+	FHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("ContentBrowser.AssetContextMenu"), TEXT("CommonAssetActions"),
 		EditCommands, FHyperlinkEditCommands::Get().CopyContentBrowserLink);
 	
 	// Asset Editor asset menu
 	// Note because of the way asset editor drop down menus work we can't (easily) add this entry in a sub menu
-	UHyperlinkUtility::AddHyperlinkMenuEntry(TEXT("MainFrame.MainMenu.Asset"), EditCommands,
+	FHyperlinkUtility::AddHyperlinkMenuEntry(TEXT("MainFrame.MainMenu.Asset"), EditCommands,
 		FHyperlinkEditCommands::Get().CopyContentBrowserLink, false);
 	
 	// Keyboard shortcut command
@@ -139,7 +139,7 @@ void UHyperlinkEdit::ExecutePayload(const TSharedRef<FJsonObject>& InPayload)
 	FHyperlinkNamePayload PayloadStruct{};
 	if (FJsonObjectConverter::JsonObjectToUStruct(InPayload, &PayloadStruct))
 	{
-		UHyperlinkUtility::OpenEditorForAsset(PayloadStruct.Name);
+		FHyperlinkUtility::OpenEditorForAsset(PayloadStruct.Name);
 	}
 }
 

@@ -159,7 +159,7 @@ bool FHyperlinkClassEntryArrayBuilder::IsResetToDefaultVisible(TSharedPtr<IPrope
 	{
 		FString IdentifierValue{};
 		IdentifierPropertyHandle->GetValue(IdentifierValue);
-		const FString DefaultIdentifier{ UHyperlinkUtility::CreateClassDisplayString(Class) };
+		const FString DefaultIdentifier{ FHyperlinkUtility::CreateClassDisplayString(Class) };
 		bResult = IdentifierValue != DefaultIdentifier;
 	}
 	
@@ -177,7 +177,7 @@ void FHyperlinkClassEntryArrayBuilder::ResetToDefaultHandler(TSharedPtr<IPropert
 	
 	if (const UClass* const Class{ Cast<UClass>(ClassValue) })
 	{
-		const FString DefaultIdentifier{ UHyperlinkUtility::CreateClassDisplayString(Class) };
+		const FString DefaultIdentifier{ FHyperlinkUtility::CreateClassDisplayString(Class) };
 		IdentifierPropertyHandle->SetValue(DefaultIdentifier);
 	}
 }

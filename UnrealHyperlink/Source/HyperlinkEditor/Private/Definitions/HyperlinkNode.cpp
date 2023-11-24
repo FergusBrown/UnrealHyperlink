@@ -54,7 +54,7 @@ void UHyperlinkNode::Initialize()
 				FName ExtensionPoint{};
 				if (TryGetExtensionPoint(OuterClass, ExtensionPoint))
 				{
-					return UHyperlinkUtility::GetMenuExtender(ExtensionPoint,
+					return FHyperlinkUtility::GetMenuExtender(ExtensionPoint,
 						EExtensionHook::After, NodeCommands,
 						FHyperlinkNodeCommands::Get().CopyNodeLink, TEXT("CopyNodeLink"));
 				}
@@ -189,7 +189,7 @@ void UHyperlinkNode::ExecutePayload(const TSharedRef<FJsonObject>& InPayload)
 
 void UHyperlinkNode::ExecuteBlueprintPayload(const FHyperlinkBlueprintPayload& InPayload)
 {
-	const UObject* const EditedObject{ UHyperlinkUtility::OpenEditorForAsset(InPayload.BlueprintPackageName) };
+	const UObject* const EditedObject{ FHyperlinkUtility::OpenEditorForAsset(InPayload.BlueprintPackageName) };
 	if (const UBlueprint* const Blueprint{ Cast<UBlueprint>(EditedObject) })
 	{
 		TArray<UEdGraph*> AllGraphs{};
@@ -218,7 +218,7 @@ void UHyperlinkNode::ExecuteBlueprintPayload(const FHyperlinkBlueprintPayload& I
 
 void UHyperlinkNode::ExecuteMaterialPayload(const FHyperlinkMaterialPayload& InPayload)
 {
-	const UObject* const EditedObject{ UHyperlinkUtility::OpenEditorForAsset(InPayload.MaterialPackageName) };
+	const UObject* const EditedObject{ FHyperlinkUtility::OpenEditorForAsset(InPayload.MaterialPackageName) };
 	if (EditedObject->IsA<UMaterial>() || EditedObject->IsA<UMaterialFunction>())
 	{
 		const TSharedPtr<IMaterialEditor> MaterialEditor

@@ -9,7 +9,6 @@
 #include "Internationalization/Regex.h"
 #include "JsonObjectConverter.h"
 #include "Log.h"
-#include "Serialization/JsonSerializer.h"
 
 #if WITH_EDITOR
 #include "Styling/StarshipCoreStyle.h"
@@ -21,20 +20,20 @@ namespace FHyperlinkUtilityConstants
 	static const FName SubMenuName{ TEXT("HyperlinkSubMenu") };
 }
 
-FString UHyperlinkUtility::GetLinkBaseAddress()
+FString FHyperlinkUtility::GetLinkBaseAddress()
 {
 	const UHyperlinkSettings* const Settings{ GetDefault<UHyperlinkSettings>() };
 	return FString::Printf(TEXT("http://localhost:%d/%s"),
 		Settings->GetLocalServerPort(), *Settings->GetProjectIdentifier());
 }
 
-FString UHyperlinkUtility::GetLinkStructureHint()
+FString FHyperlinkUtility::GetLinkStructureHint()
 {
 	return GetLinkBaseAddress() / TEXT("JsonPayload");
 }
 
-FString UHyperlinkUtility::CreateLinkFromPayload(const TSubclassOf<UHyperlinkDefinition> DefinitionClass,
-                                                 const FJsonObjectWrapper& InPayload)
+FString FHyperlinkUtility::CreateLinkFromPayload(const TSubclassOf<UHyperlinkDefinition> DefinitionClass,
+                                                 const TSharedRef<FJsonObject>& InPayload)
 {
 	FString PayloadString{};
 	if (DefinitionClass)
@@ -42,8 +41,11 @@ FString UHyperlinkUtility::CreateLinkFromPayload(const TSubclassOf<UHyperlinkDef
 		// Create execute payload
 		FHyperlinkExecutePayload ExecutePayload{};
 		{
-			ExecutePayload.Class = DefinitionClass;;
-			ExecutePayload.DefinitionPayload = InPayload;
+			ExecutePayload.Class = DefinitionClass;
+			
+			FJsonObjectWrapper ObjectWrapper{};
+			ObjectWrapper.JsonObject = InPayload.ToSharedPtr();
+			ExecutePayload.DefinitionPayload = MoveTemp(ObjectWrapper);
 		}
 		
 		FJsonObjectConverter::UStructToJsonObjectString(ExecutePayload, PayloadString, 0, 0, 0, nullptr, false);
@@ -52,21 +54,12 @@ FString UHyperlinkUtility::CreateLinkFromPayload(const TSubclassOf<UHyperlinkDef
 	return GetLinkBaseAddress() / PayloadString;
 }
 
-FString UHyperlinkUtility::CreateLinkFromPayload(const TSubclassOf<UHyperlinkDefinition> DefinitionClass,
-                                                 const TSharedRef<FJsonObject>& InPayload)
-{
-	FJsonObjectWrapper ObjectWrapper{};
-	ObjectWrapper.JsonObject = InPayload.ToSharedPtr();
-	
-	return CreateLinkFromPayload(DefinitionClass, ObjectWrapper);
-}
-
-FSlateIcon UHyperlinkUtility::GetMenuIcon()
+FSlateIcon FHyperlinkUtility::GetMenuIcon()
 {
 	return FSlateIcon(FStarshipCoreStyle::GetCoreStyle().GetStyleSetName(), TEXT("Icons.Link"));
 }
 
-void UHyperlinkUtility::AddHyperlinkSubMenu(const FName& MenuName, const FName& SectionName)
+void FHyperlinkUtility::AddHyperlinkSubMenu(const FName& MenuName, const FName& SectionName)
 {
 	FToolMenuEntry SubMenuArgs
 	{
@@ -84,7 +77,7 @@ void UHyperlinkUtility::AddHyperlinkSubMenu(const FName& MenuName, const FName& 
 	ToolMenu->FindOrAddSection(SectionName).AddEntry(SubMenuArgs);
 }
 
-void UHyperlinkUtility::AddHyperlinkMenuEntry(const FName& MenuName, const TSharedPtr<FUICommandList>& CommandList,
+void FHyperlinkUtility::AddHyperlinkMenuEntry(const FName& MenuName, const TSharedPtr<FUICommandList>& CommandList,
 	const TSharedPtr<const FUICommandInfo>& Command, const bool bWithSubMenu/*= true*/)
 {
 	FName MenuPath;
@@ -109,7 +102,7 @@ void UHyperlinkUtility::AddHyperlinkMenuEntry(const FName& MenuName, const TShar
 	Menu->AddMenuEntry(CopySectionName, EntryArgs);
 }
 
-void UHyperlinkUtility::AddHyperlinkSubMenuAndEntry(const FName& MenuName, const FName& SectionName,
+void FHyperlinkUtility::AddHyperlinkSubMenuAndEntry(const FName& MenuName, const FName& SectionName,
                                               const TSharedPtr<FUICommandList>& CommandList,
                                               const TSharedPtr<const FUICommandInfo>& Command)
 {
@@ -124,7 +117,7 @@ void UHyperlinkUtility::AddHyperlinkSubMenuAndEntry(const FName& MenuName, const
 
 #undef LOCTEXT_NAMESPACE
 
-TSharedRef<FExtender> UHyperlinkUtility::GetMenuExtender(const FName& ExtensionHook,
+TSharedRef<FExtender> FHyperlinkUtility::GetMenuExtender(const FName& ExtensionHook,
 	const EExtensionHook::Position HookPosition, const TSharedPtr<FUICommandList>& CommandList,
 	const TSharedPtr<const FUICommandInfo>& Command, const FName& ExtenderName)
 {
@@ -153,7 +146,7 @@ TSharedRef<FExtender> UHyperlinkUtility::GetMenuExtender(const FName& ExtensionH
 
 #endif //WITH_EDITOR
 
-FString UHyperlinkUtility::CreateClassDisplayString(const UClass* Class)
+FString FHyperlinkUtility::CreateClassDisplayString(const UClass* const Class)
 {
 	FString Identifier{ Class->GetDisplayNameText().ToString() };
 	Identifier.RemoveSpacesInline();
@@ -170,9 +163,8 @@ FString UHyperlinkUtility::CreateClassDisplayString(const UClass* Class)
 	return  Identifier;
 }
 
-UObject* UHyperlinkUtility::LoadObject(const FString& PackageName)
+UObject* FHyperlinkUtility::LoadObject(const FString& PackageName)
 {
-#if WITH_EDITOR
 	UObject* Ret{ nullptr };
 	
 	if (UPackage* const Package{ LoadPackage(nullptr, *PackageName, LOAD_NoRedirects) })
@@ -185,15 +177,10 @@ UObject* UHyperlinkUtility::LoadObject(const FString& PackageName)
 	UE_CLOG(!Ret, LogHyperlink, Error, TEXT("Failed to load %s"), *PackageName);
 
 	return Ret;
-#else //WITH_EDITOR
-	LogEditorOnlyCall(TEXT("LoadObject"));
-	return nullptr;
-#endif //WITH_EDITOR
 }
 
-UObject* UHyperlinkUtility::OpenEditorForAsset(const FName& PackageName)
+UObject* FHyperlinkUtility::OpenEditorForAsset(const FName& PackageName)
 {
-#if WITH_EDITOR
 	UObject* const Object{ LoadObject(PackageName.ToString()) };
 	if (Object)
 	{
@@ -210,16 +197,5 @@ UObject* UHyperlinkUtility::OpenEditorForAsset(const FName& PackageName)
 		}
 	}
 	return Object;
-#else //WITH_EDITOR
-	LogEditorOnlyCall(TEXT("OpenEditorForAsset"));
-	return nullptr;
-#endif //WITH_EDITOR
 }
-
-#if WITH_EDITOR
-void UHyperlinkUtility::LogEditorOnlyCall(const TCHAR* FunctionName)
-{
-	UE_LOG(LogHyperlink, Log, TEXT("Editor only hyperlink utility called at runtime (UHyperlinkUtility::%s)"), FunctionName);
-}
-#endif //WITH_EDITOR
 
