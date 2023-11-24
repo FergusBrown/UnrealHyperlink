@@ -5,8 +5,11 @@
 
 #include "ContentBrowserModule.h"
 #include "EditorUtilityBlueprint.h"
+#include "EditorUtilitySubsystem.h"
+#include "HyperlinkCommonPayload.h"
 #include "HyperlinkUtility.h"
 #include "IContentBrowserSingleton.h"
+#include "JsonObjectConverter.h"
 
 #define LOCTEXT_NAMESPACE "HyperlinkScript"
 
@@ -43,17 +46,48 @@ void UHyperlinkScript::Initialize()
 
 void UHyperlinkScript::Deinitialize()
 {
-	//Super::Deinitialize();
+	// TODO
 }
 
 TSharedPtr<FJsonObject> UHyperlinkScript::GeneratePayload() const
 {
-	return Super::GeneratePayload();
+	TSharedPtr<FJsonObject> Payload{ nullptr };
+
+	// TODO: implement sort of content browser operation in utilities
+	const FContentBrowserModule& ContentBrowser =
+		FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser"));
+	TArray<FAssetData> SelectedAssets{};
+	ContentBrowser.Get().GetSelectedAssets(SelectedAssets);
+	
+	TArray<FAssetData> FilteredAssets
+	{
+		SelectedAssets.FilterByPredicate([](const FAssetData& AssetData)
+		{
+			return AssetData.AssetClassPath == UEditorUtilityBlueprint::StaticClass()->GetClassPathName();
+		})
+	};
+	if (SelectedAssets.Num() > 0 )
+	{
+		const FHyperlinkNamePayload PayloadStruct{ SelectedAssets[0].PackageName };
+		Payload =  FJsonObjectConverter::UStructToJsonObject(PayloadStruct);
+	}
+
+	return Payload;
 }
 
 void UHyperlinkScript::ExecutePayload(const TSharedRef<FJsonObject>& InPayload)
 {
-	Super::ExecutePayload(InPayload);
+	FHyperlinkNamePayload PayloadStruct{};
+	if (FJsonObjectConverter::JsonObjectToUStruct(InPayload, &PayloadStruct))
+	{
+		UObject* const LoadedBlutility{ FHyperlinkUtility::LoadObject(PayloadStruct.Name.ToString()) };
+
+		UEditorUtilitySubsystem* const EditorUtilitySubsystem{ GEditor->GetEditorSubsystem<UEditorUtilitySubsystem>() };
+		if (EditorUtilitySubsystem)
+		{
+			EditorUtilitySubsystem->TryRun(LoadedBlutility);
+		}
+	}
 }
 
 bool UHyperlinkScript::IsBlutilitySelected()

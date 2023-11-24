@@ -18,6 +18,7 @@ public:
 
 /**
  * Hyperlink for executing an editor utility blueprint or python script
+ * python is TODO!
  */
 UCLASS()
 class HYPERLINKEDITOR_API UHyperlinkScript : public UHyperlinkDefinition
