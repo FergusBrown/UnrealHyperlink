@@ -30,7 +30,17 @@ UObject* FHyperlinkUtils::OpenEditorForAsset(const FString& PackageName)
 	UObject* const Object{ LoadObject(PackageName) };
 	if (Object)
 	{
-		GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAsset(Object);
+		// Need to check if this is a level first. Levels will be reopened rather than focused by OpenEditorForAsset
+		// so we need skip this step if the level is already open in the level editor
+		bool bSkipOpen{ false };
+		if (const UWorld* const EditorWorld{ GEditor->GetEditorWorldContext().World() })
+		{
+			bSkipOpen = PackageName == EditorWorld->PersistentLevel->GetPackage()->GetName();
+		}
+		if (!bSkipOpen)
+		{
+			GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAsset(Object);
+		}
 	}
 	return Object;
 }

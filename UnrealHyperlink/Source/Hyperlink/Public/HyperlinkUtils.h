@@ -11,6 +11,11 @@ namespace FHyperlinkUtils
 {
 #if WITH_EDITOR
 	HYPERLINK_API UObject* LoadObject(const FString& PackageName);
+	/**
+	 * @brief Open the asset editor for an asset or focus it if it's already open 
+	 * @param PackageName Package name of the asset we wish to open the editor for
+	 * @return The UObject the editor was opened for
+	 */
 	HYPERLINK_API UObject* OpenEditorForAsset(const FString& PackageName);
 	HYPERLINK_API TSharedRef<FExtender> GetMenuExtender(const FName& ExtensionHook, EExtensionHook::Position HookPosition, const TSharedPtr<FUICommandList> CommandList, const TSharedPtr<const FUICommandInfo> Command, const FName& ExtenderName);
 #endif //WITH_EDITOR
