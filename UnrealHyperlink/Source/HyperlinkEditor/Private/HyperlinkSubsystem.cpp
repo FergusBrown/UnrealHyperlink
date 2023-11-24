@@ -15,8 +15,7 @@ void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	RegisterHyperlinkExecutor(TEXT("edit"), UHyperlinkSubsystem::ExecuteEdit);
 
 	// Register console commands
-	// TODO: unregister on shutdown
-	IConsoleManager::Get().RegisterConsoleCommand(
+	ExecuteConsoleCommand = IConsoleManager::Get().RegisterConsoleCommand(
 		TEXT("uhl.ExecuteLink"),
 		*FString::Format(TEXT(R"(Execute a hyperlink in the format "{0}". Note the link must be surrounded in quotes.)"), { GetLinkFormatHint() }),
 		FConsoleCommandWithArgsDelegate::CreateUObject(this, &UHyperlinkSubsystem::ExecuteLinkConsole));
@@ -24,6 +23,7 @@ void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UHyperlinkSubsystem::Deinitialize()
 {
+	IConsoleManager::Get().UnregisterConsoleObject(ExecuteConsoleCommand);
 	LinkExecutorMap.Empty();
 }
 
