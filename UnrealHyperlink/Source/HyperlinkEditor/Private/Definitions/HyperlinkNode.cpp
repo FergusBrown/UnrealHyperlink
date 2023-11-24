@@ -60,7 +60,7 @@ void UHyperlinkNode::Initialize()
 				}
 				else
 				{
-					return TSharedRef<FExtender>();
+					return MakeShared<FExtender>();
 				}
 			})
 	};
