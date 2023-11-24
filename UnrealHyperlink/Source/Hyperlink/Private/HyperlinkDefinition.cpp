@@ -6,6 +6,11 @@
 #include "HyperlinkSettings.h"
 #include "Log.h"
 
+FString UHyperlinkDefinition::GetDefinitionIdentifier() const
+{
+	return DefinitionIdentifier;
+}
+
 void UHyperlinkDefinition::ExecuteLinkBody(const FString& LinkBody)
 {
 	const FRegexPattern LinkPattern{ GetBodyPattern() };
@@ -24,7 +29,7 @@ void UHyperlinkDefinition::ExecuteLinkBody(const FString& LinkBody)
 	}
 	else
 	{
-		UE_LOG(LogHyperlink, Warning, TEXT("Link did not match %s pattern %s"), *GetDefinitionName(), *GetBodyPattern());
+		UE_LOG(LogHyperlink, Warning, TEXT("Link did not match %s pattern %s"), *DefinitionIdentifier, *GetBodyPattern());
 		
 	}
 }
@@ -36,5 +41,5 @@ FString UHyperlinkDefinition::GetBodyPattern() const
 
 FString UHyperlinkDefinition::GetHyperlinkBase() const
 {
-	return GetMutableDefault<UHyperlinkSettings>()->GetLinkGenerationBase() / GetDefinitionName();
+	return GetMutableDefault<UHyperlinkSettings>()->GetLinkGenerationBase() / DefinitionIdentifier;
 }

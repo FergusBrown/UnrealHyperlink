@@ -30,9 +30,9 @@ void FHyperlinkBrowseCommands::RegisterCommands()
 #undef LOCTEXT_NAMESPACE
 #endif //WITH_EDITOR
 
-FString UHyperlinkBrowse::GetDefinitionName() const
+UHyperlinkBrowse::UHyperlinkBrowse()
 {
-	return TEXT("browse");
+	DefinitionIdentifier = TEXT("Browse");
 }
 
 void UHyperlinkBrowse::Initialize()

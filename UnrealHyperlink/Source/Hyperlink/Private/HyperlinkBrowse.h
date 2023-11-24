@@ -28,7 +28,8 @@ class UHyperlinkBrowse : public UHyperlinkDefinition
 	GENERATED_BODY()
 	
 public:
-	virtual FString GetDefinitionName() const override;
+	UHyperlinkBrowse();
+	
 	virtual void Initialize() override;
 	virtual void Deinitialize() override;
 

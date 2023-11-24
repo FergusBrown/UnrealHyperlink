@@ -16,7 +16,7 @@ void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		{
 			TObjectPtr<UHyperlinkDefinition> NewDefinition{ NewObject<UHyperlinkDefinition>(this, DefClass) };
 			NewDefinition->Initialize();
-			Definitions.Emplace(NewDefinition->GetDefinitionName(), NewDefinition);
+			Definitions.Emplace(NewDefinition->GetDefinitionIdentifier(), NewDefinition);
 		}
 	}
 	

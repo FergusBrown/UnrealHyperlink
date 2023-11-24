@@ -25,9 +25,10 @@ UCLASS()
 class UHyperlinkEdit : public UHyperlinkDefinition
 {
 	GENERATED_BODY()
-	
+
 public:
-	virtual FString GetDefinitionName() const override;
+	UHyperlinkEdit();
+	
 	virtual void Initialize() override;
 	virtual void Deinitialize() override;
 

@@ -29,9 +29,9 @@ void FHyperlinkEditCommands::RegisterCommands()
 #undef LOCTEXT_NAMESPACE
 #endif //WITH_EDITOR
 
-FString UHyperlinkEdit::GetDefinitionName() const
+UHyperlinkEdit::UHyperlinkEdit()
 {
-	return TEXT("edit");
+	DefinitionIdentifier = TEXT("Edit");
 }
 
 void UHyperlinkEdit::Initialize()

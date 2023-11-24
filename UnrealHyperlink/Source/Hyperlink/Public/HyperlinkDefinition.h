@@ -9,13 +9,13 @@
 /**
  * Abstract class for defining hyperlink types
  */
-UCLASS(Abstract) // TODO: consider making blueprintable. All the virtuals will need to be made into blueprint native events
+UCLASS(Abstract, Config = Hyperlink, DefaultConfig) // TODO: consider making blueprintable. All the virtuals will need to be made into blueprint native events
 class HYPERLINK_API UHyperlinkDefinition : public UObject
 {
 	GENERATED_BODY()
 	
 public:
-	virtual FString GetDefinitionName() const PURE_VIRTUAL(UHyperlinkDefinition::GetDefinitionName, return FString(););
+	FString GetDefinitionIdentifier() const;
 	
 	void ExecuteLinkBody(const FString& LinkBody);
 	
@@ -32,9 +32,13 @@ public:
 	/* FString GenerateLink(Args...); */
 
 protected:
-	/* Used to validate a received link */
+	/* Used to validate a received link TODO: consider moving to member variable */
 	virtual FString GetBodyPattern() const;
 
 	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) PURE_VIRTUAL(UHyperlinkDefinition::ExecuteLinkBodyInternal, );
-	
+
+protected:
+	/* The name used to identify this type of link */
+	UPROPERTY(Config, EditAnywhere)
+	FString DefinitionIdentifier{ TEXT("") };
 };
