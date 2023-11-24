@@ -9,8 +9,9 @@
 #include "HyperlinkPythonBridge.h"
 #include "HyperlinkSettings.h"
 #include "HyperlinkUtility.h"
-#include "JsonObjectConverter.h"
+#include "Interfaces/IMainFrameModule.h"
 #include "Internationalization/Regex.h"
+#include "JsonObjectConverter.h"
 #include "Log.h"
 
 void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -191,6 +192,15 @@ void UHyperlinkSubsystem::ExecuteLinkDeferred(const FHyperlinkExecutePayload Exe
 		if (UHyperlinkDefinition* const Definition{ GetDefinition(ExecutePayload.Class) })
 		{
 			Definition->ExecutePayload(ExecutePayload.DefinitionPayload.JsonObject.ToSharedRef());
+
+			// Focus the editor window
+			const IMainFrameModule& MainFrameModule = IMainFrameModule::Get();
+
+			if (const TSharedPtr<SWindow> Window{ MainFrameModule.GetParentWindow() })
+			{
+				Window->HACK_ForceToFront();
+			}
+			
 		}
 		else
 		{
