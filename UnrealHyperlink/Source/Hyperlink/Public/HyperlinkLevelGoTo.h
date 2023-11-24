@@ -46,7 +46,6 @@ protected:
 #endif //WITH_EDITOR
 
 private:
-	void CopyLink() const;
 	// TODO: move to utilities
 	// static bool GetLevelPackageName(const UWorld* const World, FString& OutLevelPackageName);
 	static bool GetGameWorldCameraInfo(const UWorld* const World, FVector& OutLocation, FRotator& OutRotation);
