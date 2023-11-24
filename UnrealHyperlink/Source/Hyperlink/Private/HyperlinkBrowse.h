@@ -23,5 +23,14 @@ public:
 
 protected:
 	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) override;
+
+#if WITH_EDITOR
+private:
+	TSharedRef<FExtender> OnExtendAssetContextMenu(const TArray<FAssetData>& SelectedAssets) const;
+	TSharedRef<FExtender> OnExtendFolderContextMenu(const TArray<FString>& SelectedFolders) const;
 	
+private:
+	FDelegateHandle AssetContextMenuHandle{};
+	FDelegateHandle FolderContextMenuHandle{};
+#endif //WITH_EDITOR
 };

@@ -4,7 +4,8 @@
 #include "HyperlinkEdit.h"
 
 #if WITH_EDITOR
-  #include "AssetViewUtils.h"
+#include "AssetViewUtils.h"
+#include "ContentBrowserModule.h"
 #include "HyperlinkUtils.h"
 #endif //WITH_EDITOR
 
@@ -15,7 +16,17 @@ FString UHyperlinkEdit::GetDefinitionName() const
 
 void UHyperlinkEdit::Initialize()
 {
-	// TODO
+#if WITH_EDITOR
+	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
+
+	// Assets context menu
+	FContentBrowserMenuExtender_SelectedAssets SelectedAssetsDelegate
+	{
+		FContentBrowserMenuExtender_SelectedAssets::CreateUObject(this, &UHyperlinkEdit::OnExtendAssetContextMenu)
+	};
+	AssetContextMenuHandle = SelectedAssetsDelegate.GetHandle();
+	ContentBrowser.GetAllAssetViewContextMenuExtenders().Emplace(MoveTemp(SelectedAssetsDelegate));
+#endif //WITH_EDITOR
 }
 
 void UHyperlinkEdit::Deinitialize()
@@ -37,3 +48,13 @@ void UHyperlinkEdit::ExecuteLinkBodyInternal(const TArray<FString>& LinkArgument
 	}
 #endif //WITH_EDITOR
 }
+
+#if WITH_EDITOR
+TSharedRef<FExtender> UHyperlinkEdit::OnExtendAssetContextMenu(const TArray<FAssetData>& SelectedAssets) const
+{
+	TSharedRef<FExtender> Extender{ MakeShared<FExtender>() };
+	//Extender->AddMenuExtension()
+	
+	return Extender;
+}
+#endif //WITH_EDITOR

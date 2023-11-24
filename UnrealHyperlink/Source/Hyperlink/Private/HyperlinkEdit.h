@@ -23,5 +23,13 @@ public:
 
 protected:
 	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) override;
+
+
+#if WITH_EDITOR
+private:
+	TSharedRef<FExtender> OnExtendAssetContextMenu(const TArray<FAssetData>& SelectedAssets) const;
 	
+private:
+	FDelegateHandle AssetContextMenuHandle{};
+#endif //WITH_EDITOR
 };
