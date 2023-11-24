@@ -9,6 +9,6 @@
  */
 namespace FHyperlinkFormat
 {
-	static const TCHAR* ApplicationBase{ TEXT("unreal:/") };
+	static const TCHAR* ApplicationBase{ TEXT("unreal://") };
 	static const TCHAR* BaseFormat{ TEXT("{0}/{1}/{2}") };
 };

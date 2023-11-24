@@ -6,6 +6,18 @@
 #include "HyperlinkDefinition.h"
 #include "HyperlinkEdit.generated.h"
 
+#if WITH_EDITOR
+class FHyperlinkEditCommands : public TCommands<FHyperlinkEditCommands>
+{
+public:
+	FHyperlinkEditCommands();
+	virtual void RegisterCommands() override;
+
+public:
+	TSharedPtr<FUICommandInfo> GenerateEditLink{ nullptr };
+};
+#endif //WITH_EDITOR
+
 /**
  * Hyperlink definition for edit links
  */
@@ -31,5 +43,6 @@ private:
 	
 private:
 	FDelegateHandle AssetContextMenuHandle{};
+	TSharedPtr<FUICommandList> EditCommands{};
 #endif //WITH_EDITOR
 };

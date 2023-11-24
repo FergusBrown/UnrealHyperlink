@@ -33,6 +33,7 @@ public class Hyperlink : ModuleRules
             PrivateDependencyModuleNames.AddRange(
                 new string[] 
                 {
+                    "ApplicationCore",
                     "AssetRegistry",
                     "AssetTools",
                     "ContentBrowser",
