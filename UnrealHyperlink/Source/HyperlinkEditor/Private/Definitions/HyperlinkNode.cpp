@@ -91,11 +91,6 @@ TSharedPtr<FJsonObject> UHyperlinkNode::GeneratePayload() const
 		{
 			Payload = GenerateMaterialPayload(*Material, *SelectedNode);
 		}
-		else if (const UMaterialFunction* const MaterialFunction{ Cast<UMaterialFunction>(AssetObject) })
-		{
-			TConstArrayView<TObjectPtr<UMaterialExpression>> MaterialExpressions{ MaterialFunction->GetExpressions() };
-			// TODO
-		}
 		else // UBlueprint
 		{
 			Payload = GenerateBlueprintPayload(AssetObject->GetPackage()->GetFName(), ActiveGraph->GraphGuid,
