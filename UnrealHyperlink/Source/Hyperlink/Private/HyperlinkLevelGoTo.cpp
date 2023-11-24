@@ -24,7 +24,8 @@ FHyperlinkGoToCommands::FHyperlinkGoToCommands()
 
 void FHyperlinkGoToCommands::RegisterCommands()
 {
-	UI_COMMAND(CopyGoToLink, "Copy GoTo Link", "Copy a link to go to the specified location in a level", EUserInterfaceActionType::Button, FInputChord(EModifierKey::Alt | EModifierKey::Shift, EKeys::C));
+	UI_COMMAND(CopyGoToLink, "Copy GoTo Link", "Copy a link to go to the specified location in a level",
+	           EUserInterfaceActionType::Button, FInputChord(EModifierKey::Alt | EModifierKey::Shift, EKeys::C));
 }
 
 #undef LOCTEXT_NAMESPACE
@@ -34,7 +35,7 @@ void FHyperlinkGoToCommands::RegisterCommands()
 UHyperlinkLevelGoTo::UHyperlinkLevelGoTo()
 {
 	DefinitionIdentifier = TEXT("LevelGoTo");
-	
+
 	BodyPattern = FString::Printf(TEXT("(.+)%s([0-9A-F]{%d})"), &FHyperlinkFormat::ArgSeparator, FHyperlinkUtils::VectorStringLength * 2);
 }
 
@@ -134,21 +135,38 @@ FString UHyperlinkLevelGoTo::GenerateLink(const FString& InLevelPackageName, con
 #if WITH_EDITOR
 void UHyperlinkLevelGoTo::ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments)
 {
-	// Open level
-	if(FHyperlinkUtils::OpenEditorForAsset(LinkArguments[1]))
+	// Extract link info
+	const FString& LevelPackageName{ LinkArguments[1] };
+	
+	const FString& VectorStrings{ LinkArguments[2] };
+	const FString LocationString{ VectorStrings.Mid(0, FHyperlinkUtils::VectorStringLength) };
+	const FString RotationString{ VectorStrings.Mid(FHyperlinkUtils::VectorStringLength, FHyperlinkUtils::VectorStringLength) };
+
+	const FVector Location{ FHyperlinkUtils::HexStringToVector(LocationString) };
+	const FRotator Rotation{ FHyperlinkUtils::HexStringToVector(RotationString).Rotation() };
+	
+	// Attempt to teleport pawn in PIE
+	if (const FWorldContext* const PieWorldContext{ GEditor->GetPIEWorldContext() })
 	{
-		// Set viewport position
-		const FString& VectorStrings{ LinkArguments[2] };
-		const FString LocationString{ VectorStrings.Mid(0, FHyperlinkUtils::VectorStringLength) };
-		const FString RotationString{ VectorStrings.Mid(FHyperlinkUtils::VectorStringLength, FHyperlinkUtils::VectorStringLength) };
-
-		const FVector Location{ FHyperlinkUtils::HexStringToVector(LocationString) };
-		const FRotator Rotation{ FHyperlinkUtils::HexStringToVector(RotationString).Rotation() };
-		
-		UUnrealEditorSubsystem* const UnrealEditorSubsystem{ GEditor->GetEditorSubsystem<UUnrealEditorSubsystem>() };
-		UnrealEditorSubsystem->SetLevelViewportCameraInfo(Location, Rotation);
-
-		// TODO: Handle in PIE/game moving player
+		if (const UWorld* const PieWorld{ PieWorldContext->World() })
+		{
+			const FString EditorWorldPackageName{ GEditor->EditorWorld->PersistentLevel->GetPackage()->GetName() };
+			if (EditorWorldPackageName == LevelPackageName)
+			{
+				if (APawn* const Pawn{ PieWorld->GetFirstPlayerController()->GetPawn() })
+				{
+					Pawn->TeleportTo(Location, Rotation);
+					return;
+				}
+			}
+		}
+	}
+	
+	// If PIE teleport fails open the level and move viewport to location
+	if(FHyperlinkUtils::OpenEditorForAsset(LevelPackageName))
+	{
+			UUnrealEditorSubsystem* const UnrealEditorSubsystem{ GEditor->GetEditorSubsystem<UUnrealEditorSubsystem>() };
+			UnrealEditorSubsystem->SetLevelViewportCameraInfo(Location, Rotation);
 	}
 }
 #endif //WITH_EDITOR
