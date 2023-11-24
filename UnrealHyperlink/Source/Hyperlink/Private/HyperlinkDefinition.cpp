@@ -72,16 +72,6 @@ void UHyperlinkDefinition::PrintLink() const
 	}
 }
 
-#if WITH_EDITOR
-void UHyperlinkDefinition::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	// Save any user properties for this definition
-	SaveConfig(CPF_Config, *GetGlobalUserConfigFilename());
-
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-#endif //WITH_EDITOR
-
 void UHyperlinkDefinition::CopyLink(const FString& InLink)
 {
 	UE_LOG(LogHyperlink, Display, TEXT("Copied: %s"), *InLink);

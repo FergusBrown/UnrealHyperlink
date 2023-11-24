@@ -40,10 +40,6 @@ public:
 	/* Generate a link using the GenerateLink function and log it */
 	void PrintLink() const;
 
-#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif //WITH_EDITOR
-
 protected:
 	static void CopyLink(const FString& InLink);
 
