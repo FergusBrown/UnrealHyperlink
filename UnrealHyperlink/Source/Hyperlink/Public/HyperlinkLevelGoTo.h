@@ -21,7 +21,6 @@ public:
 
 /**
  * Link type for teleporting viewport (Editor) or player controller (PIE/Game) to a given location + rotation
- * Similar to BugIt console command // TODO: match BugIt features
  */
 UCLASS()
 class HYPERLINK_API UHyperlinkLevelGoTo : public UHyperlinkDefinition
@@ -46,8 +45,6 @@ protected:
 #endif //WITH_EDITOR
 
 private:
-	// TODO: move to utilities
-	// static bool GetLevelPackageName(const UWorld* const World, FString& OutLevelPackageName);
 	static bool GetGameWorldCameraInfo(const UWorld* const World, FVector& OutLocation, FRotator& OutRotation);
 	
 private:

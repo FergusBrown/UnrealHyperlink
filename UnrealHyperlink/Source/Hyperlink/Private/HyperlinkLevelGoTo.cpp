@@ -34,7 +34,8 @@ void FHyperlinkGoToCommands::RegisterCommands()
 UHyperlinkLevelGoTo::UHyperlinkLevelGoTo()
 {
 	DefinitionIdentifier = TEXT("LevelGoTo");
-	BodyPattern = TEXT(R"((.+):([0-9A-F]{96}))");
+	
+	BodyPattern = FString::Printf(TEXT("(.+)%s([0-9A-F]{%d})"), &FHyperlinkFormat::ArgSeparator, FHyperlinkUtils::VectorStringLength * 2);
 }
 
 void UHyperlinkLevelGoTo::Initialize()
@@ -52,7 +53,6 @@ void UHyperlinkLevelGoTo::Initialize()
 		const FLevelEditorModule& LevelEditor{ FModuleManager::LoadModuleChecked<FLevelEditorModule>(TEXT("LevelEditor")) };
 		LevelEditor.GetGlobalLevelEditorActions()->Append(GoToCommands.ToSharedRef());
 	}
-
 #endif //WITH_EDITOR
 }
 
@@ -71,10 +71,9 @@ bool UHyperlinkLevelGoTo::GenerateLink(FString& OutLink) const
 	FVector Location{};
 	FRotator Rotation{};
 	bool bCameraInfoFound{ false };
-
-// TODO: move getting level and getting rotation/location in to separate functions in utilities
+	
 #if WITH_EDITOR
-	// Use active level editor viewport if we're in the editor
+	// GEditor guard required as WITH_EDITOR code still runs in uncooked game
 	if (GEditor)
 	{
 		if (const FWorldContext* const PieWorldContext{ GEditor->GetPIEWorldContext() })
@@ -82,7 +81,7 @@ bool UHyperlinkLevelGoTo::GenerateLink(FString& OutLink) const
 			if (const UWorld* const PieWorld{ PieWorldContext->World() })
 			{
 				LevelPackageName = PieWorld->PersistentLevel->GetPackage()->GetName();
-				bCameraInfoFound |= GetGameWorldCameraInfo(PieWorldContext->World(), Location, Rotation);
+				bCameraInfoFound |= GetGameWorldCameraInfo(PieWorld, Location, Rotation);
 			}
 		}
 		else
@@ -112,20 +111,9 @@ bool UHyperlinkLevelGoTo::GenerateLink(FString& OutLink) const
 
 FString UHyperlinkLevelGoTo::GenerateLink(const FString& InLevelPackageName, const FVector& InLocation, const FRotator& InRotation) const
 {
-	return GetHyperlinkBase() / InLevelPackageName + FHyperlinkFormat::ArgSeparator + FHyperlinkUtils::VectorToHexString(InLocation) + FHyperlinkUtils::VectorToHexString(InRotation.Vector());
+	return GetHyperlinkBase() / InLevelPackageName + FHyperlinkFormat::ArgSeparator +
+		FHyperlinkUtils::VectorToHexString(InLocation) + FHyperlinkUtils::VectorToHexString(InRotation.Vector());
 }
-
-// bool UHyperlinkLevelGoTo::GetLevelPackageName(const UWorld* const World, FString& OutLevelPackageName)
-// {
-// 	const bool bValidWorld{ World && World->PersistentLevel };
-// 	
-// 	if (bValidWorld)
-// 	{
-// 		OutLevelPackageName = World->PersistentLevel->GetPackage()->GetName();
-// 	}
-// 	
-// 	return bValidWorld;
-// }
 
 /*static*/bool UHyperlinkLevelGoTo::GetGameWorldCameraInfo(const UWorld* const World, FVector& OutLocation, FRotator& OutRotation)
 {
@@ -151,15 +139,16 @@ void UHyperlinkLevelGoTo::ExecuteLinkBodyInternal(const TArray<FString>& LinkArg
 	{
 		// Set viewport position
 		const FString& VectorStrings{ LinkArguments[2] };
-		// TODO: Remove magic numbers
-		const FString LocationString{ VectorStrings.Mid(0, 48) };
-		const FString RotationString{ VectorStrings.Mid(48, 48) };
+		const FString LocationString{ VectorStrings.Mid(0, FHyperlinkUtils::VectorStringLength) };
+		const FString RotationString{ VectorStrings.Mid(FHyperlinkUtils::VectorStringLength, FHyperlinkUtils::VectorStringLength) };
 
 		const FVector Location{ FHyperlinkUtils::HexStringToVector(LocationString) };
 		const FRotator Rotation{ FHyperlinkUtils::HexStringToVector(RotationString).Rotation() };
 		
 		UUnrealEditorSubsystem* const UnrealEditorSubsystem{ GEditor->GetEditorSubsystem<UUnrealEditorSubsystem>() };
 		UnrealEditorSubsystem->SetLevelViewportCameraInfo(Location, Rotation);
+
+		// TODO: Handle in PIE/game moving player
 	}
 }
 #endif //WITH_EDITOR
