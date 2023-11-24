@@ -23,10 +23,6 @@ public:
 UCLASS()
 class HYPERLINKEDITOR_API UHyperlinkBrowse : public UHyperlinkDefinition
 {
-public:
-
-
-private:
 	GENERATED_BODY()
 
 public:
@@ -40,13 +36,6 @@ public:
 
 protected:
 	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) override;
-
-protected:
-	UPROPERTY(EditAnywhere, Config)
-	bool bEnableInAssetContextMenu{ true };
-
-	UPROPERTY(EditAnywhere, Config)
-	bool bEnableInFolderContextMenu{ true };
 	
 private:
 	FDelegateHandle AssetContextMenuHandle{};

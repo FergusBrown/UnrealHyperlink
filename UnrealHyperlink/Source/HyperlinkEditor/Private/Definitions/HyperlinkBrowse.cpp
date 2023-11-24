@@ -49,35 +49,29 @@ void UHyperlinkBrowse::Initialize()
 	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
 
 	// Context menu extensions
-	if (bEnableInAssetContextMenu)
+	FContentBrowserMenuExtender_SelectedAssets SelectedAssetsDelegate
 	{
-		FContentBrowserMenuExtender_SelectedAssets SelectedAssetsDelegate
+		FContentBrowserMenuExtender_SelectedAssets::CreateLambda([=](const TArray<FAssetData>&)
 		{
-			FContentBrowserMenuExtender_SelectedAssets::CreateLambda([=](const TArray<FAssetData>&)
-			{
-				return FHyperlinkUtils::GetMenuExtender(
-					TEXT("CommonAssetActions"), EExtensionHook::After, BrowseCommands,
-					FHyperlinkBrowseCommands::Get().CopyBrowseLink, TEXT("CopyBrowseLink"));
-			})
-		};
-		AssetContextMenuHandle = SelectedAssetsDelegate.GetHandle();
-		ContentBrowser.GetAllAssetViewContextMenuExtenders().Emplace(MoveTemp(SelectedAssetsDelegate));
-	}
-
-	if (bEnableInFolderContextMenu)
+			return FHyperlinkUtils::GetMenuExtender(
+				TEXT("CommonAssetActions"), EExtensionHook::After, BrowseCommands,
+				FHyperlinkBrowseCommands::Get().CopyBrowseLink, TEXT("CopyBrowseLink"));
+		})
+	};
+	AssetContextMenuHandle = SelectedAssetsDelegate.GetHandle();
+	ContentBrowser.GetAllAssetViewContextMenuExtenders().Emplace(MoveTemp(SelectedAssetsDelegate));
+	
+	FContentBrowserMenuExtender_SelectedPaths SelectedFoldersDelegate
 	{
-		FContentBrowserMenuExtender_SelectedPaths SelectedFoldersDelegate
+		FContentBrowserMenuExtender_SelectedPaths::CreateLambda([=](const TArray<FString>&)
 		{
-			FContentBrowserMenuExtender_SelectedPaths::CreateLambda([=](const TArray<FString>&)
-			{
-				return FHyperlinkUtils::GetMenuExtender(
-					TEXT("PathViewFolderOptions"), EExtensionHook::After, BrowseCommands,
-					FHyperlinkBrowseCommands::Get().CopyFolderLink, TEXT("CopyBrowseLink"));
-			})
-		};
-		FolderContextMenuHandle = SelectedFoldersDelegate.GetHandle();
-		ContentBrowser.GetAllPathViewContextMenuExtenders().Emplace(MoveTemp(SelectedFoldersDelegate));
-	}
+			return FHyperlinkUtils::GetMenuExtender(
+				TEXT("PathViewFolderOptions"), EExtensionHook::After, BrowseCommands,
+				FHyperlinkBrowseCommands::Get().CopyFolderLink, TEXT("CopyBrowseLink"));
+		})
+	};
+	FolderContextMenuHandle = SelectedFoldersDelegate.GetHandle();
+	ContentBrowser.GetAllPathViewContextMenuExtenders().Emplace(MoveTemp(SelectedFoldersDelegate));
 
 	// Keyboard shortcut command
 	// Note that the keyboard shortcut will only be registered if applied on startup because of the way content

@@ -42,18 +42,15 @@ void UHyperlinkEdit::Initialize()
 	
 	// Assets context menu
 	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
-	if (bEnableInAssetContextMenu)
+	FContentBrowserMenuExtender_SelectedAssets SelectedAssetsDelegate
 	{
-		FContentBrowserMenuExtender_SelectedAssets SelectedAssetsDelegate
+		FContentBrowserMenuExtender_SelectedAssets::CreateLambda([=](const TArray<FAssetData>&)
 		{
-			FContentBrowserMenuExtender_SelectedAssets::CreateLambda([=](const TArray<FAssetData>&)
-			{
-				return FHyperlinkUtils::GetMenuExtender(TEXT("CommonAssetActions"), EExtensionHook::After, EditCommands, FHyperlinkEditCommands::Get().CopyEditLink, TEXT("CopyEditLink"));
-			})
-		};
-		AssetContextMenuHandle = SelectedAssetsDelegate.GetHandle();
-		ContentBrowser.GetAllAssetViewContextMenuExtenders().Emplace(MoveTemp(SelectedAssetsDelegate));
-	}
+			return FHyperlinkUtils::GetMenuExtender(TEXT("CommonAssetActions"), EExtensionHook::After, EditCommands, FHyperlinkEditCommands::Get().CopyEditLink, TEXT("CopyEditLink"));
+		})
+	};
+	AssetContextMenuHandle = SelectedAssetsDelegate.GetHandle();
+	ContentBrowser.GetAllAssetViewContextMenuExtenders().Emplace(MoveTemp(SelectedAssetsDelegate));
 
 	// Keyboard shortcut command
 	// Note that the keyboard shortcut will only be registered if applied on startup because of the way content

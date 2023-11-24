@@ -35,10 +35,6 @@ public:
 
 protected:
 	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) override;
-
-protected:
-	UPROPERTY(EditAnywhere, Config)
-	bool bEnableInAssetContextMenu{ true };
 	
 private:
 	FDelegateHandle AssetContextMenuHandle{};
