@@ -7,7 +7,6 @@
 #include "HttpRouteHandle.h"
 #include "Modules/ModuleManager.h"
 
-struct FHyperlinkExecutePayload;
 class IHttpRouter;
 struct FHttpServerRequest;
 
@@ -29,12 +28,6 @@ public:
     virtual void ShutdownModule() override;
 
 private:
-    /* Create the registry values required to launch the protocol handler */
-    void SetupRegistry() const;
-    /* Copy the protocol handler exe to the required directory */
-    void SetupProtocolHandler() const;
-    static FString GetProtocolHandlerPath();
-    
     static void RegisterCustomisation();
     
     void RegisterPaste();
