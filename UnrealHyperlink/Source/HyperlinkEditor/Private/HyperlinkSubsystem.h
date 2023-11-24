@@ -22,12 +22,13 @@ public:
 	
 private:
 	bool Tick(float DeltaTime);
-	
+	void LaunchPipeServer();
 private:
 	/** Holds a delegate to be invoked on a tick. */
 	FTickerDelegate TickDelegate{};
 	FTSTicker::FDelegateHandle TickHandle{};
 
-	/* Pipe server instance */
-	TUniquePtr<FHyperlinkPipeServer> PipeServer{ nullptr };
+	/* Pipe Server and thread for running it */
+	TUniquePtr<FRunnable> PipeServer{ nullptr };
+	TUniquePtr<FRunnableThread> PipeServerThread{ nullptr };
 };

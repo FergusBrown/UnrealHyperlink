@@ -17,7 +17,7 @@ namespace PipeConstants
 
 FHyperlinkPipeServer::FHyperlinkPipeServer()
 {
-	Thread = TUniquePtr<FRunnableThread>(FRunnableThread::Create(this, TEXT("HyperlinkPipeServer")));
+
 }
 
 bool FHyperlinkPipeServer::Init()
@@ -26,10 +26,10 @@ bool FHyperlinkPipeServer::Init()
 	const FString PipeName{ GetPipeName() };
 	UE_LOG(LogHyperlinkEditor, Log, TEXT("Setting up pipe server %s"), *PipeName);
 
-	static constexpr DWORD InBufferSize{ PipeConstants::BufferSize * sizeof(TCHAR) };
+	static constexpr DWORD InBufferSize{ PipeConstants::BufferSize * sizeof(ANSICHAR) };
 	static constexpr float Timeout{ 500.f };
 	PipeHandle =
-		CreateNamedPipe
+		::CreateNamedPipeW
 		( 
 			*PipeName,					// pipe name 
 			PIPE_ACCESS_INBOUND,        // read incoming messages only
@@ -62,7 +62,7 @@ uint32 FHyperlinkPipeServer::Run()
 			return EXIT_FAILURE;
 		}
 
-		TCHAR MessageBuffer[PipeConstants::BufferSize];
+		ANSICHAR MessageBuffer[PipeConstants::BufferSize];
 		DWORD BytesRead{ 0 };
 		// If we were expecting multiple lines we would need a while loop here
 		// Since we know a link will only ever be 1 line we can just read once
@@ -74,19 +74,22 @@ uint32 FHyperlinkPipeServer::Run()
 			// Add terminating zero
 			MessageBuffer[BytesRead] = '\0';
 
-			UE_LOG(LogHyperlinkEditor, Log, TEXT("Hyperlink message received: %s"), MessageBuffer);
+			UE_LOG(LogHyperlinkEditor, Log, TEXT("Hyperlink message received: %s"), ANSI_TO_TCHAR(MessageBuffer));
 			// TODO: do something with the data
 		}
 
 		// Disconnect from the client so that we can wait for a new one
 		::DisconnectNamedPipe(PipeHandle);
 	}
-	
+
+	UE_LOG(LogHyperlinkEditor, Log, TEXT("Successfully shutdown Hyperlink Piper Server"));
 	return EXIT_SUCCESS;
 }
 
 void FHyperlinkPipeServer::Stop()
 {
+	UE_LOG(LogHyperlinkEditor, Log, TEXT("Beginning Hyperlink Pipe Server shuttdown."));
+	
 	bRunThread = false;
 	// Connect to the pipe server to stop it blocking.
 	// If this fails then the server is already shutting down
