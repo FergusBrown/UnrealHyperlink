@@ -5,13 +5,13 @@
 
 #include "HyperlinkUtility.h"
 #include "Definitions/HyperlinkDefinitionBlueprintBase.h"
-#include "Internationalization/Regex.h"
 
 #if WITH_EDITOR
 #include "AssetRegistry/IAssetRegistry.h"
 #include "HyperlinkClassEntry.h"
 #include "HyperlinkDefinition.h"
 #include "HyperlinkSubsystem.h"
+#include "Kismet2/KismetEditorUtilities.h"
 #endif //WITH_EDITOR
 
 
@@ -75,6 +75,15 @@ void UHyperlinkSettings::OnAssetRegistryReady()
 	{
 		PostRegister();
 	}
+
+	FKismetEditorUtilities::RegisterOnBlueprintCreatedCallback(this, UHyperlinkDefinition::StaticClass(),
+			FKismetEditorUtilities::FOnBlueprintCreated::CreateUObject(this, &UHyperlinkSettings::OnBlueprintCreated));
+}
+
+void UHyperlinkSettings::OnBlueprintCreated(UBlueprint* InBlueprint)
+{
+	RegisterBlueprintClasses();
+	PostRegister();
 }
 
 bool UHyperlinkSettings::RegisterCppClasses()

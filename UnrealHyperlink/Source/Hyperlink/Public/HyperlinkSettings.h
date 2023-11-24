@@ -29,7 +29,9 @@ private:
 	/* Delegates functions for different stages of editor initialisation */
 	void OnAllModulesLoaded();
 	void OnAssetRegistryReady();
-
+	
+	void OnBlueprintCreated(UBlueprint* InBlueprint);
+	
 	/* Functions for registering hyperlink classes */
 	bool RegisterCppClasses();
 	bool RegisterBlueprintClasses();
