@@ -25,8 +25,8 @@ FHyperlinkBrowseCommands::FHyperlinkBrowseCommands()
 
 void FHyperlinkBrowseCommands::RegisterCommands()
 {
-	UI_COMMAND(CopyBrowseLink, "Copy Browse Link", "Copy a link to browse this asset", EUserInterfaceActionType::Button, FInputChord());
-	UI_COMMAND(CopyFolderLink, "Copy Browse Link", "Copy a link to browse this folder", EUserInterfaceActionType::Button, FInputChord());
+	UI_COMMAND(CopyBrowseLink, "Copy Browse Link", "Copy a link to browse to the selected asset", EUserInterfaceActionType::Button, FInputChord(EModifierKey::Alt | EModifierKey::Shift, EKeys::C));
+	UI_COMMAND(CopyFolderLink, "Copy Browse Link", "Copy a link to browse to the selected folder", EUserInterfaceActionType::Button, FInputChord(EModifierKey::Alt | EModifierKey::Shift, EKeys::C));
 }
 
 #undef LOCTEXT_NAMESPACE
@@ -43,48 +43,15 @@ void UHyperlinkBrowse::Initialize()
 	BrowseCommands = MakeShared<FUICommandList>();
 	BrowseCommands->MapAction(
 		FHyperlinkBrowseCommands::Get().CopyBrowseLink,
-		FExecuteAction::CreateLambda([=]()
-			{
-				const FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
-				TArray<FAssetData> SelectedAssets{};
-				ContentBrowser.Get().GetSelectedAssets(SelectedAssets);
-				if (SelectedAssets.Num() > 0)
-				{
-					FPlatformApplicationMisc::ClipboardCopy(*GenerateLink(SelectedAssets[0].PackageName.ToString()));
-				}
-			}
-		)
-	);
+		FExecuteAction::CreateUObject(this, &UHyperlinkDefinition::CopyLink));
 	
 	BrowseCommands->MapAction(
-	FHyperlinkBrowseCommands::Get().CopyFolderLink,
-	FExecuteAction::CreateLambda([=]()
-			{
-				const FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
-				TArray<FString> SelectedFolders{};
-				ContentBrowser.Get().GetSelectedFolders(SelectedFolders);
-				if (SelectedFolders.Num() > 0)
-				{
-					// The path will be an "virtual path" which is usually (always?) the internal path prefixed with "/All"
-					// We need to convert this to the regular internal path
-					const FString& VirtualPath{ SelectedFolders[0] };
-					FString InternalPath;
-					EContentBrowserPathType ConvertedType{ GEditor->GetEditorSubsystem<UContentBrowserDataSubsystem>()->TryConvertVirtualPath(VirtualPath, InternalPath) };
-					if (ConvertedType == EContentBrowserPathType::Internal)
-					{
-						FPlatformApplicationMisc::ClipboardCopy(*GenerateLink(InternalPath));
-					}
-					else
-					{
-						UE_LOG(LogHyperlinkEditor, Display, TEXT("Failed to convert %s to an internal path, cannot create browse link."), *VirtualPath);
-					}
-				}
-			}
-		)
-	);
+		FHyperlinkBrowseCommands::Get().CopyFolderLink,
+		FExecuteAction::CreateUObject(this, &UHyperlinkDefinition::CopyLink));
 	
 	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
 
+	// Context menu extensions
 	if (GetDefault<UHyperlinkBrowseSettings>()->bEnableInAssetContextMenu)
 	{
 		FContentBrowserMenuExtender_SelectedAssets SelectedAssetsDelegate
@@ -114,6 +81,21 @@ void UHyperlinkBrowse::Initialize()
 		FolderContextMenuHandle = SelectedFoldersDelegate.GetHandle();
 		ContentBrowser.GetAllPathViewContextMenuExtenders().Emplace(MoveTemp(SelectedFoldersDelegate));
 	}
+
+	// Keyboard shortcut command
+	// Note that the keyboard shortcut will only be registered if applied on startup because of the way content
+	// browser commands work
+	FContentBrowserCommandExtender CommandExtender
+	{
+		FContentBrowserCommandExtender::CreateLambda(
+			[this](TSharedRef<FUICommandList> CommandList, FOnContentBrowserGetSelection GetSelectionDelegate)
+			{
+				CommandList->Append(BrowseCommands.ToSharedRef());
+			}
+		)
+	};
+	KeyboardShortcutHandle = CommandExtender.GetHandle();
+	ContentBrowser.GetAllContentBrowserCommandExtenders().Emplace(MoveTemp(CommandExtender));
 }
 
 void UHyperlinkBrowse::Deinitialize()
@@ -124,10 +106,63 @@ void UHyperlinkBrowse::Deinitialize()
 		[=](const FContentBrowserMenuExtender_SelectedAssets& Delegate){ return Delegate.GetHandle() == AssetContextMenuHandle; });
 	ContentBrowser.GetAllPathViewContextMenuExtenders().RemoveAll(
 		[=](const FContentBrowserMenuExtender_SelectedPaths& Delegate){ return Delegate.GetHandle() == FolderContextMenuHandle; });
+	ContentBrowser.GetAllContentBrowserCommandExtenders().RemoveAll(
+		[=](const FContentBrowserCommandExtender& Delegate){ return Delegate.GetHandle() == KeyboardShortcutHandle; });
 	FHyperlinkBrowseCommands::Unregister();
 }
 
-FString UHyperlinkBrowse::GenerateLink(const FString& PackageOrFolderName) const
+bool UHyperlinkBrowse::GenerateLink(FString& OutLink) const
+{
+	const FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
+	TArray<FAssetData> SelectedAssets{};
+	ContentBrowser.Get().GetSelectedAssets(SelectedAssets);
+	bool bSuccess{ SelectedAssets.Num() > 0 };
+	if (bSuccess)
+	{
+		OutLink = GenerateLinkFromPath(SelectedAssets[0].PackageName.ToString());
+	}
+
+	if (!bSuccess)
+	{
+		TArray<FString> SelectedFolders{};
+		ContentBrowser.Get().GetSelectedFolders(SelectedFolders);
+		if (SelectedFolders.Num() > 0)
+		{
+			// The path will be an "virtual path" which is usually (always?) the internal path prefixed with "/All"
+			// We need to convert this to the regular internal path
+			const FString& VirtualPath{ SelectedFolders[0] };
+			FString InternalPath;
+			const EContentBrowserPathType ConvertedType{ GEditor->GetEditorSubsystem<UContentBrowserDataSubsystem>()->TryConvertVirtualPath(VirtualPath, InternalPath) };
+			if (ConvertedType == EContentBrowserPathType::Internal)
+			{
+				OutLink = GenerateLinkFromPath(InternalPath);
+				bSuccess = true;
+			}
+			else
+			{
+				UE_LOG(LogHyperlinkEditor, Error, TEXT("Failed to convert %s to an internal path, cannot create browse link."), *VirtualPath);
+			}
+		}
+		else
+		{
+			// Make folder link with current path
+			const FContentBrowserItemPath CurrentPath{ ContentBrowser.Get().GetCurrentPath() };
+			if (CurrentPath.HasInternalPath())
+			{
+				OutLink = GenerateLinkFromPath(CurrentPath.GetInternalPathString());
+				bSuccess = true;
+			}
+			else
+			{
+				UE_LOG(LogHyperlinkEditor, Error, TEXT("Cannot create browse link at invalid path."));
+			}
+		}
+	}
+	
+	return bSuccess;
+}
+
+FString UHyperlinkBrowse::GenerateLinkFromPath(const FString& PackageOrFolderName) const
 {
 	return GetHyperlinkBase() / PackageOrFolderName;
 }

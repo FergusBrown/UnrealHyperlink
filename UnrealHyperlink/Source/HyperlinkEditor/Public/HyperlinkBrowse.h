@@ -23,15 +23,20 @@ public:
 UCLASS()
 class HYPERLINKEDITOR_API UHyperlinkBrowse : public UHyperlinkDefinition
 {
+public:
+
+
+private:
 	GENERATED_BODY()
-	
+
 public:
 	UHyperlinkBrowse();
 	
 	virtual void Initialize() override;
 	virtual void Deinitialize() override;
 
-	FString GenerateLink(const FString& PackageOrFolderName) const;
+	virtual bool GenerateLink(FString& OutLink) const override;
+	FString GenerateLinkFromPath(const FString& PackageOrFolderName) const;
 
 protected:
 	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) override;
@@ -39,5 +44,6 @@ protected:
 private:
 	FDelegateHandle AssetContextMenuHandle{};
 	FDelegateHandle FolderContextMenuHandle{};
+	FDelegateHandle KeyboardShortcutHandle{};
 	TSharedPtr<FUICommandList> BrowseCommands{};
 };
