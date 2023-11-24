@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
     // Add "Link" to the pipe name to avoid potential conflicts with other services
     std::string pipeName{ R"(\\.\pipe\)" + match.str(1) + "Link" };
 
-    // Connext to pipe server
+    // Connect to pipe server
     constexpr DWORD access{ GENERIC_WRITE };
     constexpr DWORD shareMode{ 0 };
     constexpr LPSECURITY_ATTRIBUTES securityAttributes{ nullptr };
