@@ -19,7 +19,17 @@
 
 void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	InitDefinitions();
+	/*
+	 * Here we only want to initialise the definitions if we are in a game environment. If we are in an editor
+	 * environment then we want to let UHyperlinkSettings call initialise when all the editor classes are ready
+	 * TODO: splitting the initialisation like this between the two classes is messy, there must be a better way
+	 */
+#if WITH_EDITOR
+	if (!GIsEditor)
+#endif //WITH_EDITOR
+	{
+		InitDefinitions();
+	}
 
 	// Register console commands
 	CopyConsoleCommand = IConsoleManager::Get().RegisterConsoleCommand(
@@ -71,11 +81,22 @@ void UHyperlinkSubsystem::InitDefinitions()
 	// Create object for each of the project definitions
 	for (const FHyperlinkClassEntry& ClassEntry : GetDefault<UHyperlinkSettings>()->GetRegisteredDefinitions())
 	{
+		/*
+		 * Note: How does the TSoftObjectPtr of ClassEntry.Class resolve when use it in the boolean expression below?
+		 * The TSoftObjectPtr is resolved by calling FSoftObjectPath::ResolveObjectInternal which uses FindObject to
+		 * try and load the class via its path. If it can't be loaded via path (e.g. python module not loaded or
+		 * asset registry hasn't discovered a Blutility) then it returns nullptr and this block will be skipped
+		 */
 		if (ClassEntry.bEnabled && ClassEntry.Class)
 		{
 			if (!Definitions.Contains(ClassEntry.Identifier))
 			{
-				TObjectPtr<UHyperlinkDefinition> NewDefinition{ NewObject<UHyperlinkDefinition>(this, ClassEntry.Class) };
+				/*
+				 * Note: It's fine to use Get() instead of LoadSynchronous() since the class will always be loaded by 
+				 * resolve discussed above
+				 */
+				TObjectPtr<UHyperlinkDefinition> NewDefinition
+					{ NewObject<UHyperlinkDefinition>(this, ClassEntry.Class.Get()) };
 				NewDefinition->Initialize();
 				Definitions.Emplace(ClassEntry.Identifier, NewDefinition);
 			}

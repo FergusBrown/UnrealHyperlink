@@ -62,10 +62,8 @@ TConstArrayView<FHyperlinkClassEntry> UHyperlinkSettings::GetRegisteredDefinitio
 
 void UHyperlinkSettings::OnAssetRegistryReady()
 {
-	if (RegisterBlueprintClasses())
-	{
-		PostRegister();
-	}
+	RegisterBlueprintClasses();
+	PostRegister();
 	IAssetRegistry::GetChecked().OnInMemoryAssetCreated().AddUObject(this, &UHyperlinkSettings::OnAssetCreated);
 }
 
@@ -179,11 +177,11 @@ void UHyperlinkSettings::PostRegister()
 	if (bBlueprintClassesRegistered && bInMemoryClassesRegistered)
 	{
 		// Any nullptr can be removed as invalid classes
-		RegisteredDefinitions.RemoveAll([](const FHyperlinkClassEntry& Entry){ return Entry.Class == nullptr; });
+		RegisteredDefinitions.RemoveAll([](const FHyperlinkClassEntry& Entry){ return Entry.Class.IsNull(); });
 	
 		// Sort registered definitions so they appear in alphabetical order
 		RegisteredDefinitions.Sort([](const FHyperlinkClassEntry& Lhs, const FHyperlinkClassEntry& Rhs)
-			{ return Lhs.Class->GetName() < Rhs.Class->GetName(); });
+			{ return Lhs.Class.GetAssetName() < Rhs.Class.GetAssetName(); });
 
 		// Update default config
 		SaveConfig(CPF_Config, *GetDefaultConfigFilename());

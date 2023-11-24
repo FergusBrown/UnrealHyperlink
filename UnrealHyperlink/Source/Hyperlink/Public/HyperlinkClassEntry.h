@@ -18,7 +18,7 @@ struct FHyperlinkClassEntry
 	 * or a Blueprint which inherits from UHyperlinkDefinitionBlueprintBase
 	 */
 	UPROPERTY(VisibleAnywhere, NoClear, DisplayName = "Definition Class")
-	TSubclassOf<UHyperlinkDefinition> Class{ nullptr };
+	TSoftClassPtr<UHyperlinkDefinition> Class{ nullptr };
 
 	/* The string which will be used to identify this class */
 	UPROPERTY(EditAnywhere, DisplayName = "Definition Identifier", meta = (EditCondition = "bEnabled"))
