@@ -9,7 +9,6 @@
 #include "IContentBrowserSingleton.h"
 #include "JsonObjectConverter.h"
 #include "Log.h"
-#include "Dom/JsonObject.h"
 
 #define LOCTEXT_NAMESPACE "HyperlinkEdit"
 
@@ -24,8 +23,10 @@ FHyperlinkEditCommands::FHyperlinkEditCommands()
 
 void FHyperlinkEditCommands::RegisterCommands()
 {
-	UI_COMMAND(CopyEditLink, "Copy Edit Link", "Copy a link to edit this asset",
-		EUserInterfaceActionType::Button, FInputChord(EModifierKey::Alt | EModifierKey::Shift, EKeys::Z));
+	UI_COMMAND(CopyContentBrowserLink, "Copy Edit Link", "Copy a link to edit the selected asset",
+		EUserInterfaceActionType::Button, FInputChord(EModifierKey::Alt | EModifierKey::Shift, EKeys::E));
+	UI_COMMAND(CopyAssetEditorLink, "Copy Edit Link", "Copy a link to edit this asset",
+	EUserInterfaceActionType::Button, FInputChord(EModifierKey::Alt | EModifierKey::Shift, EKeys::E));
 }
 
 #undef LOCTEXT_NAMESPACE
@@ -35,18 +36,28 @@ void UHyperlinkEdit::Initialize()
 	FHyperlinkEditCommands::Register();
 	EditCommands = MakeShared<FUICommandList>();
 	EditCommands->MapAction(
-		FHyperlinkEditCommands::Get().CopyEditLink,
+		FHyperlinkEditCommands::Get().CopyContentBrowserLink,
 		FExecuteAction::CreateUObject(this, &UHyperlinkDefinition::CopyLink)
+	);
+	EditCommands->MapAction(
+		FHyperlinkEditCommands::Get().CopyAssetEditorLink,
+		FExecuteAction::CreateWeakLambda(this, [this]()
+		{
+			if(const TSharedPtr<FJsonObject> Payload{ GeneratePayloadFromAssetEditor() })
+			{
+				CopyLink(Payload.ToSharedRef());
+			}
+		})
 	);
 
 	// Content Browser asset context menu
 	UHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("ContentBrowser.AssetContextMenu"), TEXT("CommonAssetActions"),
-		EditCommands, FHyperlinkEditCommands::Get().CopyEditLink);
+		EditCommands, FHyperlinkEditCommands::Get().CopyContentBrowserLink);
 	
 	// Asset Editor asset menu
 	// Note because of the way asset editor drop down menus work we can't (easily) add this entry in a sub menu
 	UHyperlinkUtility::AddHyperlinkMenuEntry(TEXT("MainFrame.MainMenu.Asset"), EditCommands,
-		FHyperlinkEditCommands::Get().CopyEditLink, false);
+		FHyperlinkEditCommands::Get().CopyContentBrowserLink, false);
 	
 	// Keyboard shortcut command
 	// Note that the keyboard shortcut will only be registered if applied on startup because of the way content
@@ -64,10 +75,22 @@ void UHyperlinkEdit::Initialize()
 	
 	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
 	ContentBrowser.GetAllContentBrowserCommandExtenders().Emplace(MoveTemp(CommandExtender));
+
+	// Asset editor extension delegate for recording edited asset
+	TArray<FAssetEditorExtender>& AssetEditorMenuExtenderDelegates
+		{ FAssetEditorToolkit::GetSharedMenuExtensibilityManager()->GetExtenderDelegates() };
+	FAssetEditorExtender AssetEditorExtender{ FAssetEditorExtender::CreateUObject(this, &UHyperlinkEdit::OnExtendAssetEditor) };
+	AssetEditorExtensionHandle = AssetEditorExtender.GetHandle();
+	AssetEditorMenuExtenderDelegates.Emplace(MoveTemp(AssetEditorExtender));
 }
 
 void UHyperlinkEdit::Deinitialize()
 {
+	TArray<FAssetEditorExtender>& AssetEditorMenuExtenderDelegates
+		{ FAssetEditorToolkit::GetSharedMenuExtensibilityManager()->GetExtenderDelegates() };
+	AssetEditorMenuExtenderDelegates.RemoveAll(
+		[=](const FAssetEditorExtender& Delegate){ return Delegate.GetHandle() == AssetEditorExtensionHandle; });
+	
 	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
 	ContentBrowser.GetAllContentBrowserCommandExtenders().RemoveAll(
 		[=](const FContentBrowserCommandExtender& Delegate){ return Delegate.GetHandle() == KeyboardShortcutHandle; });
@@ -76,6 +99,11 @@ void UHyperlinkEdit::Deinitialize()
 }
 
 TSharedPtr<FJsonObject> UHyperlinkEdit::GeneratePayload() const
+{
+	return GeneratePayloadFromContentBrowser();
+}
+
+TSharedPtr<FJsonObject> UHyperlinkEdit::GeneratePayloadFromContentBrowser()
 {
 	TSharedPtr<FJsonObject> Payload{ nullptr };
 	
@@ -95,7 +123,12 @@ TSharedPtr<FJsonObject> UHyperlinkEdit::GeneratePayload() const
 	return Payload;
 }
 
-TSharedPtr<FJsonObject> UHyperlinkEdit::GeneratePayloadFromPackageName(const FName& PackageName) const
+TSharedPtr<FJsonObject> UHyperlinkEdit::GeneratePayloadFromAssetEditor() const
+{
+	return GeneratePayloadFromPackageName(AssetEditorPackageName);
+}
+
+TSharedPtr<FJsonObject> UHyperlinkEdit::GeneratePayloadFromPackageName(const FName& PackageName)
 {
 	const FHyperlinkNamePayload PayloadStruct{ PackageName };
 	return FJsonObjectConverter::UStructToJsonObject(PayloadStruct);
@@ -108,4 +141,17 @@ void UHyperlinkEdit::ExecutePayload(const TSharedRef<FJsonObject>& InPayload)
 	{
 		UHyperlinkUtility::OpenEditorForAsset(PayloadStruct.Name);
 	}
+}
+
+// NOLINTNEXTLINE (performance-unnecessary-value-param) Delegate signature
+TSharedRef<FExtender> UHyperlinkEdit::OnExtendAssetEditor(const TSharedRef<FUICommandList> CommandList, const TArray<UObject*> ContextSensitiveObjects)
+{
+	const UObject* const* const AssetPtr
+		{ ContextSensitiveObjects.FindByPredicate([](const UObject* const Obj){ return Obj->IsAsset(); }) };
+	if (AssetPtr)
+	{
+		AssetEditorPackageName = (*AssetPtr)->GetPackage()->GetFName();
+	}
+
+	return MakeShared<FExtender>();
 }

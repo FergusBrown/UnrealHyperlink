@@ -35,6 +35,6 @@ public:
 	void PrintLink() const;
 	
 protected:
-	static void CopyLink(const FString& InLink);
+	void CopyLink(const TSharedRef<FJsonObject>& Payload) const;
 	
 };

@@ -13,7 +13,8 @@ public:
 	virtual void RegisterCommands() override;
 
 public:
-	TSharedPtr<FUICommandInfo> CopyEditLink{ nullptr };
+	TSharedPtr<FUICommandInfo> CopyContentBrowserLink{ nullptr };
+	TSharedPtr<FUICommandInfo> CopyAssetEditorLink{ nullptr };
 };
 
 /**
@@ -29,11 +30,19 @@ public:
 	virtual void Deinitialize() override;
 
 	virtual TSharedPtr<FJsonObject> GeneratePayload() const override;
-	TSharedPtr<FJsonObject> GeneratePayloadFromPackageName(const FName& PackageName) const;
+	static TSharedPtr<FJsonObject> GeneratePayloadFromContentBrowser();
+	TSharedPtr<FJsonObject> GeneratePayloadFromAssetEditor() const;
+	static TSharedPtr<FJsonObject> GeneratePayloadFromPackageName(const FName& PackageName);
 	
 	virtual void ExecutePayload(const TSharedRef<FJsonObject>& InPayload) override;
+private:
+	TSharedRef<FExtender> OnExtendAssetEditor(const TSharedRef<FUICommandList> CommandList,
+												 const TArray<UObject*> ContextSensitiveObjects);
 	
 private:
 	FDelegateHandle KeyboardShortcutHandle{};
+	FDelegateHandle AssetEditorExtensionHandle{};
 	TSharedPtr<FUICommandList> EditCommands{};
+
+	FName AssetEditorPackageName{};
 };

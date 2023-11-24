@@ -12,9 +12,7 @@ void UHyperlinkDefinition::CopyLink() const
 {
 	if (const TSharedPtr<FJsonObject> Payload{ GeneratePayload() })
 	{
-		const FString ExecutePayloadString
-			{ UHyperlinkUtility::CreateLinkFromPayload(GetClass(), Payload.ToSharedRef()) };
-		CopyLink(ExecutePayloadString);
+		CopyLink(Payload.ToSharedRef());
 	}
 	else
 	{
@@ -37,8 +35,10 @@ void UHyperlinkDefinition::PrintLink() const
 	}
 }
 
-void UHyperlinkDefinition::CopyLink(const FString& InLink)
+void UHyperlinkDefinition::CopyLink(const TSharedRef<FJsonObject>& Payload) const
 {
-	UE_LOG(LogHyperlink, Display, TEXT("Copied: %s"), *InLink);
-	FPlatformApplicationMisc::ClipboardCopy(*InLink);
+	const FString LinkString
+		{ UHyperlinkUtility::CreateLinkFromPayload(GetClass(), Payload) };
+	UE_LOG(LogHyperlink, Display, TEXT("Copied: %s"), *LinkString);
+	FPlatformApplicationMisc::ClipboardCopy(*LinkString);
 }
