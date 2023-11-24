@@ -3,14 +3,13 @@
 
 #include "HyperlinkEditor.h"
 
+#include "Log.h"
+#include "Interfaces/IPluginManager.h"
 /* Begin Windows includes */
 #include "Windows/AllowWindowsPlatformTypes.h"
 #include <Windows.h>
 #include "Windows/HideWindowsPlatformTypes.h"
 /* End Windows includes */
-
-#include "Log.h"
-#include "Interfaces/IPluginManager.h"
 
 #define LOCTEXT_NAMESPACE "FHyperlinkEditorModule"
 
