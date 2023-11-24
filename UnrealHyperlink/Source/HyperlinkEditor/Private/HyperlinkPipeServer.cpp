@@ -62,19 +62,23 @@ uint32 FHyperlinkPipeServer::Run()
 			return EXIT_FAILURE;
 		}
 
-		// Read the contents of the client message
-		TCHAR MessageBuffer[PipeConstants::BufferSize];
-		DWORD BytesRead{ 0 };
-		if (::ReadFile(PipeHandle, MessageBuffer, sizeof(MessageBuffer) - 1, &BytesRead, nullptr))
+		// Check bRunThread again to see if we're exiting if we're exiting
+		if (bRunThread)
 		{
-			// Make sure BytesRead does not exceed our buffer size
-			BytesRead = FMath::Min(BytesRead, PipeConstants::BufferSize - 1);
+			// Read the contents of the client message
+			TCHAR MessageBuffer[PipeConstants::BufferSize];
+			DWORD BytesRead{ 0 };
+			if (::ReadFile(PipeHandle, MessageBuffer, sizeof(MessageBuffer) - 1, &BytesRead, nullptr))
+			{
+				// Make sure BytesRead does not exceed our buffer size
+				BytesRead = FMath::Min(BytesRead, PipeConstants::BufferSize - 1);
 
-			// Add terminating zero
-			MessageBuffer[BytesRead] = TEXT('\0');
+				// Add terminating zero
+				MessageBuffer[BytesRead] = TEXT('\0');
 
-			UE_LOG(LogHyperlinkEditor, Log, TEXT("Hyperlink message received: %s"), MessageBuffer);
-			// TODO: do something with the data
+				UE_LOG(LogHyperlinkEditor, Log, TEXT("Hyperlink message received: %s"), MessageBuffer);
+				// TODO: do something with the data
+			}
 		}
 
 		// Disconnect from the client so that we can wait for a new one
