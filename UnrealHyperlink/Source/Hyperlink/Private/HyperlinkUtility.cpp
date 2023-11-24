@@ -18,7 +18,8 @@
 FString UHyperlinkUtility::GetLinkBaseAddress()
 {
 	// TODO: get v1 string from common location
-	return FString::Printf(TEXT("http://localhost:%d/v1"), GetDefault<UHyperlinkSettings>()->GetLocalServerPort());
+	return FString::Printf(TEXT("http://localhost:%d/%d"),
+		GetDefault<UHyperlinkSettings>()->GetLocalServerPort(), UHyperlinkSettings::LinkVersion);
 }
 
 FString UHyperlinkUtility::GetLinkStructureHint()

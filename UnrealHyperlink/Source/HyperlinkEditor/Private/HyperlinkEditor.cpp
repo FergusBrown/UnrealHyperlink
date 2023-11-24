@@ -154,9 +154,9 @@ void FHyperlinkEditorModule::StartHttpServer()
 		HttpRouter = FHttpServerModule::Get().GetHttpRouter(ServerPort, /*bFailOnBindFailure = */true);
 		if (HttpRouter.IsValid())
 		{
-			// Use v1, v2, v3 etc for versioning
+			// Use route for versioning
 			HttpRequestHandle = HttpRouter->BindRoute(
-				FHttpPath(TEXT("/v1/")),
+				FHttpPath(FString::Printf(TEXT("/%d"), UHyperlinkSettings::LinkVersion)),
 				EHttpServerRequestVerbs::VERB_GET,
 				HandleHttpRequest);
 

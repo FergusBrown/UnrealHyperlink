@@ -44,6 +44,9 @@ public:
 	const FString& GetLinkHandlerAddress() const{ return LinkHandlerAddress; };
 	uint32 GetLocalServerPort() const{ return LocalServerPort; };
 	
+	/* Use for versioning of the http link address */
+	static constexpr uint32 LinkVersion{ 1 };
+	
 #if WITH_EDITOR
 private:
 	/* Delegates functions for different stages of editor initialisation */
