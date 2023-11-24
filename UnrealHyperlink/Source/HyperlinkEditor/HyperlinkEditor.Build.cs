@@ -21,7 +21,8 @@ public class HyperlinkEditor : ModuleRules
                 "CoreUObject",
                 "Engine",
                 "Slate",
-                "SlateCore"
+                "SlateCore", 
+                "Projects"
             }
         );
     }
