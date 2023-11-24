@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "HyperlinkDefinition.h"
-#include "HyperlinkEdit.generated.h"
+#include "HyperlinkBrowse.generated.h"
 
 /**
- * Hyperlink definition for edit links
+ * 
  */
 UCLASS()
-class UHyperlinkEdit : public UHyperlinkDefinition
+class UHyperlinkBrowse : public UHyperlinkDefinition
 {
 	GENERATED_BODY()
 	

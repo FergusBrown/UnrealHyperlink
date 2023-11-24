@@ -3,11 +3,8 @@
 
 #include "HyperlinkSubsystem.h"
 
-#include "AssetRegistry/IAssetRegistry.h"
-#include "ContentBrowserModule.h"
 #include "HyperlinkDefinition.h"
 #include "HyperlinkSettings.h"
-#include "IContentBrowserSingleton.h"
 #include "Log.h"
 
 void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -72,24 +69,6 @@ void UHyperlinkSubsystem::ExecuteLink(const FString& Link) const
 	else
 	{
 		UE_LOG(LogHyperlink, Error, TEXT("Failed to extract definition name from %s. Ensure link is in the format %s"), *Link, *GetLinkFormatHint());
-	}
-}
-
-void UHyperlinkSubsystem::ExecuteBrowse(const FString& LinkBody)
-{
-	TArray<FAssetData> LinkAssetData{};
-	IAssetRegistry::Get()->GetAssetsByPackageName(FName(LinkBody), LinkAssetData);
-
-	const FContentBrowserModule& ContentBrowserModule{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
-	if (LinkAssetData.Num() > 0)
-	{
-		// Treat as asset
-		ContentBrowserModule.Get().SyncBrowserToAssets(LinkAssetData);
-	}
-	else
-	{
-		// Treat as folder
-		ContentBrowserModule.Get().SyncBrowserToFolders({ LinkBody });
 	}
 }
 

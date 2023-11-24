@@ -3,6 +3,9 @@
 
 #include "HyperlinkSettings.h"
 
+#include "HyperlinkDefinition.h"
+#include "HyperlinkSubsystem.h"
+
 void UHyperlinkSettings::PostInitProperties()
 {
 	Super::PostInitProperties();
@@ -18,4 +21,13 @@ void UHyperlinkSettings::PostInitProperties()
 FName UHyperlinkSettings::GetCategoryName() const
 {
 	return TEXT("Plugins");
+}
+
+void UHyperlinkSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	const FName PropName{ PropertyChangedEvent.Property->GetFName() };
+	if (PropName == GET_MEMBER_NAME_CHECKED(UHyperlinkSettings, RegisteredDefinitions))
+	{
+		//TODO: pass new selection to subsystem to update
+	}
 }

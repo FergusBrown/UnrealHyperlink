@@ -21,9 +21,7 @@ public:
 	
 	/* Decode the provided unreal://... link and execute the associated action */
 	void ExecuteLink(const FString& Link) const;
-
-	static void ExecuteBrowse(const FString& LinkBody);
-
+	
 	// Utility
 	static FString GetLinkBase();
 	static FString GetLinkFormatHint();
