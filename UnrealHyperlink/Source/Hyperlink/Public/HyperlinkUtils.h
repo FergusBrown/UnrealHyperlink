@@ -9,6 +9,5 @@
  */
 namespace FHyperlinkUtils
 {
-	HYPERLINKEDITOR_API UObject* LoadObjectFromPackageName(const FString& PackageName);
-    
+	HYPERLINK_API UObject* LoadObjectFromPackageName(const FString& PackageName);
 };

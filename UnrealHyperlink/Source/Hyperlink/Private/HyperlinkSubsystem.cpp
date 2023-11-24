@@ -12,10 +12,6 @@
 
 void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	// Register core link types
-	RegisterHyperlinkExecutor(TEXT("browse"), UHyperlinkSubsystem::ExecuteBrowse);
-	RegisterHyperlinkExecutor(TEXT("edit"), UHyperlinkSubsystem::ExecuteEdit);
-
 	// Register console commands
 	ExecuteConsoleCommand = IConsoleManager::Get().RegisterConsoleCommand(
 		TEXT("uhl.ExecuteLink"),
@@ -26,7 +22,6 @@ void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 void UHyperlinkSubsystem::Deinitialize()
 {
 	IConsoleManager::Get().UnregisterConsoleObject(ExecuteConsoleCommand);
-	LinkExecutorMap.Empty();
 }
 
 bool UHyperlinkSubsystem::ExecuteLink(const FString& Link) const
@@ -38,30 +33,25 @@ bool UHyperlinkSubsystem::ExecuteLink(const FString& Link) const
 	if (Matcher.FindNext())
 	{
 		const FString ExecutorID{ Matcher.GetCaptureGroup(1) };
-		if (FHyperlinkExecutor* Executor{ LinkExecutorMap.Find(FName(ExecutorID)) })
-		{
-			const FString LinkBody{ Matcher.GetCaptureGroup(2) };
-			UE_LOG(LogHyperlinkEditor, Display, TEXT("Executing %s link with body %s"), *ExecutorID, *LinkBody);
-		
-			(*Executor)(LinkBody);
-			bSuccess = true;
-		}
-		else
-		{
-			UE_LOG(LogHyperlinkEditor, Error, TEXT("Could not find executor with ID %s"), *ExecutorID);
-		}
+		// if (FHyperlinkExecutor* Executor{ LinkExecutorMap.Find(FName(ExecutorID)) })
+		// {
+		// 	const FString LinkBody{ Matcher.GetCaptureGroup(2) };
+		// 	UE_LOG(LogHyperlink, Display, TEXT("Executing %s link with body %s"), *ExecutorID, *LinkBody);
+		//
+		// 	(*Executor)(LinkBody);
+		// 	bSuccess = true;
+		// }
+		// else
+		// {
+		// 	UE_LOG(LogHyperlink, Error, TEXT("Could not find executor with ID %s"), *ExecutorID);
+		// }
 	}
 	else
 	{
-		UE_LOG(LogHyperlinkEditor, Error, TEXT("Failed to extract executor ID from %s. Ensure link is in the format %s"), *Link, *GetLinkFormatHint());
+		UE_LOG(LogHyperlink, Error, TEXT("Failed to extract executor ID from %s. Ensure link is in the format %s"), *Link, *GetLinkFormatHint());
 	}
 
 	return bSuccess;
-}
-
-void UHyperlinkSubsystem::RegisterHyperlinkExecutor(const FName& ExecutorID, FHyperlinkExecutor Executor)
-{
-	LinkExecutorMap.Emplace(ExecutorID, Executor);
 }
 
 void UHyperlinkSubsystem::ExecuteBrowse(const FString& LinkBody)
@@ -90,7 +80,7 @@ void UHyperlinkSubsystem::ExecuteEdit(const FString& LinkBody)
 	}
 	else
 	{
-		UE_LOG(LogHyperlinkEditor, Warning, TEXT("Failed to load %s"), *LinkBody);
+		UE_LOG(LogHyperlink, Warning, TEXT("Failed to load %s"), *LinkBody);
 	}
 }
 
@@ -108,7 +98,7 @@ void UHyperlinkSubsystem::ExecuteLinkConsole(const TArray<FString>& Args) const
 {
 	if (Args.Num() != 1) // TODO: check link arg is valid
 	{
-		UE_LOG(LogHyperlinkEditor, Display, TEXT(R"(Invalid argument, requires 1 argument in the format "%s")"), *GetLinkFormatHint());
+		UE_LOG(LogHyperlink, Display, TEXT(R"(Invalid argument, requires 1 argument in the format "%s")"), *GetLinkFormatHint());
 	}
 	else
 	{

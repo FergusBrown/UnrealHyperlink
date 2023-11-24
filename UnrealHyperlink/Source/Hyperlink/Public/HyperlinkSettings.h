@@ -11,7 +11,6 @@ class UHyperlinkDefinition;
 UCLASS(Config = Hyperlink, DefaultConfig, meta = (DisplayName = "Hyperlink"))
 class HYPERLINK_API UHyperlinkSettings : public UDeveloperSettings
 {
-private:
 	GENERATED_BODY()
 
 public:

@@ -18,10 +18,7 @@ public class HyperlinkEditor : ModuleRules
         PrivateDependencyModuleNames.AddRange(
             new string[]
             {
-                "AssetRegistry",
-                "AssetTools",
                 "CoreUObject",
-                "EditorSubsystem",
                 "Engine",
                 "Hyperlink",
                 "Projects",

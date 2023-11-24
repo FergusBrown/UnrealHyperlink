@@ -11,7 +11,8 @@ public class Hyperlink : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core",
+                "Core", 
+                "Engine",
             }
         );
 
@@ -25,5 +26,16 @@ public class Hyperlink : ModuleRules
                 "SlateCore",
             }
         );
+        
+        // Editor only dependencies
+        if (Target.bBuildEditor)
+        {
+            PrivateDependencyModuleNames.AddRange(
+                new string[] {
+                "AssetRegistry",
+                "AssetTools",
+                }
+            );
+        }
     }
 }

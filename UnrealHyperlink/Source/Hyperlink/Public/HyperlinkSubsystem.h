@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "EditorSubsystem.h"
+#include "Subsystems/EngineSubsystem.h"
 #include "HyperlinkSubsystem.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class HYPERLINKEDITOR_API UHyperlinkSubsystem : public UEditorSubsystem
+class HYPERLINK_API UHyperlinkSubsystem : public UEngineSubsystem
 {
 	GENERATED_BODY()
 	
@@ -20,10 +20,6 @@ public:
 	
 	/* Decode the provided unreal://... link and execute the associated action */
 	bool ExecuteLink(const FString& Link) const;
-	
-	// Link functions
-	using FHyperlinkExecutor = const TFunction<void(const FString& LinkBody)>;
-	void RegisterHyperlinkExecutor(const FName& ExecutorID, FHyperlinkExecutor Executor);
 
 	static void ExecuteBrowse(const FString& LinkBody);
 	static void ExecuteEdit(const FString& LinkBody);
@@ -36,7 +32,6 @@ private:
 	void ExecuteLinkConsole(const TArray<FString>& Args) const;
 	
 private:
-	TMap<FName, FHyperlinkExecutor> LinkExecutorMap{};
-
+	// TODO: move this to editor module
 	IConsoleObject* ExecuteConsoleCommand{ nullptr };
 };

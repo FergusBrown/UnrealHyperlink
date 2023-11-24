@@ -3,13 +3,16 @@
 
 #include "HyperlinkDefinition.h"
 
-FName UHyperlinkDefinition::GetBodyPattern() const
+#include "HyperlinkFormat.h"
+#include "HyperlinkSettings.h"
+
+FString UHyperlinkDefinition::GetBodyPattern() const
 {
 	return TEXT(R"(.*)");
 }
 
-FName UHyperlinkDefinition::GetHyperlinkBase() const
+FString UHyperlinkDefinition::GetHyperlinkBase() const
 {
-	// TODO
-	return TEXT("unreal://TODO");
+	// TODO: support for web links
+	return FString::Format(TEXT("{0}{1}/{2}/"), { FHyperlinkFormat::Base, GetMutableDefault<UHyperlinkSettings>()->ProjectIdentifier,  GetDefinitionName()});
 }
