@@ -60,7 +60,6 @@ void UHyperlinkLevelGoTo::Initialize()
 void UHyperlinkLevelGoTo::Deinitialize()
 {
 #if WITH_EDITOR
-	const FLevelEditorModule& LevelEditor{ FModuleManager::LoadModuleChecked<FLevelEditorModule>(TEXT("LevelEditor")) };
 	// Note that we don't need to unmap the actions from Level Editor Module's GlobalLevelEditorActions
 	FHyperlinkGoToCommands::Unregister();
 #endif //WITH_EDITOR
