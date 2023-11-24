@@ -128,7 +128,7 @@ void UHyperlinkSubsystem::ExecuteLinkConsole(const TArray<FString>& Args)
 
 void UHyperlinkSubsystem::ExecuteLinkDeferred(const FString Link) const
 {
-	const FRegexPattern TypePattern{ GetDefault<UHyperlinkSettings>()->GetLinkRegexBase() +
+	const FRegexPattern TypePattern{ FHyperlinkFormat::GetLinkRegexBase() +
 		TEXT(R"(\/(\w+)(\/\S+))") };
 	
 	FRegexMatcher Matcher{ TypePattern, Link };

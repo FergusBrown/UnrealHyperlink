@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 
 /**
- * Common utilities for link executors
+ * Common utilities for use in definition classes
  */
 namespace FHyperlinkUtils
 {

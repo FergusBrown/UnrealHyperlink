@@ -15,4 +15,8 @@ namespace FHyperlinkFormat
 	static const TCHAR* BaseFormat{ TEXT("{0}/{1}/{2}") };
 
 	static const TCHAR* StructureHint{ TEXT("Handler/ProjectID/DefinitionID/Body") };
+
+	HYPERLINK_API FString GetLinkGenerationBase();
+	HYPERLINK_API FString GetLinkRegexBase();
+	HYPERLINK_API FString RegexEscapeString(const FString& InString);
 };

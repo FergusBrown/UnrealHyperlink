@@ -3,6 +3,7 @@
 
 #include "HyperlinkDefinition.h"
 
+#include "HyperlinkFormat.h"
 #include "HyperlinkSettings.h"
 #include "Internationalization/Regex.h"
 #include "Log.h"
@@ -42,7 +43,7 @@ void UHyperlinkDefinition::ExecuteLinkBody(const FString& InLinkBody)
 
 FString UHyperlinkDefinition::GetHyperlinkBase() const
 {
-	return GetDefault<UHyperlinkSettings>()->GetLinkGenerationBase() / DefinitionIdentifier;
+	return FHyperlinkFormat::GetLinkGenerationBase() / DefinitionIdentifier;
 }
 
 void UHyperlinkDefinition::CopyLink() const
