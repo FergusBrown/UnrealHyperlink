@@ -52,8 +52,11 @@ void UHyperlinkViewport::Initialize()
 		const FLevelEditorModule& LevelEditor{ FModuleManager::LoadModuleChecked<FLevelEditorModule>(TEXT("LevelEditor")) };
 		LevelEditor.GetGlobalLevelEditorActions()->Append(ViewportCommands.ToSharedRef());
 
-		UHyperlinkUtility::ExtendToolMenuSection(TEXT("LevelEditor.ActorContextMenu"), TEXT("ActorOptions"),
-		ViewportCommands, FHyperlinkViewportCommands::Get().CopyViewportLink);
+		UHyperlinkUtility::ExtendToolMenuSection(TEXT("LevelEditor.ActorContextMenu"),
+			TEXT("ActorOptions"), ViewportCommands, FHyperlinkViewportCommands::Get().CopyViewportLink);
+		UHyperlinkUtility::ExtendToolMenuSection(TEXT("LevelEditor.LevelViewportToolBar.Options"),
+			TEXT("LevelViewportViewportOptions"), ViewportCommands,
+			FHyperlinkViewportCommands::Get().CopyViewportLink);
 	}
 #endif //WITH_EDITOR
 }
