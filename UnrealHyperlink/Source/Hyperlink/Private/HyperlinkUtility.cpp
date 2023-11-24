@@ -118,7 +118,7 @@ void FHyperlinkUtility::AddHyperlinkSubMenuAndEntry(const FName& MenuName, const
 }
 
 void FHyperlinkUtility::AddHyperlinkCopyEntry(const FName& MenuName, const FText& EntryLabel, const FText& ToolTip,
-	const UHyperlinkDefinition* const HyperlinkDefinition, const bool bWithSubMenu)
+	const UHyperlinkDefinition* const HyperlinkDefinition, const bool bWithSubMenu/*= true*/)
 {
 	FName MenuPath;
 	if (bWithSubMenu)

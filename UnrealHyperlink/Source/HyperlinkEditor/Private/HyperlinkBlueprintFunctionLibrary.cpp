@@ -23,7 +23,8 @@ UObject* UHyperlinkBlueprintFunctionLibrary::OpenEditorForAsset(const FName& Pac
 }
 
 void UHyperlinkBlueprintFunctionLibrary::AddCopyLinkMenuEntry(const FName& MenuName, const FName& SectionName,
-	const FText& EntryLabel, const FText& ToolTip, const UHyperlinkDefinition* const HyperlinkDefinition)
+	const FText& EntryLabel, const FText& ToolTip, const UHyperlinkDefinition* const HyperlinkDefinition,
+	const bool bWithSubMenu/*= true*/)
 {
 	FHyperlinkUtility::AddHyperlinkCopySubMenuAndEntry(MenuName, SectionName, EntryLabel, ToolTip, HyperlinkDefinition);
 }
