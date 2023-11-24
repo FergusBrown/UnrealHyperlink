@@ -8,17 +8,18 @@
 #include "HyperlinkSettings.h"
 #include "Internationalization/Regex.h"
 #include "JsonObjectConverter.h"
-#include "Log.h"
 
 #if WITH_EDITOR
+#include "Log.h"
 #include "Styling/StarshipCoreStyle.h"
-
-#define LOCTEXT_NAMESPACE "Hyperlink"
 
 namespace FHyperlinkUtilityConstants
 {
 	static const FName SubMenuName{ TEXT("HyperlinkSubMenu") };
 }
+#endif //WITH_EDITOR
+
+#define LOCTEXT_NAMESPACE "Hyperlink"
 
 FString FHyperlinkUtility::GetLinkBaseAddress()
 {
@@ -54,6 +55,7 @@ FString FHyperlinkUtility::CreateLinkFromPayload(const TSubclassOf<UHyperlinkDef
 	return GetLinkBaseAddress() / PayloadString;
 }
 
+#if WITH_EDITOR
 FSlateIcon FHyperlinkUtility::GetMenuIcon()
 {
 	return FSlateIcon(FStarshipCoreStyle::GetCoreStyle().GetStyleSetName(), TEXT("Icons.Link"));
@@ -155,8 +157,6 @@ void FHyperlinkUtility::AddHyperlinkCopySubMenuAndEntry(const FName& MenuName, c
 	AddHyperlinkCopyEntry(MenuName, EntryLabel, ToolTip, HyperlinkDefinition);
 }
 
-#undef LOCTEXT_NAMESPACE
-
 TSharedRef<FExtender> FHyperlinkUtility::GetMenuExtender(const FName& ExtensionHook,
 	const EExtensionHook::Position HookPosition, const TSharedPtr<FUICommandList>& CommandList,
 	const TSharedPtr<const FUICommandInfo>& Command, const FName& ExtenderName)
@@ -182,25 +182,6 @@ TSharedRef<FExtender> FHyperlinkUtility::GetMenuExtender(const FName& ExtensionH
 	);
 	
 	return Extender;
-}
-
-#endif //WITH_EDITOR
-
-FString FHyperlinkUtility::CreateClassDisplayString(const UClass* const Class)
-{
-	FString Identifier{ Class->GetDisplayNameText().ToString() };
-	Identifier.RemoveSpacesInline();
-	
-	// Try create a nice display name. Expect class names to typically follow the format "...HyperlinkType"
-	const FRegexPattern Pattern{ TEXT("Hyperlink(.*)$") };
-	FRegexMatcher Matcher{ Pattern, Identifier };
-
-	if (Matcher.FindNext())
-	{
-		Identifier = Matcher.GetCaptureGroup(1);
-	}
-	
-	return  Identifier;
 }
 
 UObject* FHyperlinkUtility::LoadObject(const FString& PackageName)
@@ -239,3 +220,23 @@ UObject* FHyperlinkUtility::OpenEditorForAsset(const FName& PackageName)
 	return Object;
 }
 
+FString FHyperlinkUtility::CreateClassDisplayString(const UClass* const Class)
+{
+	FString Identifier{ Class->GetDisplayNameText().ToString() };
+	Identifier.RemoveSpacesInline();
+	
+	// Try create a nice display name. Expect class names to typically follow the format "...HyperlinkType"
+	const FRegexPattern Pattern{ TEXT("Hyperlink(.*)$") };
+	FRegexMatcher Matcher{ Pattern, Identifier };
+
+	if (Matcher.FindNext())
+	{
+		Identifier = Matcher.GetCaptureGroup(1);
+	}
+	
+	return  Identifier;
+}
+
+#endif //WITH_EDITOR
+
+#undef LOCTEXT_NAMESPACE

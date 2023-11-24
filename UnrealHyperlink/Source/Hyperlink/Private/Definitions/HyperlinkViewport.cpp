@@ -6,9 +6,9 @@
 #include "GameFramework/PlayerController.h"
 #include "HyperlinkUtility.h"
 #include "JsonObjectConverter.h"
-#include "LevelEditor.h"
 #include "Log.h"
 #if WITH_EDITOR
+#include "LevelEditor.h"
 #include "Subsystems/UnrealEditorSubsystem.h"
 
 #define LOCTEXT_NAMESPACE "HyperlinkViewport"

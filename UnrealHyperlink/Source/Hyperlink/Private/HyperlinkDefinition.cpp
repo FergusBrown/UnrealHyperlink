@@ -4,7 +4,6 @@
 #include "HyperlinkDefinition.h"
 
 #include "HyperlinkUtility.h"
-#include "JsonObjectConverter.h"
 #include "Log.h"
 #include "Windows/WindowsPlatformApplicationMisc.h"
 
@@ -17,7 +16,7 @@ void UHyperlinkDefinition::CopyLink() const
 	else
 	{
 		UE_LOG(LogHyperlink, Error, TEXT("Failed to generate and copy %s link"),
-			*FHyperlinkUtility::CreateClassDisplayString(GetClass()));
+			*GetClass()->GetDefaultObjectName().ToString());
 	}
 }
 
@@ -31,7 +30,7 @@ void UHyperlinkDefinition::PrintLink() const
 	else
 	{
 		UE_LOG(LogHyperlink, Error, TEXT("Failed to generate and print %s link"),
-			*FHyperlinkUtility::CreateClassDisplayString(GetClass()));
+			*GetClass()->GetDefaultObjectName().ToString());
 	}
 }
 

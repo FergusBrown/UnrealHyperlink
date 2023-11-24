@@ -5,14 +5,17 @@
 
 #include "HyperlinkClassEntry.h"
 #include "HyperlinkDefinition.h"
+#include "HyperlinkSettings.h"
+#include "Log.h"
+
+#if WITH_EDITOR
+#include "Internationalization/Regex.h"
 #include "HyperlinkExecutePayload.h"
 #include "HyperlinkPythonBridge.h"
-#include "HyperlinkSettings.h"
-#include "HyperlinkUtility.h"
 #include "Interfaces/IMainFrameModule.h"
-#include "Internationalization/Regex.h"
+#include "HyperlinkUtility.h"
 #include "JsonObjectConverter.h"
-#include "Log.h"
+#endif //WITH_EDITOR
 
 void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -40,26 +43,6 @@ void UHyperlinkSubsystem::Deinitialize()
 #if WITH_EDITOR
 	IConsoleManager::Get().UnregisterConsoleObject(ExecuteConsoleCommand);
 #endif //WITH_EDITOR
-}
-
-void UHyperlinkSubsystem::StaticExecuteLink(const FHyperlinkExecutePayload& ExecutePayload)
-{
-	if (UHyperlinkSubsystem* const HyperlinkSubsystem{ GEngine->GetEngineSubsystem<UHyperlinkSubsystem>() })
-	{
-		HyperlinkSubsystem->ExecuteLink(ExecutePayload);
-		// if (Payload.JsonObject.IsValid())
-		// {
-		// 	//HyperlinkSubsystem->ExecuteLink(*Payload.JsonObject);
-		// }
-		// else
-		// {
-		// 	UE_LOG(LogHyperlink, Warning, TEXT("Failed to execute link: no valid JSON payload."));
-		// }
-	}
-	else
-	{
-		UE_LOG(LogHyperlink, Warning, TEXT("Cannot execute link: UHyperlinkSubsystem not yet initialised."));
-	}
 }
 
 void UHyperlinkSubsystem::RefreshDefinitions()
@@ -137,6 +120,18 @@ void UHyperlinkSubsystem::CopyLinkConsole(const TArray<FString>& Args)
 }
 
 #if WITH_EDITOR
+void UHyperlinkSubsystem::StaticExecuteLink(const FHyperlinkExecutePayload& ExecutePayload)
+{
+	if (UHyperlinkSubsystem* const HyperlinkSubsystem{ GEngine->GetEngineSubsystem<UHyperlinkSubsystem>() })
+	{
+		HyperlinkSubsystem->ExecuteLink(ExecutePayload);
+	}
+	else
+	{
+		UE_LOG(LogHyperlink, Warning, TEXT("Cannot execute link: UHyperlinkSubsystem not yet initialised."));
+	}
+}
+
 void UHyperlinkSubsystem::ExecuteLink(const FHyperlinkExecutePayload& ExecutePayload)
 {
 	// Proceed if we're not already executing a link

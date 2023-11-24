@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 
 class UHyperlinkDefinition;
+class FJsonObject;
 
 /**
  * 
@@ -54,8 +55,8 @@ public:
 	 * @return The UObject the editor was opened for
 	 */
 	static UObject* OpenEditorForAsset(const FName& PackageName);
-#endif //WITH_EDITOR
-
+	
 	/* Use to create a nice display string for a class*/
 	static FString CreateClassDisplayString(const UClass* Class);
+#endif //WITH_EDITOR
 };
