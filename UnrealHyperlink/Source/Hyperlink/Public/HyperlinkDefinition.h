@@ -17,18 +17,21 @@ class HYPERLINK_API UHyperlinkDefinition : public UObject
 public:
 	virtual FString GetDefinitionName() const PURE_VIRTUAL(UHyperlinkDefinition::GetDefinitionName, return FString(););
 	
-	virtual void ExecuteLinkBody(const FString& LinkBody) PURE_VIRTUAL(UHyperlinkDefinition::ExecuteLinkBody, );
-
+	void ExecuteLinkBody(const FString& LinkBody);
+	
 	/* Setup any commands, menu extensions etc. which can be used to generate this link */
 	virtual void Initialize() PURE_VIRTUAL(UHyperlinkDefinition::Initialize, );
 
 	/* Tear down anything setup in Initialize*/
 	virtual void Deinitialize() {}
-	
-	/* Used to validate a received link */
-	virtual FString GetBodyPattern() const;
 
 	/* Construct the base of the link without the body */
 	FString GetHyperlinkBase() const;
+
+protected:
+	/* Used to validate a received link */
+	virtual FString GetBodyPattern() const;
+
+	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) PURE_VIRTUAL(UHyperlinkDefinition::ExecuteLinkBodyInternal, );
 	
 };

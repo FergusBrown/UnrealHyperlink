@@ -20,10 +20,9 @@ public:
 	virtual void Deinitialize() override;
 	
 	/* Decode the provided unreal://... link and execute the associated action */
-	bool ExecuteLink(const FString& Link) const;
+	void ExecuteLink(const FString& Link) const;
 
 	static void ExecuteBrowse(const FString& LinkBody);
-	static void ExecuteEdit(const FString& LinkBody);
 
 	// Utility
 	static FString GetLinkBase();
@@ -36,7 +35,7 @@ private:
 
 private:
 	UPROPERTY()
-	TArray<TObjectPtr<UHyperlinkDefinition>> Definitions{};
+	TMap<FString, TObjectPtr<UHyperlinkDefinition>> Definitions{};
 
 #if WITH_EDITORONLY_DATA
 	IConsoleObject* ExecuteConsoleCommand{ nullptr };

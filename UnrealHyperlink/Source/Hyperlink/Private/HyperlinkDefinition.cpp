@@ -5,6 +5,30 @@
 
 #include "HyperlinkFormat.h"
 #include "HyperlinkSettings.h"
+#include "Log.h"
+
+void UHyperlinkDefinition::ExecuteLinkBody(const FString& LinkBody)
+{
+	const FRegexPattern LinkPattern{ GetBodyPattern() };
+	FRegexMatcher LinkMatcher{ LinkPattern, LinkBody };
+
+	if (LinkMatcher.FindNext())
+	{
+		TArray<FString> LinkArgs{};
+		int32 Idx{ 0 };
+		while (!LinkMatcher.GetCaptureGroup(Idx).IsEmpty())
+		{
+			LinkArgs.Emplace(LinkMatcher.GetCaptureGroup(Idx));
+			++Idx;
+		}
+		ExecuteLinkBodyInternal(LinkArgs);
+	}
+	else
+	{
+		UE_LOG(LogHyperlink, Warning, TEXT("Link did not match %s pattern %s"), *GetDefinitionName(), *GetBodyPattern());
+		
+	}
+}
 
 FString UHyperlinkDefinition::GetBodyPattern() const
 {

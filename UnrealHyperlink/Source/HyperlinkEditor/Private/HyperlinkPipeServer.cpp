@@ -7,6 +7,8 @@
 /* Begin Windows includes */
 #include "Windows/AllowWindowsPlatformTypes.h"
 #include <Windows.h>
+
+#include "HyperlinkSubsystem.h"
 #include "Windows/HideWindowsPlatformTypes.h"
 /* End Windows includes */
 
@@ -62,7 +64,10 @@ uint32 FHyperlinkPipeServer::Run()
 				MessageBuffer[BytesRead] = TEXT('\0');
 
 				UE_LOG(LogHyperlinkEditor, Log, TEXT("Hyperlink message received: %s"), MessageBuffer);
-				// TODO: do something with the data
+				AsyncTask(ENamedThreads::GameThread, [=]()
+				{
+					GEngine->GetEngineSubsystem<UHyperlinkSubsystem>()->ExecuteLink(MessageBuffer);
+				});
 			}
 		}
 

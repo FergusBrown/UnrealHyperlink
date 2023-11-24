@@ -3,6 +3,8 @@
 
 #include "HyperlinkUtils.h"
 
+#include "Log.h"
+
 UObject* FHyperlinkUtils::LoadObjectFromPackageName(const FString& PackageName)
 {
 	UObject* Ret{ nullptr };
@@ -14,6 +16,7 @@ UObject* FHyperlinkUtils::LoadObjectFromPackageName(const FString& PackageName)
 		const FString AssetName{ FPaths::GetBaseFilename(PackageName) };
 		Ret = FindObject<UObject>(Package, *AssetName);
 	}
+	UE_CLOG(!Ret, LogHyperlink, Error, TEXT("Failed to load %s"), *PackageName);
 
 	return Ret;
 }

@@ -14,4 +14,14 @@ class UHyperlinkEdit : public UHyperlinkDefinition
 {
 	GENERATED_BODY()
 	
+public:
+	virtual FString GetDefinitionName() const override;
+	virtual void Initialize() override;
+	virtual void Deinitialize() override;
+
+protected:
+	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) override;
+
+private:
+	
 };
