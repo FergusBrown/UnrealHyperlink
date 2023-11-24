@@ -17,7 +17,7 @@ public:
 };
 
 /**
- * Hyperlink definition for edit links
+ * Hyperlink for opening the editor for an asset
  */
 UCLASS()
 class HYPERLINKEDITOR_API UHyperlinkEdit : public UHyperlinkDefinition

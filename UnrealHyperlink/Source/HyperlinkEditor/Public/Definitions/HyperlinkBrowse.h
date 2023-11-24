@@ -18,7 +18,7 @@ public:
 };
 
 /**
- * 
+ * Hyperlink for browsing to an asset/folder in the content browser
  */
 UCLASS()
 class HYPERLINKEDITOR_API UHyperlinkBrowse : public UHyperlinkDefinition
