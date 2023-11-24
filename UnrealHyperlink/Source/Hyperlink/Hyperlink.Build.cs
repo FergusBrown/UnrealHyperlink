@@ -34,6 +34,7 @@ public class Hyperlink : ModuleRules
                 new string[] 
                 {
                     "ApplicationCore",
+                    "InputCore",
                     "UnrealEd",
                 }
             );

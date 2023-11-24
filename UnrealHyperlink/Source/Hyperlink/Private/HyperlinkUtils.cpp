@@ -94,7 +94,7 @@ TCHAR FHyperlinkUtils::NibbleToHexChar(int64 InNibble)
 	}
 	else
 	{
-		return HexConstants::AChar + InNibble - 0x9;
+		return HexConstants::AChar + InNibble - 0xA;
 	}
 }
 
