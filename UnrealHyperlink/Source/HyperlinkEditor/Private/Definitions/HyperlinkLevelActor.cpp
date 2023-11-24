@@ -40,8 +40,11 @@ void UHyperlinkLevelActor::Initialize()
 	const FLevelEditorModule& LevelEditor{ FModuleManager::LoadModuleChecked<FLevelEditorModule>(TEXT("LevelEditor")) };
 	LevelEditor.GetGlobalLevelEditorActions()->Append(LevelActorCommands.ToSharedRef());
 
-	// TODO: There's a bug where this doesn't work in the world outliner context menu
-	UHyperlinkUtility::ExtendToolMenuSection(TEXT("LevelEditor.ActorContextMenu"), TEXT("ActorOptions"),
+	// Just add the menu entry to avoid duplicate sub menus in world outliner
+	UHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("LevelEditor.ActorContextMenu"), TEXT("ActorOptions"),
+	LevelActorCommands, FHyperlinkLevelActorCommands::Get().CopyLevelActorLink);
+
+	UHyperlinkUtility::AddHyperlinkMenuEntry(TEXT("LevelEditor.LevelEditorSceneOutliner.ContextMenu"),
 	LevelActorCommands, FHyperlinkLevelActorCommands::Get().CopyLevelActorLink);
 }
 

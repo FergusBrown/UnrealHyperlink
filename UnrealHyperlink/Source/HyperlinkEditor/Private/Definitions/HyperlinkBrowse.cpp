@@ -44,10 +44,10 @@ void UHyperlinkBrowse::Initialize()
 		FExecuteAction::CreateUObject(this, &UHyperlinkDefinition::CopyLink));
 	
 	// Context menu extensions
-	UHyperlinkUtility::ExtendToolMenuSection(TEXT("ContentBrowser.AssetContextMenu"), TEXT("CommonAssetActions"),
+	UHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("ContentBrowser.AssetContextMenu"), TEXT("CommonAssetActions"),
 	BrowseCommands, FHyperlinkBrowseCommands::Get().CopyBrowseLink);
 
-	UHyperlinkUtility::ExtendToolMenuSection(TEXT("ContentBrowser.FolderContextMenu"), TEXT("PathViewFolderOptions"),
+	UHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("ContentBrowser.FolderContextMenu"), TEXT("PathViewFolderOptions"),
 	BrowseCommands, FHyperlinkBrowseCommands::Get().CopyFolderLink);
 	
 	// Keyboard shortcut command

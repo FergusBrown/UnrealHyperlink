@@ -29,9 +29,13 @@ public:
 	
 #if WITH_EDITOR
 	/* CODE ONLY UTILITY */
+	// TODO: Add Comments
+	static void AddHyperlinkSubMenu(const FName& MenuName, const FName& SectionName);
+	static void AddHyperlinkMenuEntry(const FName& MenuName, const TSharedPtr<FUICommandList>& CommandList,
+									  const TSharedPtr<const FUICommandInfo>& Command);
 	
 	// TODO: make equivalent without commandlist which can be called by blueprint
-	static void ExtendToolMenuSection(const FName& MenuName, const FName& SectionName,
+	static void AddHyperlinkSubMenuAndEntry(const FName& MenuName, const FName& SectionName,
 									  const TSharedPtr<FUICommandList>& CommandList,
 									  const TSharedPtr<const FUICommandInfo>& Command);
 

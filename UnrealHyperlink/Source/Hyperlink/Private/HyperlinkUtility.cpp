@@ -16,6 +16,11 @@
 
 #define LOCTEXT_NAMESPACE "Hyperlink"
 
+namespace FHyperlinkUtilityConstants
+{
+	static const FName SubMenuName{ TEXT("HyperlinkSubMenu") };
+}
+
 FString UHyperlinkUtility::GetLinkBaseAddress()
 {
 	const UHyperlinkSettings* const Settings{ GetDefault<UHyperlinkSettings>() };
@@ -56,35 +61,48 @@ FString UHyperlinkUtility::CreateLinkFromPayload(const TSubclassOf<UHyperlinkDef
 	return CreateLinkFromPayload(DefinitionClass, ObjectWrapper);
 }
 
-void UHyperlinkUtility::ExtendToolMenuSection(const FName& MenuName, const FName& SectionName,
+void UHyperlinkUtility::AddHyperlinkSubMenu(const FName& MenuName, const FName& SectionName)
+{
+	FToolMenuEntry SubMenuArgs
+	{
+		FToolMenuEntry::InitSubMenu(
+			FHyperlinkUtilityConstants::SubMenuName,
+			LOCTEXT("HyperlinkSubMenuLabel", "Share Hyperlink"),
+			LOCTEXT("HyperlinkSubMenuToolTip", "Copy a link to which can be used to navigate to this item."),
+			FNewToolMenuChoice(),
+			false,
+			FSlateIcon(FStarshipCoreStyle::GetCoreStyle().GetStyleSetName(), TEXT("Icons.Link")))
+	};
+	SubMenuArgs.Owner = MenuName;
+
+	UToolMenu* const ToolMenu{ UToolMenus::Get()->ExtendMenu(MenuName) };
+	ToolMenu->FindOrAddSection(SectionName).AddEntry(SubMenuArgs);
+}
+
+void UHyperlinkUtility::AddHyperlinkMenuEntry(const FName& MenuName, const TSharedPtr<FUICommandList>& CommandList,
+	const TSharedPtr<const FUICommandInfo>& Command)
+{
+	const FName SubMenuPath{ UToolMenus::JoinMenuPaths(MenuName, FHyperlinkUtilityConstants::SubMenuName) };
+	UToolMenu* const SubMenu{ UToolMenus::Get()->ExtendMenu(SubMenuPath) };
+
+	// Add action entry to the submenu
+	static const FName CopySectionName{ TEXT("HyperlinkActions") };
+	FToolMenuEntry EntryArgs{ FToolMenuEntry::InitMenuEntryWithCommandList(Command, CommandList) };
+	EntryArgs.Owner = MenuName;
+	SubMenu->AddMenuEntry(CopySectionName, EntryArgs);
+}
+
+void UHyperlinkUtility::AddHyperlinkSubMenuAndEntry(const FName& MenuName, const FName& SectionName,
                                               const TSharedPtr<FUICommandList>& CommandList,
                                               const TSharedPtr<const FUICommandInfo>& Command)
 {
 	//TODO: provide mechanism for unregistering tool menu extensions with UToolMenu::RemoveEntry or UToolMenus::UnregisterOwner
-
-
+	
 	// Make our submenu entry.
-	static const FName SubMenuName{ TEXT("HyperlinkSubMenu") };
-	FToolMenuEntry Args = FToolMenuEntry::InitSubMenu(
-		SubMenuName,
-		LOCTEXT("HyperlinkSubMenuLabel", "Share Hyperlink"),
-		LOCTEXT("HyperlinkSubMenuToolTip", "Copy a link to which can be used to navigate to this item."),
-		FNewToolMenuChoice(),
-		false,
-		FSlateIcon(FStarshipCoreStyle::GetCoreStyle().GetStyleSetName(), TEXT("Icons.Link")));
-	Args.Owner = MenuName;
-
-	UToolMenu* const ToolMenu{ UToolMenus::Get()->ExtendMenu(MenuName) };
-	ToolMenu->FindOrAddSection(SectionName).AddEntry(Args);
-
-	UToolMenu* const SubMenu
-		{	UToolMenus::Get()->ExtendMenu(UToolMenus::JoinMenuPaths(MenuName, SubMenuName)) };
+	AddHyperlinkSubMenu(MenuName, SectionName);
 
 	// Add action entry to the submenu
-	static const FName CopySectionName{ TEXT("HyperlinkActions") };
-	SubMenu->FindOrAddSection(CopySectionName);
-	SubMenu->AddMenuEntry(CopySectionName,
-	FToolMenuEntry::InitMenuEntryWithCommandList(Command, CommandList));
+	AddHyperlinkMenuEntry(MenuName, CommandList, Command);
 }
 
 #undef LOCTEXT_NAMESPACE

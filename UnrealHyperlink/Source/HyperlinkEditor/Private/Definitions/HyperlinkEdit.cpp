@@ -24,7 +24,7 @@ FHyperlinkEditCommands::FHyperlinkEditCommands()
 
 void FHyperlinkEditCommands::RegisterCommands()
 {
-	UI_COMMAND(CopyEditLink, "Copy Edit Link", "Copy a link to edit the selected asset",
+	UI_COMMAND(CopyEditLink, "Copy Edit Link", "Copy a link to edit this asset",
 		EUserInterfaceActionType::Button, FInputChord(EModifierKey::Alt | EModifierKey::Shift, EKeys::Z));
 }
 
@@ -39,9 +39,14 @@ void UHyperlinkEdit::Initialize()
 		FExecuteAction::CreateUObject(this, &UHyperlinkDefinition::CopyLink)
 	);
 
-	// Assets context menu
-	UHyperlinkUtility::ExtendToolMenuSection(TEXT("ContentBrowser.AssetContextMenu"), TEXT("CommonAssetActions"),
+	// Content Browser asset context menu
+	UHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("ContentBrowser.AssetContextMenu"), TEXT("CommonAssetActions"),
 		EditCommands, FHyperlinkEditCommands::Get().CopyEditLink);
+
+	// TODO: this one is not appearing
+	// Asset Editor asset menu
+	UHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("MainMenu.Asset"), TEXT("AssetEditorActions"),
+	EditCommands, FHyperlinkEditCommands::Get().CopyEditLink);
 	
 	// Keyboard shortcut command
 	// Note that the keyboard shortcut will only be registered if applied on startup because of the way content

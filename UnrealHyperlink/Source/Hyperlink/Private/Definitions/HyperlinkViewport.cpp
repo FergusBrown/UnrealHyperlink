@@ -47,9 +47,14 @@ void UHyperlinkViewport::Initialize()
 		const FLevelEditorModule& LevelEditor{ FModuleManager::LoadModuleChecked<FLevelEditorModule>(TEXT("LevelEditor")) };
 		LevelEditor.GetGlobalLevelEditorActions()->Append(ViewportCommands.ToSharedRef());
 
-		UHyperlinkUtility::ExtendToolMenuSection(TEXT("LevelEditor.ActorContextMenu"),
+		UHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("LevelEditor.ActorContextMenu"),
 			TEXT("ActorOptions"), ViewportCommands, FHyperlinkViewportCommands::Get().CopyViewportLink);
-		UHyperlinkUtility::ExtendToolMenuSection(TEXT("LevelEditor.LevelViewportToolBar.Options"),
+
+		// Just add the menu entry to avoid duplicate sub menus in world outliner
+		UHyperlinkUtility::AddHyperlinkMenuEntry(TEXT("LevelEditor.LevelEditorSceneOutliner.ContextMenu"),
+			ViewportCommands, FHyperlinkViewportCommands::Get().CopyViewportLink);
+		
+		UHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("LevelEditor.LevelViewportToolBar.Options"),
 			TEXT("LevelViewportViewportOptions"), ViewportCommands,
 			FHyperlinkViewportCommands::Get().CopyViewportLink);
 	}
