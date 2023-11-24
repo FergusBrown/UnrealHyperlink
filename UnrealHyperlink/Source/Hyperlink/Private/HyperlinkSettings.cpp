@@ -4,7 +4,6 @@
 #include "HyperlinkSettings.h"
 
 #include "HyperlinkUtility.h"
-#include "Definitions/HyperlinkDefinitionBlueprintBase.h"
 
 #if WITH_EDITOR
 #include "AssetRegistry/IAssetRegistry.h"
@@ -110,8 +109,8 @@ bool UHyperlinkSettings::RegisterBlueprintClasses()
 	
 	// Get set of all class names deriving from UHyperlinkDefinition
 	TSet<FTopLevelAssetPath> DerivedClassPaths{};
-	const FName BaseClassName{ UHyperlinkDefinitionBlueprintBase::StaticClass()->GetFName() };
-	const FName BaseClassPackageName{ UHyperlinkDefinitionBlueprintBase::StaticClass()->GetPackage()->GetFName() };
+	const FName BaseClassName{ UHyperlinkDefinition::StaticClass()->GetFName() };
+	const FName BaseClassPackageName{ UHyperlinkDefinition::StaticClass()->GetPackage()->GetFName() };
 	
 	TArray<FTopLevelAssetPath> BaseClassPaths{};
 	BaseClassPaths.Emplace(BaseClassPackageName, BaseClassName);
