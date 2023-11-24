@@ -32,10 +32,6 @@ void FHyperlinkNodeCommands::RegisterCommands()
 
 void UHyperlinkNode::Initialize()
 {
-	FString ObjectPath = this->GetPathName();
-	UE_LOG(LogHyperlinkEditor, Error, TEXT("NODE: %s"), *ObjectPath);
-	
-	
 	FHyperlinkNodeCommands::Register();
 	NodeCommands = MakeShared<FUICommandList>();
 	NodeCommands->MapAction(
@@ -90,36 +86,20 @@ TSharedPtr<FJsonObject> UHyperlinkNode::GeneratePayload() const
 	{
 		UObject* const AssetObject{ ActiveGraph->GetOuter() };
 		
-		FName AssetPackageName{};
-		FGuid GraphGuid{};
-		FGuid NodeGuid{};
-		bool bLinkParamsFound{ false };
-		
 		// Handle material and material functions differently
-		if (const UMaterial* const Material{ Cast<UMaterial>( AssetObject ) })
+		if (const UMaterial* const Material{ Cast<UMaterial>(AssetObject) })
 		{
-			bLinkParamsFound = TryGetMaterialParams(*Material, AssetPackageName, GraphGuid, NodeGuid);
+			Payload = GenerateMaterialPayload(*Material, *SelectedNode);
 		}
-		else if (const UMaterialFunction* const MaterialFunction{ Cast<UMaterialFunction>( AssetObject ) })
+		else if (const UMaterialFunction* const MaterialFunction{ Cast<UMaterialFunction>(AssetObject) })
 		{
 			TConstArrayView<TObjectPtr<UMaterialExpression>> MaterialExpressions{ MaterialFunction->GetExpressions() };
 			// TODO
 		}
-		else
+		else // UBlueprint
 		{
-			AssetPackageName = AssetObject->GetPackage()->GetFName();
-			GraphGuid = ActiveGraph->GraphGuid;
-			NodeGuid = SelectedNode->NodeGuid;
-			bLinkParamsFound = true;
-		}
-			
-		if (bLinkParamsFound)
-		{
-			Payload = GeneratePayload(AssetPackageName, GraphGuid, NodeGuid);
-		}
-		else
-		{
-			UE_LOG(LogHyperlinkEditor, Display, TEXT("Cannot generate Node link: could not find package name, graph or node GUID."));
+			Payload = GenerateBlueprintPayload(AssetObject->GetPackage()->GetFName(), ActiveGraph->GraphGuid,
+				SelectedNode->NodeGuid);
 		}
 	}
 	else
@@ -130,9 +110,10 @@ TSharedPtr<FJsonObject> UHyperlinkNode::GeneratePayload() const
 	return Payload;
 }
 
-TSharedPtr<FJsonObject> UHyperlinkNode::GeneratePayload(const FName& AssetPackageName, const FGuid& GraphGuid, const FGuid& NodeGuid) const
+TSharedPtr<FJsonObject> UHyperlinkNode::GenerateBlueprintPayload(const FName& AssetPackageName, const FGuid& GraphGuid,
+																 const FGuid& NodeGuid)
 {
-	const FHyperlinkNodePayload PayloadStruct
+	const FHyperlinkBlueprintPayload PayloadStruct
 	{
 		AssetPackageName,
 		GraphGuid,
@@ -141,32 +122,143 @@ TSharedPtr<FJsonObject> UHyperlinkNode::GeneratePayload(const FName& AssetPackag
 	return FJsonObjectConverter::UStructToJsonObject(PayloadStruct);
 }
 
+TSharedPtr<FJsonObject> UHyperlinkNode::GenerateMaterialPayload(const FName& AssetPackageName, const FGuid& NodeGuid,
+                                                                const int32 NodeX, const int32 NodeY)
+{
+	const FHyperlinkMaterialPayload PayloadStruct
+	{
+		AssetPackageName,
+		NodeGuid,
+		NodeX,
+		NodeY
+	};
+	return FJsonObjectConverter::UStructToJsonObject(PayloadStruct);
+}
+
+TSharedPtr<FJsonObject> UHyperlinkNode::GenerateMaterialPayload(const UMaterial& InMaterial, const UEdGraphNode& InNode)
+{
+	TSharedPtr<FJsonObject> Payload{ nullptr };
+
+	const TConstArrayView<TObjectPtr<UMaterialExpression>> MaterialExpressions{ InMaterial.GetExpressions() };
+	const TObjectPtr<UMaterialExpression>* const ExpressionPtr{ MaterialExpressions.FindByPredicate(
+		[&](const TObjectPtr<UMaterialExpression> Expression)
+		{
+			return Expression->GraphNode == &InNode;
+		})};
+	if (ExpressionPtr)
+	{
+		// Now find asset package name. We need to make sure we get the package name from the material asset
+		// instead of duplicate material created for the material editor
+		const TSharedPtr<FAssetEditorToolkit> MaterialEditor{
+			StaticCastSharedPtr<FAssetEditorToolkit>(FToolkitManager::Get().FindEditorForAsset(&InMaterial)) };
+		if (MaterialEditor.IsValid())
+		{
+			const TArray<UObject*>* EditedObjects{ MaterialEditor->GetObjectsCurrentlyBeingEdited() };
+			const UObject* const * const MaterialPtr{ EditedObjects->FindByPredicate([=](const UObject* Object)
+				{
+					return Object->IsAsset();
+				}
+			) };
+			
+			if (MaterialPtr)
+			{
+				const TObjectPtr<const UMaterialExpression> MaterialExpression{ *ExpressionPtr };
+				const TObjectPtr<const UObject> Material{ *MaterialPtr };
+				Payload = GenerateMaterialPayload(Material->GetPackage()->GetFName(),
+					MaterialExpression->MaterialExpressionGuid, MaterialExpression->MaterialExpressionEditorX,
+					MaterialExpression->MaterialExpressionEditorY);
+			}
+		}
+	}	
+	
+	return Payload;
+}
+
 void UHyperlinkNode::ExecutePayload(const TSharedRef<FJsonObject>& InPayload)
 {
-	FHyperlinkNodePayload PayloadStruct{};
-	if (FJsonObjectConverter::JsonObjectToUStruct(InPayload, &PayloadStruct))
+	if (FHyperlinkBlueprintPayload BlueprintPayload{};
+		FJsonObjectConverter::JsonObjectToUStruct(InPayload, &BlueprintPayload, 0, 0, true))
 	{
-		const FName& PackageName{ PayloadStruct.PackageName };
-		const FGuid GraphGuid{ PayloadStruct.GraphGuid };
-		const FGuid NodeGuid{ PayloadStruct.NodeGuid };
+		ExecuteBlueprintPayload(BlueprintPayload);
+	}
+	else if (FHyperlinkMaterialPayload MaterialPayload{};
+			 FJsonObjectConverter::JsonObjectToUStruct(InPayload, &MaterialPayload, 0, 0, true))
+	{
+		ExecuteMaterialPayload(MaterialPayload);
+	}
+	else
+	{
+		UE_LOG(LogHyperlinkEditor, Error, TEXT("Failed to execute node link: unsupported payload"));
+	}
+}
 
-		const UObject* const EditedObject{ UHyperlinkUtility::OpenEditorForAsset(PackageName) };
-		if (const UBlueprint* const Blueprint{ Cast<UBlueprint>(EditedObject) })
+void UHyperlinkNode::ExecuteBlueprintPayload(const FHyperlinkBlueprintPayload& InPayload)
+{
+	const UObject* const EditedObject{ UHyperlinkUtility::OpenEditorForAsset(InPayload.BlueprintPackageName) };
+	if (const UBlueprint* const Blueprint{ Cast<UBlueprint>(EditedObject) })
+	{
+		TArray<UEdGraph*> AllGraphs{};
+		Blueprint->GetAllGraphs(AllGraphs);
+		
+		if (UEdGraph** GraphPtr{ AllGraphs.FindByPredicate([&](const UEdGraph* const G)
+			{ return G->GraphGuid == InPayload.GraphGuid; }) })
 		{
-			ExecuteBlueprintLink(*Blueprint, GraphGuid, NodeGuid);
+			UEdGraph* const Graph{ *GraphPtr };
+			const TSharedPtr<FBlueprintEditor> BlueprintEditor
+				{ StaticCastSharedPtr<FBlueprintEditor>(FToolkitManager::Get().FindEditorForAsset(Blueprint)) };
+			if (BlueprintEditor.IsValid())
+			{
+				const TSharedPtr<SGraphEditor> SlateEditor{ BlueprintEditor->OpenGraphAndBringToFront(Graph) };
+
+				if (const TObjectPtr<UEdGraphNode>* NodePtr{ (*GraphPtr)->Nodes.FindByPredicate(
+					[&](const UEdGraphNode* const N){ return N->NodeGuid == InPayload.NodeGuid; }) })
+				{
+					BlueprintEditor->AddToSelection(*NodePtr);
+					SlateEditor->ZoomToFit(true);
+				}
+			}
 		}
-		else if (const UMaterial* const Material{ Cast<UMaterial>(EditedObject) })
+	}
+}
+
+void UHyperlinkNode::ExecuteMaterialPayload(const FHyperlinkMaterialPayload& InPayload)
+{
+	const UObject* const EditedObject{ UHyperlinkUtility::OpenEditorForAsset(InPayload.MaterialPackageName) };
+	if (const UMaterial* const Material{ Cast<UMaterial>(EditedObject) })
+	{
+		const TSharedPtr<IMaterialEditor> MaterialEditor
+			{ StaticCastSharedPtr<IMaterialEditor>(FToolkitManager::Get().FindEditorForAsset(Material)) };
+
+		if (MaterialEditor.IsValid())
 		{
-			// TODO: bug with materials when there's a node that's used more than once in a graph
-			ExecuteMaterialLink(*Material, NodeGuid);
-		}
-		else if (const UMaterialFunction* const MaterialFunction{ Cast<UMaterialFunction>(EditedObject) })
-		{
-			ExecuteMaterialLink(*MaterialFunction, NodeGuid);
-		}
-		else
-		{
-			UE_LOG(LogHyperlinkEditor, Error, TEXT("Failed to execute node link: unsupported asset type"));
+			const UMaterial* const PreviewMaterial{ Cast<UMaterial>(MaterialEditor->GetMaterialInterface()) };
+	
+			const TConstArrayView<TObjectPtr<UMaterialExpression>> MaterialExpressions{ PreviewMaterial->GetExpressions() };
+			TArray<TObjectPtr<UMaterialExpression>> Expressions{ MaterialExpressions.FilterByPredicate(
+				[=](const TObjectPtr<UMaterialExpression> Expression)
+				{
+					return Expression->MaterialExpressionGuid == InPayload.MaterialExpressionGuid;
+				}
+			) };
+
+			if (Expressions.Num() > 0)
+			{
+				// Find closest to the provided coords
+				Expressions.Sort(
+					[&](const UMaterialExpression& A, const UMaterialExpression& B)
+					{
+						auto SqDistFromNode = [&](const UMaterialExpression& Expression)
+						{
+							const int32 dx{ Expression.MaterialExpressionEditorX - InPayload.ExpressionX };
+							const int32 dy{ Expression.MaterialExpressionEditorY - InPayload.ExpressionY };
+							return dx * dx + dy * dy;
+						};
+
+						return SqDistFromNode(A) < SqDistFromNode(B);
+					});
+
+				MaterialEditor->JumpToExpression(Expressions[0]);
+			}
 		}
 	}
 }
@@ -189,95 +281,4 @@ bool UHyperlinkNode::TryGetExtensionPoint(const UClass* const Class, FName& OutE
 	}
 	
 	return bResult;
-}
-
-bool UHyperlinkNode::TryGetMaterialParams(const UMaterial& InMaterial, FName& OutPackageName, FGuid& OutGraphGuid,
-	FGuid& OutNodeGuid) const
-{
-	bool bResult{ false };
-
-	const TConstArrayView<TObjectPtr<UMaterialExpression>> MaterialExpressions{ InMaterial.GetExpressions() };
-	const TObjectPtr<UMaterialExpression>* const ExpressionPtr{ MaterialExpressions.FindByPredicate(
-		[=](const TObjectPtr<UMaterialExpression> Expression)
-		{
-			return Expression->GraphNode == SelectedNode;
-		}
-	) };
-	if (ExpressionPtr)
-	{
-		const TObjectPtr<const UMaterialExpression> MaterialExpression{ *ExpressionPtr };
-		OutGraphGuid = MaterialExpression->MaterialExpressionGuid;
-		OutNodeGuid = MaterialExpression->MaterialExpressionGuid;
-
-		// Now find asset package name. We need to make sure we get the package name from the material asset
-		// instead of duplicate material created for the material editor
-		const TSharedPtr<FAssetEditorToolkit> MaterialEditor{
-			StaticCastSharedPtr<FAssetEditorToolkit>(FToolkitManager::Get().FindEditorForAsset(&InMaterial)) };
-		if (MaterialEditor.IsValid())
-		{
-			const TArray<UObject*>* EditedObjects{ MaterialEditor->GetObjectsCurrentlyBeingEdited() };
-			const UObject* const * const MaterialPtr{ EditedObjects->FindByPredicate([=](const UObject* Object)
-				{
-					return Object->IsAsset();
-				}
-			) };
-			
-			if (MaterialPtr)
-			{
-				OutPackageName = (*MaterialPtr)->GetPackage()->GetFName();
-				bResult = true;
-			}
-		}
-	}	
-	
-	return bResult;
-}
-
-void UHyperlinkNode::ExecuteBlueprintLink(const UBlueprint& InBlueprint, const FGuid& InGraphGuid,
-	const FGuid& InNodeGuid)
-{
-	TArray<UEdGraph*> AllGraphs{};
-	InBlueprint.GetAllGraphs(AllGraphs);
-		
-	if (UEdGraph** GraphPtr{ AllGraphs.FindByPredicate([&](const UEdGraph* const G){ return G->GraphGuid == InGraphGuid; }) })
-	{
-		UEdGraph* const Graph{ *GraphPtr };
-		const TSharedPtr<FBlueprintEditor> BlueprintEditor
-			{ StaticCastSharedPtr<FBlueprintEditor>(FToolkitManager::Get().FindEditorForAsset(&InBlueprint)) };
-		if (BlueprintEditor.IsValid())
-		{
-			const TSharedPtr<SGraphEditor> SlateEditor{ BlueprintEditor->OpenGraphAndBringToFront(Graph) };
-
-			if (const TObjectPtr<UEdGraphNode>* NodePtr{ (*GraphPtr)->Nodes.FindByPredicate(
-				[&](const UEdGraphNode* const N){ return N->NodeGuid == InNodeGuid; }) })
-			{
-				BlueprintEditor->AddToSelection(*NodePtr);
-				SlateEditor->ZoomToFit(true);
-			}
-		}
-	}
-}
-
-void UHyperlinkNode::ExecuteMaterialLink(const UObject& InMaterial, const FGuid& InNodeGuid)
-{
-	const TSharedPtr<IMaterialEditor> MaterialEditor
-		{ StaticCastSharedPtr<IMaterialEditor>(FToolkitManager::Get().FindEditorForAsset(&InMaterial)) };
-
-	if (MaterialEditor.IsValid())
-	{
-		const UMaterial* const PreviewMaterial{ Cast<UMaterial>(MaterialEditor->GetMaterialInterface()) };
-	
-		const TConstArrayView<TObjectPtr<UMaterialExpression>> MaterialExpressions{ PreviewMaterial->GetExpressions() };
-		const TObjectPtr<UMaterialExpression>* const ExpressionPtr{ MaterialExpressions.FindByPredicate(
-			[=](const TObjectPtr<UMaterialExpression> Expression)
-			{
-				return Expression->MaterialExpressionGuid == InNodeGuid;
-			}
-		) };
-
-		if (ExpressionPtr)
-		{
-			MaterialEditor->JumpToExpression((*ExpressionPtr));
-		}
-	}
 }

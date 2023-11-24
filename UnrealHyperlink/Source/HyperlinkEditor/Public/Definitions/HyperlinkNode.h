@@ -17,18 +17,36 @@ public:
 };
 
 USTRUCT()
-struct FHyperlinkNodePayload
+struct FHyperlinkBlueprintPayload
 {
 	GENERATED_BODY()
 
 	UPROPERTY()
-	FName PackageName{};
+	FName BlueprintPackageName{};
 
 	UPROPERTY()
 	FGuid GraphGuid{};
 
 	UPROPERTY()
 	FGuid NodeGuid{};
+};
+
+USTRUCT()
+struct FHyperlinkMaterialPayload
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FName MaterialPackageName{};
+
+	UPROPERTY()
+	FGuid MaterialExpressionGuid{};
+
+	UPROPERTY()
+	int32 ExpressionX{};
+
+	UPROPERTY()
+	int32 ExpressionY{};
 };
 
 /**
@@ -45,19 +63,19 @@ public:
 	virtual void Deinitialize() override;
 	
 	virtual TSharedPtr<FJsonObject> GeneratePayload() const override;
-	TSharedPtr<FJsonObject> GeneratePayload(const FName& AssetPackageName, const FGuid& GraphGuid, const FGuid& NodeGuid) const;
+	static TSharedPtr<FJsonObject> GenerateBlueprintPayload(const FName& AssetPackageName, const FGuid& GraphGuid,
+		const FGuid& NodeGuid);
+	static TSharedPtr<FJsonObject> GenerateMaterialPayload(const FName& AssetPackageName, const FGuid& NodeGuid,
+		int32 NodeX, int32 NodeY);
+	static TSharedPtr<FJsonObject> GenerateMaterialPayload(const UMaterial& InMaterial, const UEdGraphNode& InNode);
 	
 	virtual void ExecutePayload(const TSharedRef<FJsonObject>& InPayload) override;
+	static void ExecuteBlueprintPayload(const FHyperlinkBlueprintPayload& InPayload);
+	static void ExecuteMaterialPayload(const FHyperlinkMaterialPayload& InPayload);
 	
 private:
-	/* Generation helpers */
 	static bool TryGetExtensionPoint(const UClass* Class, FName& OutExtensionPoint);
-	bool TryGetMaterialParams(const UMaterial& InMaterial, FName& OutPackageName, FGuid& OutGraphGuid,
-		FGuid& OutNodeGuid) const;
 
-	/* Execution helpers */
-	static void ExecuteBlueprintLink(const UBlueprint& InBlueprint, const FGuid& InGraphGuid, const FGuid& InNodeGuid);
-	static void ExecuteMaterialLink(const UObject& InMaterial, const FGuid& InNodeGuid);
 private:
 	TSharedPtr<FUICommandList> NodeCommands{};
 	FDelegateHandle NodeContextMenuHandle{};
