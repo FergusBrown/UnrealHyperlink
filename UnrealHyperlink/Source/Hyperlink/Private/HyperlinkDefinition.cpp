@@ -42,5 +42,5 @@ FString UHyperlinkDefinition::GetBodyPattern() const
 
 FString UHyperlinkDefinition::GetHyperlinkBase() const
 {
-	return GetMutableDefault<UHyperlinkSettings>()->GetLinkGenerationBase() / DefinitionIdentifier;
+	return GetDefault<UHyperlinkSettings>()->GetLinkGenerationBase() / DefinitionIdentifier;
 }

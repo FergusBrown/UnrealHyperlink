@@ -10,7 +10,7 @@
 void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	// Create object for each of the project definitions
-	for (const TSubclassOf<UHyperlinkDefinition> DefClass : GetMutableDefault<UHyperlinkSettings>()->GetRegisteredDefinitions())
+	for (const TSubclassOf<UHyperlinkDefinition> DefClass : GetDefault<UHyperlinkSettings>()->GetRegisteredDefinitions())
 	{
 		if (DefClass)
 		{
