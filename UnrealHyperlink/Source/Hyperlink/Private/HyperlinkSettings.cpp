@@ -97,7 +97,8 @@ void UHyperlinkSettings::OnAllModulesLoaded()
 		if(It->IsChildOf(UHyperlinkDefinition::StaticClass()) && !It->HasAnyClassFlags(CLASS_Abstract))
 		{
 			UClass* Class{ *It };
-			if (!RegisteredDefinitions.FindByPredicate([=](const FHyperlinkClassEntry& Entry){ return Entry.Class == Class; }))
+			if (!RegisteredDefinitions.FindByPredicate([=](const FHyperlinkClassEntry& Entry)
+				{ return Entry.Class == Class; }))
 			{
 				FHyperlinkClassEntry NewEntry{};
 				NewEntry.Class = Class;
@@ -107,6 +108,10 @@ void UHyperlinkSettings::OnAllModulesLoaded()
 		}
 	}
 		
-	RegisteredDefinitions.Sort([](const FHyperlinkClassEntry& Lhs, const FHyperlinkClassEntry& Rhs){ return Lhs.Class->GetName() < Rhs.Class->GetName(); });
+	RegisteredDefinitions.Sort([](const FHyperlinkClassEntry& Lhs, const FHyperlinkClassEntry& Rhs)
+		{ return Lhs.Class->GetName() < Rhs.Class->GetName(); });
+
+	// Ensure subsystem is up to date
+	GEngine->GetEngineSubsystem<UHyperlinkSubsystem>()->RefreshDefinitions();
 }
 #endif //WITH_EDITOR
