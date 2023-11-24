@@ -1,0 +1,23 @@
+﻿{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1",
+	"FriendlyName": "UnrealHyperlink",
+	"Description": "Generate links which can be used to navigate the editor",
+	"Category": "Other",
+	"CreatedBy": "Fergus Brown",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "HyperlinkEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		}
+	]
+}
