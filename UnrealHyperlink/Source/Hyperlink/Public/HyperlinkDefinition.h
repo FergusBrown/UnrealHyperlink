@@ -48,7 +48,7 @@ protected:
 #endif //WITH_EDITOR
 
 private:
-	void PrintLinkInternal(const bool bCopy = false) const;
+	void PrintLinkInternal(bool bCopy = false) const;
 	
 protected:
 	/* The name used to identify this type of link */
