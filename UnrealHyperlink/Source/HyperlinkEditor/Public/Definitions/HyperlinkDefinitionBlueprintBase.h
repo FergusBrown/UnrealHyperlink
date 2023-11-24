@@ -36,4 +36,11 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="ExecutePayload"))
 	void ExecutePayloadImpl(const FJsonObjectWrapper& PayloadObject);
+
+	// String versions intended for python
+	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="GeneratePayloadString"))
+	FString GeneratePayloadStringImpl() const;
+
+	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="ExecutePayloadString"))
+	void ExecutePayloadStringImpl(const FString& PayloadString);
 };

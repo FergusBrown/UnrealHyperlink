@@ -18,7 +18,18 @@ void UHyperlinkDefinitionBlueprintBase::Deinitialize()
 
 TSharedPtr<FJsonObject> UHyperlinkDefinitionBlueprintBase::GeneratePayload() const
 {
-	FJsonObjectWrapper JsonObjectWrapper{ GeneratePayloadImpl() };
+	FJsonObjectWrapper JsonObjectWrapper{};
+	if (GetClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UHyperlinkDefinitionBlueprintBase,
+			GeneratePayloadImpl), EIncludeSuperFlag::ExcludeSuper))
+	{
+		JsonObjectWrapper = GeneratePayloadImpl();
+	}
+	else if (GetClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UHyperlinkDefinitionBlueprintBase,
+		GeneratePayloadStringImpl), EIncludeSuperFlag::ExcludeSuper))
+	{
+		JsonObjectWrapper.JsonObjectFromString(GeneratePayloadStringImpl());
+	}
+	 
 	return JsonObjectWrapper.JsonObject;
 }
 
@@ -26,5 +37,18 @@ void UHyperlinkDefinitionBlueprintBase::ExecutePayload(const TSharedRef<FJsonObj
 {
 	FJsonObjectWrapper JsonObjectWrapper{};
 	JsonObjectWrapper.JsonObject = InPayload.ToSharedPtr();
-	ExecutePayloadImpl(JsonObjectWrapper);
+	if (GetClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UHyperlinkDefinitionBlueprintBase,
+		ExecutePayloadImpl), EIncludeSuperFlag::ExcludeSuper))
+	{
+		ExecutePayloadImpl(JsonObjectWrapper);
+	}
+	else if (GetClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UHyperlinkDefinitionBlueprintBase,
+		ExecutePayloadStringImpl), EIncludeSuperFlag::ExcludeSuper))
+	{
+		FString JsonObjectString{};
+		if (JsonObjectWrapper.JsonObjectToString(JsonObjectString))
+		{
+			ExecutePayloadStringImpl(JsonObjectString);
+		}
+	}
 }

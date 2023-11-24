@@ -38,6 +38,7 @@ public class Hyperlink : ModuleRules
                     "ApplicationCore",
                     "Blutility",
                     "InputCore",
+                    "PythonScriptPlugin",
                     "ToolMenus",
                     "UnrealEd",
                 }

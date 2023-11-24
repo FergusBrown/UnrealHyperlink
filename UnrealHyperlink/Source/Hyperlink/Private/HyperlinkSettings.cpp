@@ -3,9 +3,9 @@
 
 #include "HyperlinkSettings.h"
 
-#include "HyperlinkUtility.h"
-
 #if WITH_EDITOR
+#include "HyperlinkUtility.h"
+#include "IPythonScriptPlugin.h"
 #include "AssetRegistry/IAssetRegistry.h"
 #include "EditorUtilityBlueprint.h"
 #include "HyperlinkClassEntry.h"
@@ -28,8 +28,12 @@ void UHyperlinkSettings::PostInitProperties()
 #if WITH_EDITOR
 	if (GIsEditor)
 	{
-		FCoreDelegates::OnAllModuleLoadingPhasesComplete.AddUObject(this, &UHyperlinkSettings::OnAllModulesLoaded);
 		IAssetRegistry::GetChecked().OnFilesLoaded().AddUObject(this, &UHyperlinkSettings::OnAssetRegistryReady);
+
+		// All C++ classes loaded into memory once all modules are loaded
+		// All python classes loaded into memory once python plugin is initialised
+		// Python plugin initialisation happens after all modules are loaded so this covers both cases
+		IPythonScriptPlugin::Get()->OnPythonInitialized().AddUObject(this, &UHyperlinkSettings::OnPythonInitialised);
 	}
 #endif //WITH_EDITOR
 }
@@ -55,16 +59,6 @@ TConstArrayView<FHyperlinkClassEntry> UHyperlinkSettings::GetRegisteredDefinitio
 }
 
 #if WITH_EDITOR
-void UHyperlinkSettings::OnAllModulesLoaded()
-{
-	// Remove null classes
-	RegisteredDefinitions.RemoveAll([](const FHyperlinkClassEntry& Entry){ return Entry.Class == nullptr; });
-
-	if (RegisterCppClasses())
-	{
-		PostRegister();
-	}
-}
 
 void UHyperlinkSettings::OnAssetRegistryReady()
 {
@@ -73,6 +67,12 @@ void UHyperlinkSettings::OnAssetRegistryReady()
 		PostRegister();
 	}
 	IAssetRegistry::GetChecked().OnInMemoryAssetCreated().AddUObject(this, &UHyperlinkSettings::OnAssetCreated);
+}
+
+void UHyperlinkSettings::OnPythonInitialised()
+{
+	RegisterInMemoryClasses();
+	PostRegister();
 }
 
 void UHyperlinkSettings::OnAssetCreated(UObject* InObject)
@@ -87,7 +87,7 @@ void UHyperlinkSettings::OnAssetCreated(UObject* InObject)
 	}
 }
 
-bool UHyperlinkSettings::RegisterCppClasses()
+bool UHyperlinkSettings::RegisterInMemoryClasses()
 {
 	bool bResult{ false };
 	
@@ -100,6 +100,7 @@ bool UHyperlinkSettings::RegisterCppClasses()
 		}
 	}
 
+	bInMemoryClassesRegistered = true;
 	return bResult;
 }
 
@@ -121,6 +122,7 @@ bool UHyperlinkSettings::RegisterBlueprintClasses()
 
 	TArray<FAssetData> AssetList{};
 	AssetRegistry.GetAssetsByClass(UEditorUtilityBlueprint::StaticClass()->GetClassPathName(), AssetList);
+	
 	// Iterate over retrieved blueprint assets
 	for (const FAssetData& Asset : AssetList)
 	{
@@ -148,6 +150,7 @@ bool UHyperlinkSettings::RegisterBlueprintClasses()
 		}
 	}
 
+	bBlueprintClassesRegistered = true;
 	return bResult;
 }
 
@@ -171,11 +174,22 @@ bool UHyperlinkSettings::RegisterDefinitionClass(UClass* const Class)
 
 void UHyperlinkSettings::PostRegister()
 {
-	// Sort registered definitions so they appear in alphabetical order
-	RegisteredDefinitions.Sort([](const FHyperlinkClassEntry& Lhs, const FHyperlinkClassEntry& Rhs)
-		{ return Lhs.Class->GetName() < Rhs.Class->GetName(); });
+	// With class registration complete all classes in RegisteredDefinitions should be loaded and we can perform some
+	// cleanup and sorting
+	if (bBlueprintClassesRegistered && bInMemoryClassesRegistered)
+	{
+		// Any nullptr can be removed as invalid classes
+		RegisteredDefinitions.RemoveAll([](const FHyperlinkClassEntry& Entry){ return Entry.Class == nullptr; });
 	
-	// Ensure subsystem is up to date
-	GEngine->GetEngineSubsystem<UHyperlinkSubsystem>()->RefreshDefinitions();
+		// Sort registered definitions so they appear in alphabetical order
+		RegisteredDefinitions.Sort([](const FHyperlinkClassEntry& Lhs, const FHyperlinkClassEntry& Rhs)
+			{ return Lhs.Class->GetName() < Rhs.Class->GetName(); });
+
+		// Update default config
+		SaveConfig(CPF_Config, *GetDefaultConfigFilename());
+
+		// Ensure subsystem is up to date
+		GEngine->GetEngineSubsystem<UHyperlinkSubsystem>()->RefreshDefinitions();
+	}
 }
 #endif //WITH_EDITOR

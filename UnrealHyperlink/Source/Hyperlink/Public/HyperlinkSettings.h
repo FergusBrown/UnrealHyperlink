@@ -27,14 +27,23 @@ public:
 #if WITH_EDITOR
 private:
 	/* Delegates functions for different stages of editor initialisation */
-	void OnAllModulesLoaded();
 	void OnAssetRegistryReady();
+	void OnPythonInitialised();
 	
 	void OnAssetCreated(UObject* InObject);
 	
-	/* Functions for registering hyperlink classes */
-	bool RegisterCppClasses();
+	/**
+	 * @brief Register "In Memory" classes (C++ and python classes)
+	 * @return true if any new classes are registered
+	 */
+	bool RegisterInMemoryClasses();
+
+	/**
+	 * @brief Register any generated classes from blueprint assets
+	 * @return true if any new classes are registered
+	 */
 	bool RegisterBlueprintClasses();
+	
 	bool RegisterDefinitionClass(UClass* Class);
 	
 	void PostRegister();
@@ -56,5 +65,9 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "RegisteredDefinitions")
 	TArray<FHyperlinkClassEntry> RegisteredDefinitions{};
 
+private:
+	bool bInMemoryClassesRegistered{ false };
+	bool bBlueprintClassesRegistered{ false };
+	
 	friend class FHyperlinkSettingsCustomization;
 };
