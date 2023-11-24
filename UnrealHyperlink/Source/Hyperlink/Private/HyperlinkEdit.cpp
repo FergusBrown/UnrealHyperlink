@@ -8,9 +8,10 @@
 #include "ContentBrowserModule.h"
 #include "HyperlinkUtils.h"
 #include "IContentBrowserSingleton.h"
+#include "Styling/StarshipCoreStyle.h"
 #include "Windows/WindowsPlatformApplicationMisc.h"
 
-#define LOCTEXT_NAMESPACE "FHyperlinkEdit"
+#define LOCTEXT_NAMESPACE "HyperlinkEdit"
 
 FHyperlinkEditCommands::FHyperlinkEditCommands()
 	: TCommands<FHyperlinkEditCommands>(
@@ -23,7 +24,7 @@ FHyperlinkEditCommands::FHyperlinkEditCommands()
 
 void FHyperlinkEditCommands::RegisterCommands()
 {
-	UI_COMMAND(GenerateEditLink, "Generate Edit Link", "Generate a link to edit this asset", EUserInterfaceActionType::Button, FInputChord());
+	UI_COMMAND(GenerateEditLink, "Copy Edit Link", "Copy a link to edit this asset", EUserInterfaceActionType::Button, FInputChord());
 }
 
 #endif //WITH_EDITOR
@@ -101,15 +102,13 @@ TSharedRef<FExtender> UHyperlinkEdit::OnExtendAssetContextMenu(const TArray<FAss
 		FMenuExtensionDelegate::CreateLambda(
 			[=](FMenuBuilder& MenuBuilder)
 			{
-				MenuBuilder.BeginSection(TEXT("Hyperlink"), NSLOCTEXT("ContentBrowser", "HyperlinkHeader", "Hyperlink"));
 				MenuBuilder.AddMenuEntry(
 					FHyperlinkEditCommands::Get().GenerateEditLink,
-					NAME_None,
+					TEXT("CopyEditLink"),
 					TAttribute<FText>(),
 					TAttribute<FText>(),
-					FSlateIcon(FAppStyle::GetAppStyleSetName(), TEXT("Linked")) // TODO: Icon "Linked" doesn't work
+					FSlateIcon(FStarshipCoreStyle::GetCoreStyle().GetStyleSetName(), TEXT("Icons.Link"))
 				);
-				MenuBuilder.EndSection();
 			}
 		)
 	);

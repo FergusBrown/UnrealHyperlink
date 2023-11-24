@@ -3,7 +3,6 @@
 
 #include "HyperlinkDefinition.h"
 
-#include "HyperlinkFormat.h"
 #include "HyperlinkSettings.h"
 #include "Log.h"
 
