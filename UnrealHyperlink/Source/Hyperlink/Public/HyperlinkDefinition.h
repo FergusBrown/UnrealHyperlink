@@ -50,9 +50,6 @@ protected:
 #if WITH_EDITOR
 	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) PURE_VIRTUAL(UHyperlinkDefinition::ExecuteLinkBodyInternal, );
 #endif //WITH_EDITOR
-
-private:
-	void PrintLinkInternal(bool bCopy = false) const;
 	
 protected:
 	/* The name used to identify this type of link */

@@ -48,12 +48,28 @@ FString UHyperlinkDefinition::GetHyperlinkBase() const
 
 void UHyperlinkDefinition::CopyLink() const
 {
-	PrintLinkInternal(true);
+	FString Link{}; 
+	if (GenerateLink(Link))
+	{
+		CopyLink(*Link);
+	}
+	else
+	{
+		UE_LOG(LogHyperlink, Error, TEXT("Failed to generate and copy %s link"), *DefinitionIdentifier);
+	}
 }
 
 void UHyperlinkDefinition::PrintLink() const
 {
-	PrintLinkInternal();
+	FString Link{}; 
+	if (GenerateLink(Link))
+	{
+		UE_LOG(LogHyperlink, Display, TEXT("%s"), *Link);
+	}
+	else
+	{
+		UE_LOG(LogHyperlink, Error, TEXT("Failed to generate and print %s link"), *DefinitionIdentifier);
+	}
 }
 
 #if WITH_EDITOR
@@ -70,24 +86,4 @@ void UHyperlinkDefinition::CopyLink(const FString& InLink)
 {
 	UE_LOG(LogHyperlink, Display, TEXT("Copied: %s"), *InLink);
 	FPlatformApplicationMisc::ClipboardCopy(*InLink);
-}
-
-void UHyperlinkDefinition::PrintLinkInternal(const bool bCopy) const
-{
-	FString Link{}; 
-	if (GenerateLink(Link))
-	{
-		if (bCopy)
-		{
-			CopyLink(*Link);
-		}
-		else
-		{
-			UE_LOG(LogHyperlink, Display, TEXT("%s"), *Link);
-		}
-	}
-	else
-	{
-		UE_LOG(LogHyperlink, Error, TEXT("Failed to generate %s link"), *DefinitionIdentifier);
-	}
 }
