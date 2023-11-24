@@ -9,13 +9,17 @@
 	"CreatedByURL": "https://github.com/FergusBrown",
 	"DocsURL": "https://github.com/FergusBrown/UnrealHyperlink",
 	"MarketplaceURL": "",
-	"CanContainContent": false,
+	"CanContainContent": true,
 	"IsBetaVersion": true,
 	"IsExperimentalVersion": false,
 	"Installed": false,
 	"Plugins": [
 		{
 			"Name": "JsonBlueprintUtilities",
+			"Enabled": true
+		},
+		{
+			"Name": "PythonScriptPlugin",
 			"Enabled": true
 		}
 	],

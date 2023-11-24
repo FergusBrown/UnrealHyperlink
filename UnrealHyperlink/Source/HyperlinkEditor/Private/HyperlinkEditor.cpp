@@ -184,8 +184,7 @@ void FHyperlinkEditorModule::ShutdownHttpServer()
 bool FHyperlinkEditorModule::HandleHttpRequest(const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete)
 {
 	const FString& PathString = Request.RelativePath.GetPath();
-	const FString JsonString{ PathString.TrimChar('/') };
-	ExecuteLinkFromString(JsonString);
+	ExecuteLinkFromString(PathString);
 
 	// Redirect to the local URL scheme as a workaround to close the opened tab (this only works on chrome but it's
 	// better than nothing

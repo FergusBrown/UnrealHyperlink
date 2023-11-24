@@ -34,7 +34,7 @@ FString UHyperlinkUtility::CreateLinkFromPayload(const TSubclassOf<UHyperlinkDef
 			ExecutePayload.DefinitionPayload = InPayload;
 		}
 		
-		FJsonObjectConverter::UStructToJsonObjectString(ExecutePayload, PayloadString);
+		FJsonObjectConverter::UStructToJsonObjectString(ExecutePayload, PayloadString, 0, 0, 0, nullptr, false);
 	}
 	
 	return GetLinkBaseAddress() / PayloadString;

@@ -3,11 +3,8 @@
 
 #include "HyperlinkDefinition.h"
 
-#include "HyperlinkFormat.h"
-#include "HyperlinkSettings.h"
 #include "HyperlinkUtility.h"
 #include "JsonObjectConverter.h"
-#include "Internationalization/Regex.h"
 #include "Log.h"
 #include "Windows/WindowsPlatformApplicationMisc.h"
 

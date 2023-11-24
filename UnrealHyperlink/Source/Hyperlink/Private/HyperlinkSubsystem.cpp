@@ -6,6 +6,7 @@
 #include "HyperlinkClassEntry.h"
 #include "HyperlinkDefinition.h"
 #include "HyperlinkFormat.h"
+#include "HyperlinkPythonBridge.h"
 #include "HyperlinkSettings.h"
 #include "JsonObjectConverter.h"
 #include "Internationalization/Regex.h"
@@ -153,8 +154,11 @@ void UHyperlinkSubsystem::ExecuteLink(const FHyperlinkExecutePayload& ExecutePay
 
 void UHyperlinkSubsystem::ExecuteLink(const FString& InString)
 {
+	// Replace any escaped characters in the input string
+	const FString ParsedString{ UHyperlinkPythonBridge::GetChecked().ParseUrlString(InString) };
+	
 	FHyperlinkExecutePayload Payload{};
-	if (TryGetPayloadFromString(InString, Payload))
+	if (TryGetPayloadFromString(ParsedString, Payload))
 	{
 		ExecuteLink(Payload);
 	}
@@ -202,7 +206,7 @@ void UHyperlinkSubsystem::ExecuteLinkDeferred(const FHyperlinkExecutePayload Exe
 {
 	bool bResult{ false };
 	
-	FRegexMatcher Matcher{ FRegexPattern(TEXT("{.*}$")), InString };
+	FRegexMatcher Matcher{ FRegexPattern(TEXT(R"(\{.*\}$)")), InString };
 	if (Matcher.FindNext())
 	{
 		bResult = FJsonObjectConverter::JsonObjectStringToUStruct(Matcher.GetCaptureGroup(0), &OutPayload);
