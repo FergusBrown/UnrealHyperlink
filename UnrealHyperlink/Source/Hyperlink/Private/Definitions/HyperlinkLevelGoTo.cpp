@@ -24,7 +24,7 @@ FHyperlinkGoToCommands::FHyperlinkGoToCommands()
 
 void FHyperlinkGoToCommands::RegisterCommands()
 {
-	UI_COMMAND(CopyGoToLink, "Copy GoTo Link", "Copy a link to go to the specified location in a level",
+	UI_COMMAND(CopyGoToLink, "Copy GoTo Link", "Copy a link to go to the current viewport position in the level editor",
 	           EUserInterfaceActionType::Button, FInputChord(EModifierKey::Alt | EModifierKey::Shift, EKeys::X));
 }
 
@@ -42,8 +42,8 @@ UHyperlinkLevelGoTo::UHyperlinkLevelGoTo()
 void UHyperlinkLevelGoTo::Initialize()
 {
 #if WITH_EDITOR
-	// Check for GEditor in case launching uncooked game
-	if (GEditor)
+	// Check for editor in case launching game with editor build
+	if (GIsEditor)
 	{
 		FHyperlinkGoToCommands::Register();
 		GoToCommands = MakeShared<FUICommandList>();
@@ -53,6 +53,9 @@ void UHyperlinkLevelGoTo::Initialize()
 
 		const FLevelEditorModule& LevelEditor{ FModuleManager::LoadModuleChecked<FLevelEditorModule>(TEXT("LevelEditor")) };
 		LevelEditor.GetGlobalLevelEditorActions()->Append(GoToCommands.ToSharedRef());
+
+		FHyperlinkUtils::ExtendToolMenuSection(TEXT("LevelEditor.ActorContextMenu"), TEXT("ActorOptions"),
+		GoToCommands, FHyperlinkGoToCommands::Get().CopyGoToLink);
 	}
 #endif //WITH_EDITOR
 }

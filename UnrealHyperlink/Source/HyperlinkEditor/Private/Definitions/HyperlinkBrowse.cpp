@@ -46,15 +46,13 @@ void UHyperlinkBrowse::Initialize()
 		FHyperlinkBrowseCommands::Get().CopyFolderLink,
 		FExecuteAction::CreateUObject(this, &UHyperlinkDefinition::CopyLink));
 	
-	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
-
 	// Context menu extensions
 	FHyperlinkUtils::ExtendToolMenuSection(TEXT("ContentBrowser.AssetContextMenu"), TEXT("CommonAssetActions"),
 	BrowseCommands, FHyperlinkBrowseCommands::Get().CopyBrowseLink);
 
 	FHyperlinkUtils::ExtendToolMenuSection(TEXT("ContentBrowser.FolderContextMenu"), TEXT("PathViewFolderOptions"),
-	BrowseCommands, FHyperlinkBrowseCommands::Get().CopyBrowseLink);
-
+	BrowseCommands, FHyperlinkBrowseCommands::Get().CopyFolderLink);
+	
 	// Keyboard shortcut command
 	// Note that the keyboard shortcut will only be registered if applied on startup because of the way content
 	// browser commands work
@@ -68,6 +66,7 @@ void UHyperlinkBrowse::Initialize()
 		)
 	};
 	KeyboardShortcutHandle = CommandExtender.GetHandle();
+	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
 	ContentBrowser.GetAllContentBrowserCommandExtenders().Emplace(MoveTemp(CommandExtender));
 }
 

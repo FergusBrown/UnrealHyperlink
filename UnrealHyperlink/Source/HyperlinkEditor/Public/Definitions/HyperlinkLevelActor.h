@@ -36,5 +36,4 @@ protected:
 	
 private:
 	TSharedPtr<FUICommandList> LevelActorCommands{};
-	FDelegateHandle ActorContextMenuHandle{};
 };

@@ -22,7 +22,7 @@ FHyperlinkEditCommands::FHyperlinkEditCommands()
 void FHyperlinkEditCommands::RegisterCommands()
 {
 	UI_COMMAND(CopyEditLink, "Copy Edit Link", "Copy a link to edit the selected asset",
-		EUserInterfaceActionType::Button, FInputChord(EModifierKey::Alt | EModifierKey::Shift, EKeys::X));
+		EUserInterfaceActionType::Button, FInputChord(EModifierKey::Alt | EModifierKey::Shift, EKeys::Z));
 }
 
 #undef LOCTEXT_NAMESPACE

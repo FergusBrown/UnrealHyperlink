@@ -43,28 +43,17 @@ void UHyperlinkLevelActor::Initialize()
 		FHyperlinkLevelActorCommands::Get().CopyLevelActorLink,
 		FExecuteAction::CreateUObject(this, &UHyperlinkDefinition::CopyLink)
 	);
-	
-	FLevelEditorModule& LevelEditor{ FModuleManager::LoadModuleChecked<FLevelEditorModule>(TEXT("LevelEditor")) };
-	LevelEditor.GetGlobalLevelEditorActions()->Append(LevelActorCommands.ToSharedRef());
-	FLevelEditorModule::FLevelViewportMenuExtender_SelectedActors SelectedActorsDelegate
-	{
-		FLevelEditorModule::FLevelViewportMenuExtender_SelectedActors::CreateLambda([=](const TSharedRef<FUICommandList>, const TArray<AActor*>)
-		{
-			return FHyperlinkUtils::GetMenuExtender(TEXT("ActorOptions"), EExtensionHook::After,
-				LevelActorCommands, FHyperlinkLevelActorCommands::Get().CopyLevelActorLink, TEXT("CopyLevelActorLink"));
-		})
-	};
 
-	ActorContextMenuHandle = SelectedActorsDelegate.GetHandle();
-	LevelEditor.GetAllLevelViewportContextMenuExtenders().Emplace(MoveTemp(SelectedActorsDelegate));
+	const FLevelEditorModule& LevelEditor{ FModuleManager::LoadModuleChecked<FLevelEditorModule>(TEXT("LevelEditor")) };
+	LevelEditor.GetGlobalLevelEditorActions()->Append(LevelActorCommands.ToSharedRef());
+
+	// TODO: There's a bug where this doesn't work in the world outliner context menu
+	FHyperlinkUtils::ExtendToolMenuSection(TEXT("LevelEditor.ActorContextMenu"), TEXT("ActorOptions"),
+	LevelActorCommands, FHyperlinkLevelActorCommands::Get().CopyLevelActorLink);
 }
 
 void UHyperlinkLevelActor::Deinitialize()
 {
-	FLevelEditorModule& LevelEditor{ FModuleManager::LoadModuleChecked<FLevelEditorModule>(TEXT("LevelEditor")) };
-	LevelEditor.GetAllLevelViewportContextMenuExtenders().RemoveAll(
-		[=](const FLevelEditorModule::FLevelViewportMenuExtender_SelectedActors& Delegate){ return Delegate.GetHandle() == ActorContextMenuHandle; });
-	
 	FHyperlinkLevelActorCommands::Unregister();
 }
 
