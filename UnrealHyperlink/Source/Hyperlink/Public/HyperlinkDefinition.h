@@ -6,6 +6,8 @@
 #include "UObject/Object.h"
 #include "HyperlinkDefinition.generated.h"
 
+class UHyperlinkDefinitionSettings;
+
 /**
  * Abstract class for defining hyperlink types
  */
@@ -16,6 +18,7 @@ class HYPERLINK_API UHyperlinkDefinition : public UObject
 	
 public:
 	FString GetDefinitionIdentifier() const;
+	TSubclassOf<UHyperlinkDefinitionSettings> GetSettingsClass() const;
 	
 	void ExecuteLinkBody(const FString& LinkBody);
 	
@@ -41,4 +44,7 @@ protected:
 	/* The name used to identify this type of link */
 	UPROPERTY(Config, EditAnywhere)
 	FString DefinitionIdentifier{ TEXT("") };
+
+	/* The name used to identify this type of link */
+	TSubclassOf<UHyperlinkDefinitionSettings> SettingsClass{ nullptr };
 };

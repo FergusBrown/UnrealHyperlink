@@ -12,6 +12,7 @@ public class HyperlinkEditor : ModuleRules
             new string[]
             {
                 "Core",
+                "Hyperlink",
             }
         );
 
@@ -24,8 +25,8 @@ public class HyperlinkEditor : ModuleRules
                 "ContentBrowser",
                 "ContentBrowserData",
                 "CoreUObject",
+                "DeveloperSettings",
                 "Engine",
-                "Hyperlink",
                 "Projects",
                 "Slate",
                 "SlateCore",

@@ -12,6 +12,11 @@ FString UHyperlinkDefinition::GetDefinitionIdentifier() const
 	return DefinitionIdentifier;
 }
 
+TSubclassOf<UHyperlinkDefinitionSettings> UHyperlinkDefinition::GetSettingsClass() const
+{
+	return SettingsClass;
+}
+
 void UHyperlinkDefinition::ExecuteLinkBody(const FString& LinkBody)
 {
 	const FRegexPattern LinkPattern{ GetBodyPattern() };
@@ -31,7 +36,6 @@ void UHyperlinkDefinition::ExecuteLinkBody(const FString& LinkBody)
 	else
 	{
 		UE_LOG(LogHyperlink, Warning, TEXT("Link did not match %s pattern %s"), *DefinitionIdentifier, *GetBodyPattern());
-		
 	}
 }
 

@@ -12,6 +12,7 @@ public class Hyperlink : ModuleRules
             new string[]
             {
                 "Core", 
+                "DeveloperSettings",
                 "Engine",
             }
         );
@@ -20,7 +21,6 @@ public class Hyperlink : ModuleRules
             new string[]
             {
                 "CoreUObject",
-                "DeveloperSettings",
                 "Engine",
                 "Slate",
                 "SlateCore",

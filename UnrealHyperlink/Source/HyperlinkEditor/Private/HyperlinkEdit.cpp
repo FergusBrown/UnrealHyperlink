@@ -5,6 +5,7 @@
 
 #include "AssetViewUtils.h"
 #include "ContentBrowserModule.h"
+#include "HyperlinkEditSettings.h"
 #include "HyperlinkUtils.h"
 #include "IContentBrowserSingleton.h"
 #include "Windows/WindowsPlatformApplicationMisc.h"
@@ -30,6 +31,7 @@ void FHyperlinkEditCommands::RegisterCommands()
 UHyperlinkEdit::UHyperlinkEdit()
 {
 	DefinitionIdentifier = TEXT("Edit");
+	SettingsClass = UHyperlinkEditSettings::StaticClass();
 }
 
 void UHyperlinkEdit::Initialize()

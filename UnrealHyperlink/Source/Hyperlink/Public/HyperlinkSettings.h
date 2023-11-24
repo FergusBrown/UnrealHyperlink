@@ -30,7 +30,6 @@ enum class EHyperlinkHandlingMethod : uint8
 UCLASS(Config = Hyperlink, DefaultConfig, meta = (DisplayName = "Hyperlink"))
 class HYPERLINK_API UHyperlinkSettings : public UDeveloperSettings
 {
-private:
 	GENERATED_BODY()
 
 public:
@@ -38,28 +37,36 @@ public:
 #if WITH_EDITOR
   	virtual FName GetCategoryName() const override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	virtual void PreEditChange(FProperty* PropertyAboutToChange) override;
 #endif //WITH_EDITOR
 
 	const TSet<TSubclassOf<UHyperlinkDefinition>>& GetRegisteredDefinitions() const;
 
 	FString GetLinkGenerationBase() const;
+
+#if WITH_EDITOR
+private:
+	void InitDefinitionSettings() const;
+#endif //WITH_EDITOR
+
 protected:
 	/* Project identifier used in the link. By default this should be the name of the project. */
-	UPROPERTY(Config, EditAnywhere)
+	UPROPERTY(Config, EditAnywhere, Category = "Project")
 	FString ProjectIdentifier{ TEXT("") };
 
 	/* What method should be used to generate and handle links */
-	UPROPERTY(Config, EditAnywhere)
+	UPROPERTY(Config, EditAnywhere, Category = "Project")
 	EHyperlinkHandlingMethod LinkHandlingMethod{ EHyperlinkHandlingMethod::Local };
 
 	/* Web address which is used to handle links */
-	UPROPERTY(Config, EditAnywhere, meta = (EditCondition = "HandlingMethod == EHyperlinkHandlingMethod::Web"))
+	UPROPERTY(Config, EditAnywhere, meta = (EditCondition = "HandlingMethod == EHyperlinkHandlingMethod::Web"), Category = "Project")
 	FString LinkHandlerAddress{ TEXT("www.placeholder.com") };
 	
 	/*
 	 * List of definitions registered with this project
 	 * Only registered hyperlink types can be generated and executed by the plugin
 	 */
-	UPROPERTY(Config, EditAnywhere)
+	UPROPERTY(Config, EditAnywhere, Category = "Definitions")
 	TSet<TSubclassOf<UHyperlinkDefinition>> RegisteredDefinitions{};
+	
 };
