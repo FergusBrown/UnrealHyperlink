@@ -20,26 +20,27 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 	
-	/* Decode the provided unreal://... link and execute the associated action */
-	void ExecuteLink(const FString& Link) const;
-	
 	// Utility
 	static FString GetLinkBase();
 	static FString GetLinkFormatHint();
 
 #if WITH_EDITOR
+	/* Decode the provided unreal://... link and execute the associated action */
+	void ExecuteLink(const FString& Link);
 	void RefreshDefinitions();
 private:
 	void InitDefinitions();
 	void DeinitDefinitions();
-	void ExecuteLinkConsole(const TArray<FString>& Args) const;
+	void ExecuteLinkConsole(const TArray<FString>& Args);
+	void ExecuteLinkDeferred(FString Link) const;
 #endif //WITH_EDITOR
 
 private:
 	UPROPERTY()
 	TMap<FString, TObjectPtr<UHyperlinkDefinition>> Definitions{};
 
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
+	FDelegateHandle PostEditorTickHandle{};
 	IConsoleObject* ExecuteConsoleCommand{ nullptr };
-#endif //WITH_EDITORONLY_DATA
+#endif //WITH_EDITOR
 };

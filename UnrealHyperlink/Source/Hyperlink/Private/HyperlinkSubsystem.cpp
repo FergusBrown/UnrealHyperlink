@@ -28,31 +28,6 @@ void UHyperlinkSubsystem::Deinitialize()
 #endif //WITH_EDITOR
 }
 
-void UHyperlinkSubsystem::ExecuteLink(const FString& Link) const
-{
-	const FRegexPattern TypePattern{ GetLinkBase() + TEXT(R"((\w+)(/.*))") };
-	FRegexMatcher Matcher{ TypePattern, Link };
-	if (Matcher.FindNext())
-	{
-		const FString DefName{ Matcher.GetCaptureGroup(1) };
-		if (const TObjectPtr<UHyperlinkDefinition>* Def{ Definitions.Find(DefName) })
-		{
-			const FString LinkBody{ Matcher.GetCaptureGroup(2) };
-			UE_LOG(LogHyperlink, Display, TEXT("Executing %s link with body %s"), *DefName, *LinkBody);
-		
-			(*Def)->ExecuteLinkBody(LinkBody);
-		}
-		else
-		{
-			UE_LOG(LogHyperlink, Error, TEXT("Could not find definition with name %s"), *DefName);
-		}
-	}
-	else
-	{
-		UE_LOG(LogHyperlink, Error, TEXT("Failed to extract definition name from %s. Ensure link is in the format %s"), *Link, *GetLinkFormatHint());
-	}
-}
-
 FString UHyperlinkSubsystem::GetLinkBase()
 {
 	return FString::Format(TEXT("unreal://{0}/"), { FApp::GetProjectName() });
@@ -97,7 +72,23 @@ void UHyperlinkSubsystem::DeinitDefinitions()
 }
 
 #if WITH_EDITOR
-void UHyperlinkSubsystem::ExecuteLinkConsole(const TArray<FString>& Args) const
+void UHyperlinkSubsystem::ExecuteLink(const FString& Link)
+{
+	if (!PostEditorTickHandle.IsValid())
+	{
+		// Need to defer this to after editor tick is complete to ensure we avoid any crashes
+		// This is particularly important when the link handles opening a level
+		PostEditorTickHandle = GEngine->OnPostEditorTick().AddWeakLambda(this, [this, Link](float DeltaTime)
+		{
+			ExecuteLinkDeferred(Link);
+			// Clear delegate
+			GEngine->OnPostEditorTick().Remove(PostEditorTickHandle);
+			PostEditorTickHandle.Reset();
+		});
+	}
+}
+
+void UHyperlinkSubsystem::ExecuteLinkConsole(const TArray<FString>& Args)
 {
 	if (Args.Num() != 1) // TODO: check link arg is valid
 	{
@@ -106,6 +97,33 @@ void UHyperlinkSubsystem::ExecuteLinkConsole(const TArray<FString>& Args) const
 	else
 	{
 		ExecuteLink(Args[0].TrimQuotes());
+	}
+}
+
+void UHyperlinkSubsystem::ExecuteLinkDeferred(FString Link) const
+{
+	const FRegexPattern TypePattern{GetLinkBase() + TEXT(R"((\w+)(/.*))")};
+	FRegexMatcher Matcher{TypePattern, Link};
+	if (Matcher.FindNext())
+	{
+		const FString DefName{Matcher.GetCaptureGroup(1)};
+		if (const TObjectPtr<UHyperlinkDefinition>* Def{Definitions.Find(DefName)})
+		{
+			const FString LinkBody{Matcher.GetCaptureGroup(2)};
+			UE_LOG(LogHyperlink, Display, TEXT("Executing %s link with body %s"), *DefName, *LinkBody);
+
+			(*Def)->ExecuteLinkBody(LinkBody);
+		}
+		else
+		{
+			UE_LOG(LogHyperlink, Error, TEXT("Could not find definition with name %s"), *DefName);
+		}
+	}
+	else
+	{
+		UE_LOG(LogHyperlink, Error,
+			   TEXT("Failed to extract definition name from %s. Ensure link is in the format %s"), *Link,
+			   *GetLinkFormatHint());
 	}
 }
 #endif //WITH_EDITOR
