@@ -181,43 +181,6 @@ UObject* UHyperlinkUtility::OpenEditorForAsset(const FName& PackageName)
 #endif //WITH_EDITOR
 }
 
-FString UHyperlinkUtility::VectorToHexString(const FVector& InVector)
-{
-	return DoubleToHexString(InVector.X) + DoubleToHexString(InVector.Y) + DoubleToHexString(InVector.Z);
-}
-
-FString UHyperlinkUtility::DoubleToHexString(double InDouble)
-{
-	const uint64 Bytes{ NETWORK_ORDER64(*reinterpret_cast<uint64*>(&InDouble)) };
-
-	FString Result{};
-	BytesToHex(reinterpret_cast<const uint8*>(&Bytes), sizeof(Bytes), Result);
-
-	return Result;
-}
-
-FVector UHyperlinkUtility::HexStringToVector(const FString& InHexString)
-{
-	check(InHexString.Len() == VectorStringLength);
-
-	FVector RetVector{};
-	
-	for (int32 Idx{ 0 }; Idx < 3; ++Idx)
-	{
-		RetVector[Idx] = HexStringToDouble(InHexString.Mid(Idx * DoubleStringLength, DoubleStringLength));
-	}
-
-	return RetVector;
-}
-
-double UHyperlinkUtility::HexStringToDouble(const FString& InHexString)
-{
-	check(InHexString.Len() == DoubleStringLength);
-	uint64 DoubleAsInt{ FParse::HexNumber64(*InHexString) };
-	
-	return *reinterpret_cast<double*>(&DoubleAsInt);
-}
-
 #if WITH_EDITOR
 void UHyperlinkUtility::LogEditorOnlyCall(const TCHAR* FunctionName)
 {

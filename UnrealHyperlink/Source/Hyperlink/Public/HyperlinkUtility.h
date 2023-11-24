@@ -56,24 +56,6 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Hyperlink | Editor Utility")
 	static UObject* OpenEditorForAsset(const FName& PackageName);
-	
-	/* PARSING */
-	
-	// TODO: expose variables to blueprint
-	static constexpr int32 DoubleStringLength{ sizeof(double) * 2 };
-	static constexpr int32 VectorStringLength{ DoubleStringLength * 3 };
-
-	UFUNCTION(BlueprintCallable, Category = "Hyperlink | Parsing")
-	static FString VectorToHexString(const FVector& InVector);
-
-	UFUNCTION(BlueprintCallable, Category = "Hyperlink | Parsing")
-	static FString DoubleToHexString(double InDouble);
-
-	UFUNCTION(BlueprintCallable, Category = "Hyperlink | Parsing")
-	static FVector HexStringToVector(const FString& InHexString);
-
-	UFUNCTION(BlueprintCallable, Category = "Hyperlink | Parsing")
-	static double HexStringToDouble(const FString& InHexString);
 
 private:
 #if WITH_EDITOR
