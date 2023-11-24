@@ -3,6 +3,7 @@
 
 #include "HyperlinkNode.h"
 
+#include "BlueprintEditor.h"
 #include "GraphEditorModule.h"
 #include "HyperlinkFormat.h"
 #include "HyperlinkUtils.h"
@@ -30,9 +31,8 @@ void FHyperlinkNodeCommands::RegisterCommands()
 UHyperlinkNode::UHyperlinkNode()
 {
 	DefinitionIdentifier = TEXT("Node");
-
-	// TODO: Should really have a regex for the GUID 
-	BodyPattern = FString::Printf(TEXT("(.*)%s(.*)"), &FHyperlinkFormat::ArgSeparator);
+	
+	BodyPattern = FString::Printf(TEXT(R"((.*)%s(\S{32})%s(\S{32}))"), &FHyperlinkFormat::ArgSeparator, &FHyperlinkFormat::ArgSeparator);
 }
 
 void UHyperlinkNode::Initialize()
@@ -49,11 +49,22 @@ void UHyperlinkNode::Initialize()
 	FGraphEditorModule::FGraphEditorMenuExtender_SelectedNode SelectedNodesDelegate
 	{
 		FGraphEditorModule::FGraphEditorMenuExtender_SelectedNode::CreateLambda([=](const TSharedRef<FUICommandList>,
-			const UEdGraph*, const UEdGraphNode* Node, const UEdGraphPin*, bool)
+			const UEdGraph* Graph, const UEdGraphNode* Node, const UEdGraphPin*, bool)
 			{
+				ActiveGraph = Graph;
 				SelectedNode = Node;
-				return FHyperlinkUtils::GetMenuExtender(TEXT("EdGraphSchemaNodeActions"), EExtensionHook::After,
-					NodeCommands, FHyperlinkNodeCommands::Get().CopyNodeLink, TEXT("CopyNodeLink"));
+				// Only support blueprint graphs for now.
+				// TODO: Add support for the likes of material graph etc
+				if (Cast<UBlueprint>(Graph->GetOuter()))
+				{
+					// TODO: current extension point doesn't work for all node types
+					return FHyperlinkUtils::GetMenuExtender(TEXT("EdGraphSchemaNodeActions"), EExtensionHook::After,
+						NodeCommands, FHyperlinkNodeCommands::Get().CopyNodeLink, TEXT("CopyNodeLink"));
+				}
+				else
+				{
+					return TSharedRef<FExtender>();
+				}
 			})
 	};
 
@@ -72,13 +83,14 @@ void UHyperlinkNode::Deinitialize()
 
 bool UHyperlinkNode::GenerateLink(FString& OutLink) const
 {
-	const bool bSuccess{ SelectedNode.IsValid() && SelectedNode->GetGraph() };
+	const bool bSuccess{ SelectedNode.IsValid() && ActiveGraph.IsValid() };
 	
 	if (bSuccess)
 	{
-		const FString AssetPackageName{ SelectedNode->GetGraph()->GetOuter()->GetPackage()->GetName() };
+		const FString AssetPackageName{ ActiveGraph->GetOuter()->GetPackage()->GetName() };
+		const FGuid& GraphGuid{ ActiveGraph->GraphGuid };
 		const FGuid& NodeGuid{ SelectedNode->NodeGuid };
-		OutLink = GenerateLink(AssetPackageName, NodeGuid);
+		OutLink = GenerateLink(AssetPackageName, GraphGuid, NodeGuid);
 	}
 	else
 	{
@@ -88,19 +100,41 @@ bool UHyperlinkNode::GenerateLink(FString& OutLink) const
 	return bSuccess;
 }
 
-FString UHyperlinkNode::GenerateLink(const FString& AssetPackageName, const FGuid& NodeGuid) const
+FString UHyperlinkNode::GenerateLink(const FString& AssetPackageName, const FGuid& GraphGuid, const FGuid& NodeGuid) const
 {
-	return GetHyperlinkBase() / AssetPackageName + FHyperlinkFormat::ArgSeparator + NodeGuid.ToString();
+	return GetHyperlinkBase() / AssetPackageName + FHyperlinkFormat::ArgSeparator + GraphGuid.ToString() +
+		FHyperlinkFormat::ArgSeparator + NodeGuid.ToString();
 }
 
 void UHyperlinkNode::ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments)
 {
 	const FString& PackageName{ LinkArguments[1] };
-	const FString& GUID{ LinkArguments[2] };
+	const FString& GraphGuidString{ LinkArguments[2] };
+	const FString& NodeGuidString{ LinkArguments[3] };
 
-	FHyperlinkUtils::OpenEditorForAsset(PackageName);
+	const FGuid GraphGuid{ FGuid(GraphGuidString) };
+	const FGuid NodeGuid{ FGuid(NodeGuidString) };
 
-	// TODO
-	// Need to ensure the graph editor is opened for the asset
-	// This needs to be handled differently for different asset types
+	if (UBlueprint* const Blueprint{ Cast<UBlueprint>(FHyperlinkUtils::OpenEditorForAsset(PackageName)) })
+	{
+		TArray<UEdGraph*> AllGraphs{};
+		Blueprint->GetAllGraphs(AllGraphs);
+		
+		if (UEdGraph** GraphPtr{ AllGraphs.FindByPredicate([&](const UEdGraph* const G){ return G->GraphGuid == GraphGuid; }) })
+		{
+			UEdGraph* const Graph{ *GraphPtr };
+			IAssetEditorInstance* const AssetEditor{ GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->FindEditorForAsset(Blueprint, true) };
+			FBlueprintEditor* const BlueprintEditor{ static_cast<FBlueprintEditor*>(AssetEditor) };
+			const TSharedPtr<SGraphEditor> SlateEditor{ BlueprintEditor->OpenGraphAndBringToFront(Graph) };
+
+			if (const TObjectPtr<UEdGraphNode>* NodePtr{ (*GraphPtr)->Nodes.FindByPredicate([&](const UEdGraphNode* const N){ return N->NodeGuid == NodeGuid; }) })
+			{
+				const TObjectPtr<UEdGraphNode> Node{ *NodePtr };
+				// TODO: clear existing selection
+				BlueprintEditor->AddToSelection(Node);
+				SlateEditor->ZoomToFit(true);
+			}
+		}
+	}
+	// TODO: This needs to be handled differently for different asset types
 }

@@ -30,7 +30,7 @@ public:
 	virtual void Initialize() override;
 	virtual void Deinitialize() override;
 	virtual bool GenerateLink(FString& OutLink) const override;
-	FString GenerateLink(const FString& AssetPackageName, const FGuid& NodeGuid) const;
+	FString GenerateLink(const FString& AssetPackageName, const FGuid& GraphGuid, const FGuid& NodeGuid) const;
 
 protected:
 	virtual void ExecuteLinkBodyInternal(const TArray<FString>& LinkArguments) override;
@@ -39,5 +39,6 @@ private:
 	TSharedPtr<FUICommandList> NodeCommands{};
 	FDelegateHandle NodeContextMenuHandle{};
 	
+	TWeakObjectPtr<const UEdGraph> ActiveGraph{ nullptr };
 	TWeakObjectPtr<const UEdGraphNode> SelectedNode{ nullptr };
 };
