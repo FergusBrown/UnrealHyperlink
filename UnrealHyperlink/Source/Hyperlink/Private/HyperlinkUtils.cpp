@@ -64,7 +64,7 @@ TSharedRef<FExtender> FHyperlinkUtils::GetMenuExtender(const FName& ExtensionHoo
 namespace HexConstants
 {
 	static constexpr int32 NibbleLength{ 4 };
-	static constexpr int32 DoubleStringLength{ sizeof(double) / NibbleLength };
+	static constexpr int32 DoubleStringLength{ sizeof(double) * 2 };
 	static constexpr int32 VectorStringLength{ DoubleStringLength * 3 };
 	static constexpr TCHAR ZeroChar{ TEXT('0') };
 	static constexpr TCHAR NineChar{ TEXT('9') };
@@ -140,7 +140,7 @@ int64 FHyperlinkUtils::HexCharToNibble(TCHAR InHexChar)
 	}
 	else if (InHexChar >= HexConstants::AChar && InHexChar <= HexConstants::FChar)
 	{
-		return InHexChar - HexConstants::AChar;
+		return InHexChar - HexConstants::AChar + 0xA;
 	}
 	else
 	{
