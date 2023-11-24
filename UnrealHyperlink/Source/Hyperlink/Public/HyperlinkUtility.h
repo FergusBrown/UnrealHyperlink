@@ -54,6 +54,7 @@ public:
 	 * @param PackageName Package name of the asset we wish to open the editor for
 	 * @return The UObject the editor was opened for
 	 */
+	static UObject* OpenEditorForAsset(const FString& PackageName);
 	static UObject* OpenEditorForAsset(const FName& PackageName);
 	
 	/* Use to create a nice display string for a class*/

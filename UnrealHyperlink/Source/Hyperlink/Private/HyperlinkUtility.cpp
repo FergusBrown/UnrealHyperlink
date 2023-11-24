@@ -200,9 +200,9 @@ UObject* FHyperlinkUtility::LoadObject(const FString& PackageName)
 	return Ret;
 }
 
-UObject* FHyperlinkUtility::OpenEditorForAsset(const FName& PackageName)
+UObject* FHyperlinkUtility::OpenEditorForAsset(const FString& PackageName)
 {
-	UObject* const Object{ LoadObject(PackageName.ToString()) };
+	UObject* const Object{ LoadObject(PackageName) };
 	if (Object)
 	{
 		// Need to check if this is a level first. Levels will be reopened rather than focused by OpenEditorForAsset
@@ -210,7 +210,7 @@ UObject* FHyperlinkUtility::OpenEditorForAsset(const FName& PackageName)
 		bool bSkipOpen{ false };
 		if (const UWorld* const EditorWorld{ GEditor->GetEditorWorldContext().World() })
 		{
-			bSkipOpen = PackageName == EditorWorld->PersistentLevel->GetPackage()->GetFName();
+			bSkipOpen = PackageName == EditorWorld->GetMapName();
 		}
 		if (!bSkipOpen)
 		{
@@ -218,6 +218,11 @@ UObject* FHyperlinkUtility::OpenEditorForAsset(const FName& PackageName)
 		}
 	}
 	return Object;
+}
+
+UObject* FHyperlinkUtility::OpenEditorForAsset(const FName& PackageName)
+{
+	return OpenEditorForAsset(PackageName.ToString());
 }
 
 FString FHyperlinkUtility::CreateClassDisplayString(const UClass* const Class)
