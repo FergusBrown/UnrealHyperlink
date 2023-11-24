@@ -22,7 +22,8 @@
 		{
 			"Name": "HyperlinkRuntime",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"TargetConfigurationDenyList": [ "Shipping" ]
 		}
 	]
 }
