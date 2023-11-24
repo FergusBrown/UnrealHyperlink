@@ -11,7 +11,7 @@ struct FJsonObjectWrapper;
 /**
  * Base class for implementing hyperlink definitions with blueprints
  */
-UCLASS(Abstract, Blueprintable)
+UCLASS(Abstract, Blueprintable, meta=(ShowWorldContextPin))
 class HYPERLINKEDITOR_API UHyperlinkDefinitionBlueprintBase : public UHyperlinkDefinition
 {
 	GENERATED_BODY()

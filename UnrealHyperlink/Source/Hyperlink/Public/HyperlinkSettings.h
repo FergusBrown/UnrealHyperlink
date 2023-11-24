@@ -30,7 +30,7 @@ private:
 	void OnAllModulesLoaded();
 	void OnAssetRegistryReady();
 	
-	void OnBlueprintCreated(UBlueprint* InBlueprint);
+	void OnAssetCreated(UObject* InObject);
 	
 	/* Functions for registering hyperlink classes */
 	bool RegisterCppClasses();

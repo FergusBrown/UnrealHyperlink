@@ -7,14 +7,12 @@
 
 #if WITH_EDITOR
 #include "AssetRegistry/IAssetRegistry.h"
+#include "EditorUtilityBlueprint.h"
 #include "HyperlinkClassEntry.h"
 #include "HyperlinkDefinition.h"
 #include "HyperlinkSubsystem.h"
-#include "Kismet2/KismetEditorUtilities.h"
 #endif //WITH_EDITOR
 
-
-class FAssetRegistryModule;
 
 void UHyperlinkSettings::PostInitProperties()
 {
@@ -74,15 +72,19 @@ void UHyperlinkSettings::OnAssetRegistryReady()
 	{
 		PostRegister();
 	}
-
-	FKismetEditorUtilities::RegisterOnBlueprintCreatedCallback(this, UHyperlinkDefinition::StaticClass(),
-			FKismetEditorUtilities::FOnBlueprintCreated::CreateUObject(this, &UHyperlinkSettings::OnBlueprintCreated));
+	IAssetRegistry::GetChecked().OnInMemoryAssetCreated().AddUObject(this, &UHyperlinkSettings::OnAssetCreated);
 }
 
-void UHyperlinkSettings::OnBlueprintCreated(UBlueprint* InBlueprint)
+void UHyperlinkSettings::OnAssetCreated(UObject* InObject)
 {
-	RegisterBlueprintClasses();
-	PostRegister();
+	if (const UEditorUtilityBlueprint* const BP{ Cast<UEditorUtilityBlueprint>(InObject) })
+	{
+		if (BP->ParentClass->IsChildOf<UHyperlinkDefinition>() &&
+			RegisterDefinitionClass(BP->GeneratedClass))
+		{
+			PostRegister();
+		}
+	}
 }
 
 bool UHyperlinkSettings::RegisterCppClasses()
@@ -118,7 +120,7 @@ bool UHyperlinkSettings::RegisterBlueprintClasses()
 	AssetRegistry.GetDerivedClassNames(BaseClassPaths, TSet<FTopLevelAssetPath>(), DerivedClassPaths);
 
 	TArray<FAssetData> AssetList{};
-	AssetRegistry.GetAssetsByClass(UBlueprint::StaticClass()->GetClassPathName(), AssetList);
+	AssetRegistry.GetAssetsByClass(UEditorUtilityBlueprint::StaticClass()->GetClassPathName(), AssetList);
 	// Iterate over retrieved blueprint assets
 	for (const FAssetData& Asset : AssetList)
 	{

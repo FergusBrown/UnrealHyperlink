@@ -36,6 +36,7 @@ public class Hyperlink : ModuleRules
                 new string[] 
                 {
                     "ApplicationCore",
+                    "Blutility",
                     "InputCore",
                     "ToolMenus",
                     "UnrealEd",
