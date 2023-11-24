@@ -4,11 +4,12 @@
 #include "HyperlinkEditor.h"
 
 #include "HyperlinkPipeServer.h"
+#include "HyperlinkSettings.h"
+#include "HyperlinkSettingsCustomization.h"
 #include "HyperlinkSubsystem.h"
 #include "Interfaces/IMainFrameModule.h"
 #include "Interfaces/IPluginManager.h"
 #include "Log.h"
-#include "Toolkits/FConsoleCommandExecutor.h"
 #include "Windows/WindowsPlatformApplicationMisc.h"
 /* Begin Windows includes */
 #include "Windows/AllowWindowsPlatformTypes.h"
@@ -54,6 +55,10 @@ void FHyperlinkEditorModule::StartupModule()
 		TEXT("uhl.PasteLink"),
 		TEXT("Execute a link stored in the clipboard"),
 		FConsoleCommandDelegate::CreateStatic(&FHyperlinkEditorModule::PasteLink));
+
+	// Register Customization
+	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor"));
+	PropertyEditorModule.RegisterCustomClassLayout(UHyperlinkSettings::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FHyperlinkSettingsCustomization::MakeInstance));
 }
 
 void FHyperlinkEditorModule::ShutdownModule()

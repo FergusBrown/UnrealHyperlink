@@ -5,10 +5,9 @@
 
 #include "HyperlinkFormat.h"
 #if WITH_EDITOR
+#include "HyperlinkClassEntry.h"
 #include "HyperlinkDefinition.h"
-#include "HyperlinkDefinitionSettings.h"
 #include "HyperlinkSubsystem.h"
-#include "ISettingsModule.h"
 #endif //WITH_EDITOR
 
 
@@ -22,8 +21,32 @@ void UHyperlinkSettings::PostInitProperties()
 		const FString DefaultConfigFile{ GetDefaultConfigFilename() };
 		SaveConfig(CPF_Config, *DefaultConfigFile);
 	}
+
 #if WITH_EDITOR
-	InitDefinitionSettings();
+	// TODO need to run this code after all other modules are loaded otherwise not all classes may be found
+	if (GIsEditor)
+	{
+		// Remove null classes
+		RegisteredDefinitions.RemoveAll([](const FHyperlinkClassEntry& Entry){ return Entry.Class == nullptr; });
+
+		// Populate the list
+		for(TObjectIterator<UClass> It; It; ++It)
+		{
+			if(It->IsChildOf(UHyperlinkDefinition::StaticClass()) && !It->HasAnyClassFlags(CLASS_Abstract))
+			{
+				UClass* Class{ *It };
+				if (!RegisteredDefinitions.FindByPredicate([=](const FHyperlinkClassEntry& Entry){ return Entry.Class == Class; }))
+				{
+					FHyperlinkClassEntry NewEntry{};
+					NewEntry.Class = Class;
+					NewEntry.Identifier = GetDefault<UHyperlinkDefinition>(*It)->GetIdentifier();
+					RegisteredDefinitions.Add(NewEntry);
+				}
+			}
+		}
+		
+		RegisteredDefinitions.Sort([](const FHyperlinkClassEntry& Lhs, const FHyperlinkClassEntry& Rhs){ return Lhs.Class->GetName() < Rhs.Class->GetName(); });
+	}
 #endif //WITH_EDITOR
 }
 
@@ -36,43 +59,15 @@ FName UHyperlinkSettings::GetCategoryName() const
 void UHyperlinkSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	
-	const FName PropName{ PropertyChangedEvent.Property->GetFName() };
-	if (PropName == GET_MEMBER_NAME_CHECKED(UHyperlinkSettings, RegisteredDefinitions))
-	{
-		InitDefinitionSettings();
-	}
-
+		
 	GEngine->GetEngineSubsystem<UHyperlinkSubsystem>()->RefreshDefinitions();
-}
-
-void UHyperlinkSettings::PreEditChange(FProperty* PropertyAboutToChange)
-{
-	Super::PreEditChange(PropertyAboutToChange);
-	
-	const FName PropName{ PropertyAboutToChange->GetFName() };
-	if (PropName == GET_MEMBER_NAME_CHECKED(UHyperlinkSettings, RegisteredDefinitions))
-	{
-		ISettingsModule& SettingsModule = FModuleManager::GetModuleChecked<ISettingsModule>(TEXT("Settings"));
-		for (const TSubclassOf<UHyperlinkDefinition> Def : RegisteredDefinitions)
-		{
-			if (Def)
-			{
-				if (const TSubclassOf<UHyperlinkDefinitionSettings> SettingsClass{ GetDefault<UHyperlinkDefinition>(Def)->GetSettingsClass() })
-				{
-					const UDeveloperSettings* Settings{ GetDefault<UDeveloperSettings>(SettingsClass) };
-					SettingsModule.UnregisterSettings(Settings->GetContainerName(), Settings->GetCategoryName(), Settings->GetSectionName());
-				}
-			}
-		}
-	}
 }
 
 #endif //WITH_EDITOR
 
-const TSet<TSubclassOf<UHyperlinkDefinition>>& UHyperlinkSettings::GetRegisteredDefinitions() const
+TConstArrayView<FHyperlinkClassEntry> UHyperlinkSettings::GetRegisteredDefinitions() const
 {
-	return RegisteredDefinitions;
+	return TConstArrayView<FHyperlinkClassEntry>(RegisteredDefinitions);
 }
 
 FString UHyperlinkSettings::GetLinkGenerationBase() const
@@ -86,35 +81,3 @@ FString UHyperlinkSettings::GetLinkGenerationBase() const
 
 	return LinkBase / ProjectIdentifier;
 }
-
-#if WITH_EDITOR
-void UHyperlinkSettings::InitDefinitionSettings() const
-{
-	ISettingsModule& SettingsModule = FModuleManager::GetModuleChecked<ISettingsModule>(TEXT("Settings"));
-	for (const TSubclassOf<UHyperlinkDefinition> Def : RegisteredDefinitions)
-	{
-		if (Def)
-		{
-			if (const TSubclassOf<UHyperlinkDefinitionSettings> SettingsClass{ GetDefault<UHyperlinkDefinition>(Def)->GetSettingsClass() })
-			{
-				UDeveloperSettings* Settings{ GetMutableDefault<UDeveloperSettings>(SettingsClass) };
-				TSharedPtr<SWidget> CustomWidget{ Settings->GetCustomSettingsWidget() };
-				if (CustomWidget.IsValid())
-				{
-					SettingsModule.RegisterSettings(Settings->GetContainerName(), Settings->GetCategoryName(), Settings->GetSectionName(),
-					                                Settings->GetSectionText(),
-					                                Settings->GetSectionDescription(),
-					                                CustomWidget.ToSharedRef());
-				}
-				else
-				{
-					SettingsModule.RegisterSettings(Settings->GetContainerName(), Settings->GetCategoryName(), Settings->GetSectionName(),
-					                                Settings->GetSectionText(),
-					                                Settings->GetSectionDescription(),
-					                                Settings);
-				}
-			}
-		}
-	}
-}
-#endif //WITH_EDITOR

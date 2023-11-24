@@ -8,14 +8,14 @@
 #include "Log.h"
 #include "Windows/WindowsPlatformApplicationMisc.h"
 
-FString UHyperlinkDefinition::GetDefinitionIdentifier() const
+FString UHyperlinkDefinition::GetIdentifier() const
 {
 	return DefinitionIdentifier;
 }
 
-TSubclassOf<UHyperlinkDefinitionSettings> UHyperlinkDefinition::GetSettingsClass() const
+void UHyperlinkDefinition::SetIdentifier(const FString& InIdentifier)
 {
-	return SettingsClass;
+	DefinitionIdentifier = InIdentifier;
 }
 
 void UHyperlinkDefinition::ExecuteLinkBody(const FString& InLinkBody)
@@ -54,6 +54,16 @@ void UHyperlinkDefinition::PrintLink() const
 {
 	PrintLinkInternal();
 }
+
+#if WITH_EDITOR
+void UHyperlinkDefinition::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	// Save any user properties for this definition
+	SaveConfig(CPF_Config, *GetGlobalUserConfigFilename());
+
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+#endif //WITH_EDITOR
 
 void UHyperlinkDefinition::CopyLink(const FString& InLink)
 {

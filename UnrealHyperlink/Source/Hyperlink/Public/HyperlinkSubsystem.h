@@ -23,16 +23,19 @@ public:
 	// Utility
 	static FString GetLinkBase();
 	static FString GetLinkFormatHint();
-	void RefreshDefinitions();
+	
 #if WITH_EDITOR
 	/* Decode the provided unreal://... link and execute the associated action */
 	void ExecuteLink(const FString& Link);
 #endif //WITH_EDITOR
+
+	void RefreshDefinitions();
 	
 private:
-	void CopyLinkConsole(const TArray<FString>& Args);
 	void InitDefinitions();
 	void DeinitDefinitions();
+	
+	void CopyLinkConsole(const TArray<FString>& Args);
 #if WITH_EDITOR
 	void ExecuteLinkConsole(const TArray<FString>& Args);
 	void ExecuteLinkDeferred(const FString Link) const;

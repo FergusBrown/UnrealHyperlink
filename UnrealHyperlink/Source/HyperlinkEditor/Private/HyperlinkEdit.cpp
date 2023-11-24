@@ -4,7 +4,6 @@
 #include "HyperlinkEdit.h"
 
 #include "ContentBrowserModule.h"
-#include "HyperlinkEditSettings.h"
 #include "HyperlinkUtils.h"
 #include "IContentBrowserSingleton.h"
 #include "Log.h"
@@ -30,7 +29,6 @@ void FHyperlinkEditCommands::RegisterCommands()
 UHyperlinkEdit::UHyperlinkEdit()
 {
 	DefinitionIdentifier = TEXT("Edit");
-	SettingsClass = UHyperlinkEditSettings::StaticClass();
 }
 
 void UHyperlinkEdit::Initialize()
@@ -44,7 +42,7 @@ void UHyperlinkEdit::Initialize()
 	
 	// Assets context menu
 	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
-	if (GetDefault<UHyperlinkEditSettings>()->bEnableInAssetContextMenu)
+	if (bEnableInAssetContextMenu)
 	{
 		FContentBrowserMenuExtender_SelectedAssets SelectedAssetsDelegate
 		{

@@ -7,6 +7,7 @@
 
 void FHyperlinkModule::StartupModule()
 {
+	
 }
 
 void FHyperlinkModule::ShutdownModule()

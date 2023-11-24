@@ -28,6 +28,7 @@ public class HyperlinkEditor : ModuleRules
                 "Engine",
                 "InputCore",
                 "Projects",
+                "PropertyEditor",
                 "Slate",
                 "SlateCore",
                 "UnrealEd",

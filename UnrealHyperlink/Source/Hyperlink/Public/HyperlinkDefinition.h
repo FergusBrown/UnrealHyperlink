@@ -11,14 +11,14 @@ class UHyperlinkDefinitionSettings;
 /**
  * Abstract class for defining hyperlink types
  */
-UCLASS(Abstract, Config = Hyperlink, DefaultConfig) // TODO: consider making blueprintable. All the virtuals will need to be made into blueprint native events
+UCLASS(Abstract, Config = Hyperlink) // TODO: consider making blueprintable. All the virtuals will need to be made into blueprint native events
 class HYPERLINK_API UHyperlinkDefinition : public UObject
 {
 	GENERATED_BODY()
-	
+
 public:
-	FString GetDefinitionIdentifier() const;
-	TSubclassOf<UHyperlinkDefinitionSettings> GetSettingsClass() const;
+	FString GetIdentifier() const;
+	void SetIdentifier(const FString& InIdentifier);
 	
 	void ExecuteLinkBody(const FString& InLinkBody);
 	
@@ -40,6 +40,10 @@ public:
 	/* Generate a link using the GenerateLink function and log it */
 	void PrintLink() const;
 
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif //WITH_EDITOR
+
 protected:
 	static void CopyLink(const FString& InLink);
 
@@ -52,12 +56,9 @@ private:
 	
 protected:
 	/* The name used to identify this type of link */
-	UPROPERTY(Config, EditAnywhere)
 	FString DefinitionIdentifier{ TEXT("") };
 
 	/* Used to validate a received link */
 	FString BodyPattern{ TEXT(".*") };
-
-	/* The name used to identify this type of link */
-	TSubclassOf<UHyperlinkDefinitionSettings> SettingsClass{ nullptr };
+	
 };

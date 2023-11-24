@@ -6,11 +6,9 @@
 #include "AssetRegistry/IAssetRegistry.h"
 #include "ContentBrowserModule.h"
 #include "Editor.h"
-#include "HyperlinkBrowseSettings.h"
 #include "HyperlinkUtils.h"
 #include "IContentBrowserSingleton.h"
 #include "Log.h"
-#include "Windows/WindowsPlatformApplicationMisc.h"
 
 #define LOCTEXT_NAMESPACE "HyperlinkEdit"
 
@@ -34,7 +32,6 @@ void FHyperlinkBrowseCommands::RegisterCommands()
 UHyperlinkBrowse::UHyperlinkBrowse()
 {
 	DefinitionIdentifier = TEXT("Browse");
-	SettingsClass = UHyperlinkBrowseSettings::StaticClass();
 }
 
 void UHyperlinkBrowse::Initialize()
@@ -52,7 +49,7 @@ void UHyperlinkBrowse::Initialize()
 	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
 
 	// Context menu extensions
-	if (GetDefault<UHyperlinkBrowseSettings>()->bEnableInAssetContextMenu)
+	if (bEnableInAssetContextMenu)
 	{
 		FContentBrowserMenuExtender_SelectedAssets SelectedAssetsDelegate
 		{
@@ -67,7 +64,7 @@ void UHyperlinkBrowse::Initialize()
 		ContentBrowser.GetAllAssetViewContextMenuExtenders().Emplace(MoveTemp(SelectedAssetsDelegate));
 	}
 
-	if (GetDefault<UHyperlinkBrowseSettings>()->bEnableInFolderContextMenu)
+	if (bEnableInFolderContextMenu)
 	{
 		FContentBrowserMenuExtender_SelectedPaths SelectedFoldersDelegate
 		{

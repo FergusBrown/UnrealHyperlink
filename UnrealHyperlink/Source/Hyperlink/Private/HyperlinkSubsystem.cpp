@@ -3,6 +3,7 @@
 
 #include "HyperlinkSubsystem.h"
 
+#include "HyperlinkClassEntry.h"
 #include "HyperlinkDefinition.h"
 #include "HyperlinkSettings.h"
 #include "Internationalization/Regex.h"
@@ -45,6 +46,47 @@ FString UHyperlinkSubsystem::GetLinkFormatHint()
 	return GetLinkBase() + TEXT("DEFINITION/BODY");
 }
 
+void UHyperlinkSubsystem::RefreshDefinitions()
+{
+	DeinitDefinitions();
+	InitDefinitions();
+}
+
+void UHyperlinkSubsystem::InitDefinitions()
+{
+	// Create object for each of the project definitions
+	for (const FHyperlinkClassEntry& ClassEntry : GetDefault<UHyperlinkSettings>()->GetRegisteredDefinitions())
+	{
+		if (ClassEntry.bEnabled && ClassEntry.Class)
+		{
+			if (!Definitions.Contains(ClassEntry.Identifier))
+			{
+				TObjectPtr<UHyperlinkDefinition> NewDefinition{ NewObject<UHyperlinkDefinition>(this, ClassEntry.Class) };
+				NewDefinition->SetIdentifier(ClassEntry.Identifier);
+				NewDefinition->Initialize();
+				Definitions.Emplace(ClassEntry.Identifier, NewDefinition);
+			}
+			else
+			{
+				UE_LOG(LogHyperlink, Warning, TEXT("Cannot register %s: a class is already using the identifier \"%s\""),
+					*ClassEntry.Class->GetName(), *ClassEntry.Identifier);
+			}
+		}
+	}
+}
+
+void UHyperlinkSubsystem::DeinitDefinitions()
+{
+	for (const TPair<FString, TObjectPtr<UHyperlinkDefinition>>& Pair : Definitions)
+	{
+		if (Pair.Value)
+		{
+			Pair.Value->Deinitialize();
+		}
+	}
+	Definitions.Empty();
+}
+
 void UHyperlinkSubsystem::CopyLinkConsole(const TArray<FString>& Args)
 {
 	if (Args.Num() != 1)
@@ -62,39 +104,6 @@ void UHyperlinkSubsystem::CopyLinkConsole(const TArray<FString>& Args)
 			UE_LOG(LogHyperlink, Error, TEXT("No registered definited with the identifier %s"), *Args[0]);
 		}
 	}
-}
-
-void UHyperlinkSubsystem::RefreshDefinitions()
-{
-	DeinitDefinitions();
-	InitDefinitions();
-}
-
-void UHyperlinkSubsystem::InitDefinitions()
-{
-	// Create object for each of the project definitions
-	for (const TSubclassOf<UHyperlinkDefinition> DefClass : GetDefault<UHyperlinkSettings>()->GetRegisteredDefinitions())
-	{
-		if (DefClass)
-		{
-			TObjectPtr<UHyperlinkDefinition> NewDefinition{ NewObject<UHyperlinkDefinition>(this, DefClass) };
-			NewDefinition->Initialize();
-			Definitions.Emplace(NewDefinition->GetDefinitionIdentifier(), NewDefinition);
-		}
-	}
-}
-
-void UHyperlinkSubsystem::DeinitDefinitions()
-{
-	// TODO: can we make this a set or just make it an array?
-	for (const TPair<FName, TObjectPtr<UHyperlinkDefinition>>& Pair : Definitions)
-	{
-		if (Pair.Value)
-		{
-			Pair.Value->Deinitialize();
-		}
-	}
-	Definitions.Empty();
 }
 
 #if WITH_EDITOR
@@ -116,7 +125,7 @@ void UHyperlinkSubsystem::ExecuteLink(const FString& Link)
 
 void UHyperlinkSubsystem::ExecuteLinkConsole(const TArray<FString>& Args)
 {
-	if (Args.Num() != 1) // TODO: check link arg is valid
+	if (Args.Num() != 1)
 	{
 		UE_LOG(LogHyperlink, Display, TEXT(R"(Invalid argument, requires 1 argument in the format "%s")"), *GetLinkFormatHint());
 	}

@@ -37,17 +37,12 @@ public:
 #if WITH_EDITOR
   	virtual FName GetCategoryName() const override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	virtual void PreEditChange(FProperty* PropertyAboutToChange) override;
 #endif //WITH_EDITOR
 
-	const TSet<TSubclassOf<UHyperlinkDefinition>>& GetRegisteredDefinitions() const;
+	// Note TConstArrayView means the caller cannot edit the contents of the array
+	TConstArrayView<FHyperlinkClassEntry> GetRegisteredDefinitions() const;
 
 	FString GetLinkGenerationBase() const;
-
-#if WITH_EDITOR
-private:
-	void InitDefinitionSettings() const;
-#endif //WITH_EDITOR
 
 protected:
 	/* Project identifier used in the link. By default this should be the name of the project. */
@@ -59,14 +54,15 @@ protected:
 	EHyperlinkHandlingMethod LinkHandlingMethod{ EHyperlinkHandlingMethod::Local };
 
 	/* Web address which is used to handle links */
-	UPROPERTY(Config, EditAnywhere, meta = (EditCondition = "HandlingMethod == EHyperlinkHandlingMethod::Web"), Category = "Project")
+	UPROPERTY(Config, EditAnywhere, Category = "Project", meta = (EditCondition = "HandlingMethod == EHyperlinkHandlingMethod::Web"))
 	FString LinkHandlerAddress{ TEXT("www.placeholder.com") };
 	
 	/*
-	 * List of definitions registered with this project
-	 * Only registered hyperlink types can be generated and executed by the plugin
+	 * List of definitions discovered in this project and whether each definition is enabled
+	 * Only enabled hyperlink types can be generated and executed by the plugin
 	 */
-	UPROPERTY(Config, EditAnywhere, Category = "Definitions")
-	TSet<TSubclassOf<UHyperlinkDefinition>> RegisteredDefinitions{};
-	
+	UPROPERTY(Config, EditAnywhere, Category = "RegisteredDefinitions")
+	TArray<FHyperlinkClassEntry> RegisteredDefinitions{};
+
+	friend class FHyperlinkSettingsCustomization;
 };
