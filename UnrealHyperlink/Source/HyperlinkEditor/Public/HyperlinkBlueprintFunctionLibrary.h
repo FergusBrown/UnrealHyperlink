@@ -29,4 +29,8 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Hyperlink | Editor Utility")
 	static UObject* OpenEditorForAsset(const FName& PackageName);
+
+	UFUNCTION(BlueprintCallable, Category = "Hyperlink | Editor Utility")
+	static void AddCopyLinkMenuEntry(const FName& MenuName, const FName& SectionName,
+		const FText& EntryLabel, const FText& ToolTip, const UHyperlinkDefinition* HyperlinkDefinition);
 };

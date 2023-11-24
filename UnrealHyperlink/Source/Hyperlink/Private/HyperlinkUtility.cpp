@@ -115,6 +115,46 @@ void FHyperlinkUtility::AddHyperlinkSubMenuAndEntry(const FName& MenuName, const
 	AddHyperlinkMenuEntry(MenuName, CommandList, Command);
 }
 
+void FHyperlinkUtility::AddHyperlinkCopyEntry(const FName& MenuName, const FText& EntryLabel, const FText& ToolTip,
+	const UHyperlinkDefinition* const HyperlinkDefinition, const bool bWithSubMenu)
+{
+	FName MenuPath;
+	if (bWithSubMenu)
+	{
+		MenuPath = UToolMenus::JoinMenuPaths(MenuName, FHyperlinkUtilityConstants::SubMenuName);
+	}
+	else
+	{
+		MenuPath = MenuName;
+	}
+	UToolMenu* const Menu{ UToolMenus::Get()->ExtendMenu(MenuPath) };
+
+	// Add action entry to the menu
+	static const FName CopySectionName{ TEXT("HyperlinkActions") };
+	FName EntryName{ HyperlinkDefinition->GetClass()->GetDisplayNameText().ToString() };
+	FToolMenuEntry EntryArgs
+	{
+		FToolMenuEntry::InitMenuEntry(EntryName, EntryLabel, ToolTip, FSlateIcon(),
+			FUIAction(FExecuteAction::CreateUObject(HyperlinkDefinition, &UHyperlinkDefinition::CopyLink)))
+	};
+	EntryArgs.Owner = MenuName;
+	if (!bWithSubMenu)
+	{
+		EntryArgs.Icon = GetMenuIcon();
+	}
+	Menu->AddMenuEntry(CopySectionName, EntryArgs);
+}
+
+void FHyperlinkUtility::AddHyperlinkCopySubMenuAndEntry(const FName& MenuName, const FName& SectionName,
+	const FText& EntryLabel, const FText& ToolTip, const UHyperlinkDefinition* const HyperlinkDefinition)
+{
+	// Make our submenu entry.
+	AddHyperlinkSubMenu(MenuName, SectionName);
+
+	// Add action entry to the submenu
+	AddHyperlinkCopyEntry(MenuName, EntryLabel, ToolTip, HyperlinkDefinition);
+}
+
 #undef LOCTEXT_NAMESPACE
 
 TSharedRef<FExtender> FHyperlinkUtility::GetMenuExtender(const FName& ExtensionHook,

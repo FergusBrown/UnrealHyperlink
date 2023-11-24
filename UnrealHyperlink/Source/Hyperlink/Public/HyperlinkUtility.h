@@ -32,8 +32,13 @@ public:
 	
 	// TODO: make equivalent without commandlist which can be called by blueprint
 	static void AddHyperlinkSubMenuAndEntry(const FName& MenuName, const FName& SectionName,
-									  const TSharedPtr<FUICommandList>& CommandList,
-									  const TSharedPtr<const FUICommandInfo>& Command);
+											const TSharedPtr<FUICommandList>& CommandList,
+											const TSharedPtr<const FUICommandInfo>& Command);
+
+	static void AddHyperlinkCopyEntry(const FName& MenuName, const FText& EntryLabel, const FText& ToolTip,
+		const UHyperlinkDefinition* HyperlinkDefinition, bool bWithSubMenu = true);
+	static void AddHyperlinkCopySubMenuAndEntry(const FName& MenuName, const FName& SectionName, const FText& EntryLabel,
+		const FText& ToolTip, const UHyperlinkDefinition* HyperlinkDefinition);
 
 	static TSharedRef<FExtender> GetMenuExtender(const FName& ExtensionHook,
 		EExtensionHook::Position HookPosition, const TSharedPtr<FUICommandList>& CommandList,
