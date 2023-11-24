@@ -6,7 +6,7 @@ int main(int argc, char* argv[])
 {
     if (argc != 2)
     {
-        std::cout << "Provided " << argc - 1 << " arguments, expected 1 argument.";
+        std::cout << "Provided " << argc - 1 << " arguments, expected 1 argument." << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
     
     if (!std::regex_match(link, match, projectPattern))
     {
-        std::cout << "Provided link is not in the format unreal://PROJECT_NAME/...";
+        std::cout << "Provided link is not in the format unreal://PROJECT_NAME/..." << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
     constexpr DWORD flags{ 0 };
     constexpr HANDLE templateFile{ nullptr };
 
-    HANDLE hPipe
+    HANDLE pipeHandle
     { 
         CreateFileA(
             pipeName.c_str(), 
@@ -47,13 +47,24 @@ int main(int argc, char* argv[])
     
     // If we fail to connect then pipe is likely busy
     // Don't wait for busy pipe as this could result in confusing behaviour
-    if (hPipe == INVALID_HANDLE_VALUE)
+    if (pipeHandle == INVALID_HANDLE_VALUE)
     {
-        std::cout << "Failed to connect to named pipe " << pipeName;
+        std::cout << "Failed to connect to pipe server " << pipeName << " GLE = " << GetLastError() << std::endl;
         return EXIT_FAILURE;
     }
 
     // Send message to pipe server
-    
+    LPCSTR message{ link.c_str() };
+    const DWORD bufferSize{ static_cast<DWORD>((strlen(message) + 1) * sizeof(char)) }; // +1 is for \0 terminator
+    DWORD writtenBytes{};
+    constexpr LPOVERLAPPED overlapped{ nullptr };
+
+    if (!WriteFile(pipeHandle, message, bufferSize, &writtenBytes, overlapped))
+    {
+        std::cout << "Failed to write to pipe server " << pipeName << " GLE = " << GetLastError() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    CloseHandle(pipeHandle);
     return EXIT_SUCCESS;
 }
