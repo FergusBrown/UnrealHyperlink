@@ -49,13 +49,13 @@ int wmain(int argc, wchar_t* argv[])
             return EXIT_FAILURE;
         }
 
-        char buffer[bufSize];
+        wchar_t buffer[bufSize];
         DWORD bytesRead{};
 
         if (::ReadFile(pipeHandle, buffer, sizeof(buffer) - 1, &bytesRead, nullptr))
         {
             // add terminating zero
-            buffer[bytesRead] = '\0';
+            buffer[bytesRead] = L'\0';
 
             // do something with data in buffer
             std::wcout << L"Message received:\n" << buffer << std::endl;
