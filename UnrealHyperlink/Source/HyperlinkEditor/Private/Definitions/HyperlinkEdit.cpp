@@ -89,11 +89,11 @@ void UHyperlinkEdit::Deinitialize()
 	TArray<FAssetEditorExtender>& AssetEditorMenuExtenderDelegates
 		{ FAssetEditorToolkit::GetSharedMenuExtensibilityManager()->GetExtenderDelegates() };
 	AssetEditorMenuExtenderDelegates.RemoveAll(
-		[=](const FAssetEditorExtender& Delegate){ return Delegate.GetHandle() == AssetEditorExtensionHandle; });
+		[this](const FAssetEditorExtender& Delegate){ return Delegate.GetHandle() == AssetEditorExtensionHandle; });
 	
 	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
 	ContentBrowser.GetAllContentBrowserCommandExtenders().RemoveAll(
-		[=](const FContentBrowserCommandExtender& Delegate){ return Delegate.GetHandle() == KeyboardShortcutHandle; });
+		[this](const FContentBrowserCommandExtender& Delegate){ return Delegate.GetHandle() == KeyboardShortcutHandle; });
 	
 	FHyperlinkEditCommands::Unregister();
 }

@@ -44,7 +44,7 @@ void UHyperlinkNode::Initialize()
 	FGraphEditorModule::FGraphEditorMenuExtender_SelectedNode SelectedNodesDelegate
 	{
 		FGraphEditorModule::FGraphEditorMenuExtender_SelectedNode::CreateLambda(
-			[=](const TSharedRef<FUICommandList>&,
+			[this](const TSharedRef<FUICommandList>&,
 			const UEdGraph* Graph, const UEdGraphNode* Node, const UEdGraphPin*, bool)
 			{
 				ActiveGraph = Graph;
@@ -73,7 +73,7 @@ void UHyperlinkNode::Deinitialize()
 {
 	FGraphEditorModule& GraphEditor{ FModuleManager::LoadModuleChecked<FGraphEditorModule>(TEXT("GraphEditor")) };
 	GraphEditor.GetAllGraphEditorContextMenuExtender().RemoveAll(
-		[=](const FGraphEditorModule::FGraphEditorMenuExtender_SelectedNode& Delegate){ return Delegate.GetHandle() == NodeContextMenuHandle; });
+		[this](const FGraphEditorModule::FGraphEditorMenuExtender_SelectedNode& Delegate){ return Delegate.GetHandle() == NodeContextMenuHandle; });
 	
 	FHyperlinkNodeCommands::Unregister();
 }

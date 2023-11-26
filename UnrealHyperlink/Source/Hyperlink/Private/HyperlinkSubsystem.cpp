@@ -160,7 +160,7 @@ void UHyperlinkSubsystem::ExecuteLink(const FHyperlinkExecutePayload& ExecutePay
 	{
 		// Need to defer this to after editor tick is complete to ensure we avoid any crashes
 		// This is particularly important when the link handles opening a level
-		PostEditorTickHandle = GEngine->OnPostEditorTick().AddWeakLambda(this, [=](float DeltaTime)
+		PostEditorTickHandle = GEngine->OnPostEditorTick().AddWeakLambda(this, [=, this](float DeltaTime)
 		{
 			ExecuteLinkDeferred(ExecutePayload);
 			// Clear delegate

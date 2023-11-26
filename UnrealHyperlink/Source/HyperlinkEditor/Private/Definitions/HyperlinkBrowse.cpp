@@ -71,7 +71,7 @@ void UHyperlinkBrowse::Deinitialize()
 {
 	FContentBrowserModule& ContentBrowser{ FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")) };
 	ContentBrowser.GetAllContentBrowserCommandExtenders().RemoveAll(
-		[=](const FContentBrowserCommandExtender& Delegate){ return Delegate.GetHandle() == KeyboardShortcutHandle; });
+		[this](const FContentBrowserCommandExtender& Delegate){ return Delegate.GetHandle() == KeyboardShortcutHandle; });
 	
 	FHyperlinkBrowseCommands::Unregister();
 }
