@@ -67,9 +67,8 @@ private:
 	UPROPERTY()
 	TMap<FString, TObjectPtr<UHyperlinkDefinition>> Definitions{};
 
-	IConsoleObject* CopyConsoleCommand{ nullptr };
+	TArray<IConsoleObject*> ConsoleCommands{ nullptr };
 #if WITH_EDITOR
 	FDelegateHandle PostEditorTickHandle{};
-	IConsoleObject* ExecuteConsoleCommand{ nullptr };
 #endif //WITH_EDITOR
 };

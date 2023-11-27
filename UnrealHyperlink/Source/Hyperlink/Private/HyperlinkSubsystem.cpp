@@ -32,27 +32,35 @@ void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	}
 
 	// Register console commands
-	CopyConsoleCommand = IConsoleManager::Get().RegisterConsoleCommand(
+	IConsoleObject* const CopyConsoleCommand
+	{
+		IConsoleManager::Get().RegisterConsoleCommand(
 		TEXT("uhl.CopyLink"),
 		TEXT(R"(Copy a link of the specified type. For example: "uhl.CopyLink Edit")"),
-		FConsoleCommandWithArgsDelegate::CreateUObject(this, &UHyperlinkSubsystem::CopyLinkConsole));
+		FConsoleCommandWithArgsDelegate::CreateUObject(this, &UHyperlinkSubsystem::CopyLinkConsole))
+	};
+	ConsoleCommands.Emplace(CopyConsoleCommand);
 
 #if WITH_EDITOR
-	ExecuteConsoleCommand = IConsoleManager::Get().RegisterConsoleCommand(
+	IConsoleObject* const ExecuteConsoleCommand
+	{
+		IConsoleManager::Get().RegisterConsoleCommand(
 		TEXT("uhl.ExecuteLink"),
 		*FString::Printf(TEXT(R"(Execute a hyperlink in the format "%s". Note the link must be surrounded in quotes.)"),
 			*FHyperlinkUtility::GetLinkStructureHint()),
-		FConsoleCommandWithArgsDelegate::CreateUObject(this, &UHyperlinkSubsystem::ExecuteLinkConsole));
+		FConsoleCommandWithArgsDelegate::CreateUObject(this, &UHyperlinkSubsystem::ExecuteLinkConsole))
+	};
+	ConsoleCommands.Emplace(ExecuteConsoleCommand);
 #endif //WITH_EDITOR
 }
 
 void UHyperlinkSubsystem::Deinitialize()
 {
 	DeinitDefinitions();
-	IConsoleManager::Get().UnregisterConsoleObject(CopyConsoleCommand);
-#if WITH_EDITOR
-	IConsoleManager::Get().UnregisterConsoleObject(ExecuteConsoleCommand);
-#endif //WITH_EDITOR
+	for (IConsoleObject* const ConsoleCommand : ConsoleCommands)
+	{
+		IConsoleManager::Get().UnregisterConsoleObject(ConsoleCommand);
+	}
 }
 
 void UHyperlinkSubsystem::RefreshDefinitions()
