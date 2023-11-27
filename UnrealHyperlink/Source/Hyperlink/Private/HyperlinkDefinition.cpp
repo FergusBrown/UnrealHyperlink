@@ -6,6 +6,10 @@
 #include "HyperlinkUtility.h"
 #include "Log.h"
 #include "Windows/WindowsPlatformApplicationMisc.h"
+#if WITH_EDITOR
+#include "Framework/Notifications/NotificationManager.h"
+#include "Widgets/Notifications/SNotificationList.h"
+#endif //WITH_EDITOR
 
 void UHyperlinkDefinition::CopyLink() const
 {
@@ -40,4 +44,10 @@ void UHyperlinkDefinition::CopyLink(const TSharedRef<FJsonObject>& Payload) cons
 		{ FHyperlinkUtility::CreateLinkFromPayload(GetClass(), Payload) };
 	UE_LOG(LogHyperlink, Display, TEXT("Copied: %s"), *LinkString);
 	FPlatformApplicationMisc::ClipboardCopy(*LinkString);
+
+#if WITH_EDITOR
+	FNotificationInfo Info{ FText::FromString(TEXT("Link Copied")) };
+	Info.ExpireDuration = 2.0f;
+	FSlateNotificationManager::Get().AddNotification(Info);
+#endif //WITH_EDITOR
 }
