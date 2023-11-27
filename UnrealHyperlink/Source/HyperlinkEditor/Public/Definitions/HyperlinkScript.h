@@ -33,6 +33,7 @@ public:
 
 private:
 	static bool IsBlutilitySelected();
+	static bool UserConfirmedScriptExecution(const FString& ScriptName);
 	
 private:
 	TSharedPtr<FUICommandList> ScriptCommands{};

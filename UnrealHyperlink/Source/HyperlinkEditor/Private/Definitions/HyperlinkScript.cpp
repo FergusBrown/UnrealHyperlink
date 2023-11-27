@@ -78,7 +78,8 @@ TSharedPtr<FJsonObject> UHyperlinkScript::GeneratePayload() const
 void UHyperlinkScript::ExecutePayload(const TSharedRef<FJsonObject>& InPayload)
 {
 	FHyperlinkNamePayload PayloadStruct{};
-	if (FJsonObjectConverter::JsonObjectToUStruct(InPayload, &PayloadStruct))
+	if (FJsonObjectConverter::JsonObjectToUStruct(InPayload, &PayloadStruct) &&
+		UserConfirmedScriptExecution(PayloadStruct.Name.ToString()))
 	{
 		UObject* const LoadedBlutility{ FHyperlinkUtility::LoadObject(PayloadStruct.Name.ToString()) };
 
@@ -101,4 +102,15 @@ bool UHyperlinkScript::IsBlutilitySelected()
 		{
 			return AssetData.AssetClassPath == UEditorUtilityBlueprint::StaticClass()->GetClassPathName();
 		});
+}
+
+bool UHyperlinkScript::UserConfirmedScriptExecution(const FString& ScriptName)
+{
+	const FString DialogMessage
+		{ FString::Printf(TEXT("Script execution via link requested. Execute this script?\n\n%s"), *ScriptName) };
+	
+	const EAppReturnType::Type Choice
+		{ FMessageDialog::Open(EAppMsgType::YesNo, FText::FromString(DialogMessage)) };
+
+	return Choice == EAppReturnType::Type::Yes;
 }
