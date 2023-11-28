@@ -24,5 +24,8 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	FString EscapeUrlString(const FString& InString) const;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	TArray<FString> GetSystemPaths() const;
 };
 
