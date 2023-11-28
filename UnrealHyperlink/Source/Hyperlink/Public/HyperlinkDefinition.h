@@ -21,8 +21,8 @@ public:
 	/* Tear down anything setup in Initialize */
 	virtual void Deinitialize() {}
 
-	/* Generate payload using current editor/game state */
-	virtual TSharedPtr<FJsonObject> GeneratePayload() const { return TSharedPtr<FJsonObject>(); }
+	/* Generate payload using provided arguments or otherwise the current editor/game state */
+	virtual TSharedPtr<FJsonObject> GeneratePayload(const TArray<FString>& Args) const { return TSharedPtr<FJsonObject>(); }
 
 #if WITH_EDITOR
 	virtual void ExecutePayload(const TSharedRef<FJsonObject>& InPayload) PURE_VIRTUAL(UHyperlinkDefinition::ExecutePayload, );
@@ -30,9 +30,10 @@ public:
 
 	/* Generate a link using the GeneratePayload function and copy it to clipboard */
 	void CopyLink() const;
+	void CopyLink(const TArray<FString>& Args) const;
 
 	/* Generate a link using the GeneratePayload function and log it */
-	void PrintLink() const;
+	void PrintLink(const TArray<FString>& Args) const;
 	
 protected:
 	void CopyLink(const TSharedRef<FJsonObject>& Payload) const;

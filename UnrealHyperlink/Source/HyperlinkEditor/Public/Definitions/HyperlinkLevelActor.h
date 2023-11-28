@@ -40,7 +40,7 @@ public:
 	virtual void Initialize() override;
 	virtual void Deinitialize() override;
 	
-	virtual TSharedPtr<FJsonObject> GeneratePayload() const override;
+	virtual TSharedPtr<FJsonObject> GeneratePayload(const TArray<FString>& Args) const override;
 	
 	virtual void ExecutePayload(const TSharedRef<FJsonObject>& InPayload) override;
 	

@@ -16,7 +16,7 @@ void UHyperlinkDefinitionBlueprintBase::Deinitialize()
 	DeinitializeImpl();
 }
 
-TSharedPtr<FJsonObject> UHyperlinkDefinitionBlueprintBase::GeneratePayload() const
+TSharedPtr<FJsonObject> UHyperlinkDefinitionBlueprintBase::GeneratePayload(const TArray<FString>& Args) const
 {
 	FJsonObjectWrapper JsonObjectWrapper{};
 	if (GetClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UHyperlinkDefinitionBlueprintBase,

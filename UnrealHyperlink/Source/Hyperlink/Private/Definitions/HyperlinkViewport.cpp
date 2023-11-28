@@ -69,7 +69,7 @@ void UHyperlinkViewport::Deinitialize()
 #endif //WITH_EDITOR
 }
 
-TSharedPtr<FJsonObject> UHyperlinkViewport::GeneratePayload() const
+TSharedPtr<FJsonObject> UHyperlinkViewport::GeneratePayload(const TArray<FString>& Args) const
 {
 	TSharedPtr<FJsonObject> Payload{ nullptr };
 	

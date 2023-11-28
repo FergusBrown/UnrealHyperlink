@@ -76,7 +76,7 @@ void UHyperlinkBrowse::Deinitialize()
 	FHyperlinkBrowseCommands::Unregister();
 }
 
-TSharedPtr<FJsonObject> UHyperlinkBrowse::GeneratePayload() const
+TSharedPtr<FJsonObject> UHyperlinkBrowse::GeneratePayload(const TArray<FString>& Args) const
 {
 	TSharedPtr<FJsonObject> Payload{ nullptr };
 	

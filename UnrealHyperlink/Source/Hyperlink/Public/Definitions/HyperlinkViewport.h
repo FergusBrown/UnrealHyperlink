@@ -46,7 +46,7 @@ public:
 	virtual void Deinitialize() override;
 
 	/* Generate payload using the active level editor viewport (editor) or player controller (game). Fails if viewport not found */
-	virtual TSharedPtr<FJsonObject> GeneratePayload() const override;
+	virtual TSharedPtr<FJsonObject> GeneratePayload(const TArray<FString>& Args) const override;
 
 	/* Generate payload using the provided parameters */
 	TSharedPtr<FJsonObject> GeneratePayload(const FName& InLevelPackageName, const FVector& InLocation, const FRotator& InRotation) const;

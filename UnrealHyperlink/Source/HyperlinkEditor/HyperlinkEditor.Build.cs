@@ -35,6 +35,7 @@ public class HyperlinkEditor : ModuleRules
                 "MaterialEditor",
                 "Projects",
                 "PropertyEditor",
+                "PythonScriptPlugin",
                 "Slate",
                 "SlateCore",
                 "UnrealEd",

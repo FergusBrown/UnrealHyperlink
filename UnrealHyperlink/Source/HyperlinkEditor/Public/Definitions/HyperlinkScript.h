@@ -18,7 +18,6 @@ public:
 
 /**
  * Hyperlink for executing an editor utility blueprint or python script
- * python is TODO!
  */
 UCLASS()
 class HYPERLINKEDITOR_API UHyperlinkScript : public UHyperlinkDefinition
@@ -28,9 +27,14 @@ class HYPERLINKEDITOR_API UHyperlinkScript : public UHyperlinkDefinition
 public:
 	virtual void Initialize() override;
 	virtual void Deinitialize() override;
-	virtual TSharedPtr<FJsonObject> GeneratePayload() const override;
+	virtual TSharedPtr<FJsonObject> GeneratePayload(const TArray<FString>& Args) const override;
 	virtual void ExecutePayload(const TSharedRef<FJsonObject>& InPayload) override;
 
+	/* Generate payload from the provided string, creating a relative path if possible */
+	static TSharedPtr<FJsonObject> GenerateScriptPayload(FString ScriptPath);
+	
+	/* Generate payload from selected blutility in content browser */
+	static TSharedPtr<FJsonObject> GeneratePayloadFromSelectedBlutility();
 private:
 	static bool IsBlutilitySelected();
 	static bool UserConfirmedScriptExecution(const FString& ScriptName);

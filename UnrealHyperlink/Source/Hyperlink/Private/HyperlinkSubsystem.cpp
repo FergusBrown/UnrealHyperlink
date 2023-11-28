@@ -131,15 +131,18 @@ void UHyperlinkSubsystem::DeinitDefinitions()
 
 void UHyperlinkSubsystem::CopyLinkConsole(const TArray<FString>& Args)
 {
-	if (Args.Num() != 1)
+	if (Args.Num() < 1)
 	{
-		UE_LOG(LogHyperlink, Display, TEXT("Invalid arguments, must have only 1 argument"));
+		UE_LOG(LogHyperlink, Display, TEXT("Invalid arguments, must have at least 1 argument"));
 	}
 	else
 	{
 		if (const TObjectPtr<UHyperlinkDefinition>* Def{ Definitions.Find(Args[0]) })
 		{
-			(*Def)->CopyLink();
+			// Copy array and remove first arg, pass remainder to generate the link
+			TArray<FString> LinkArgs{ Args };
+			LinkArgs.RemoveAt(0);
+			(*Def)->CopyLink(LinkArgs);
 		}
 		else
 		{

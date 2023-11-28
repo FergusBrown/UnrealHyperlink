@@ -62,7 +62,7 @@ public:
 	virtual void Initialize() override;
 	virtual void Deinitialize() override;
 	
-	virtual TSharedPtr<FJsonObject> GeneratePayload() const override;
+	virtual TSharedPtr<FJsonObject> GeneratePayload(const TArray<FString>& Args) const override;
 	static TSharedPtr<FJsonObject> GenerateBlueprintPayload(const FName& AssetPackageName, const FGuid& GraphGuid,
 		const FGuid& NodeGuid);
 	static TSharedPtr<FJsonObject> GenerateMaterialPayload(const FName& AssetPackageName, const FGuid& NodeGuid,

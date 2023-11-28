@@ -98,7 +98,7 @@ void UHyperlinkEdit::Deinitialize()
 	FHyperlinkEditCommands::Unregister();
 }
 
-TSharedPtr<FJsonObject> UHyperlinkEdit::GeneratePayload() const
+TSharedPtr<FJsonObject> UHyperlinkEdit::GeneratePayload(const TArray<FString>& Args) const
 {
 	return GeneratePayloadFromContentBrowser();
 }

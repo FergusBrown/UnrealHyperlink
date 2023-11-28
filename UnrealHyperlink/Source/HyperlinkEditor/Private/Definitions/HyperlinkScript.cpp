@@ -7,8 +7,10 @@
 #include "EditorUtilityBlueprint.h"
 #include "EditorUtilitySubsystem.h"
 #include "HyperlinkCommonPayload.h"
+#include "HyperlinkPythonBridge.h"
 #include "HyperlinkUtility.h"
 #include "IContentBrowserSingleton.h"
+#include "IPythonScriptPlugin.h"
 #include "JsonObjectConverter.h"
 
 #define LOCTEXT_NAMESPACE "HyperlinkScript"
@@ -49,11 +51,71 @@ void UHyperlinkScript::Deinitialize()
 	// TODO
 }
 
-TSharedPtr<FJsonObject> UHyperlinkScript::GeneratePayload() const
+TSharedPtr<FJsonObject> UHyperlinkScript::GeneratePayload(const TArray<FString>& Args) const
 {
 	TSharedPtr<FJsonObject> Payload{ nullptr };
 
-	// TODO: implement sort of content browser operation in utilities
+	if (Args.Num() > 0)
+	{
+		Payload = GenerateScriptPayload(Args[0]);
+	}
+	else
+	{
+		Payload = GeneratePayloadFromSelectedBlutility();
+	}
+
+	return Payload;
+}
+
+void UHyperlinkScript::ExecutePayload(const TSharedRef<FJsonObject>& InPayload)
+{
+	FHyperlinkNamePayload PayloadStruct{};
+	if (FJsonObjectConverter::JsonObjectToUStruct(InPayload, &PayloadStruct) &&
+		UserConfirmedScriptExecution(PayloadStruct.Name.ToString()))
+	{
+		const FString ScriptPath{ PayloadStruct.Name.ToString() };
+		if (ScriptPath.EndsWith(TEXT(".py")))
+		{
+			IPythonScriptPlugin::Get()->ExecPythonCommand(*ScriptPath);
+		}
+		else // This is a path for a blutility
+		{
+			UObject* const LoadedBlutility{ FHyperlinkUtility::LoadObject(PayloadStruct.Name.ToString()) };
+
+			UEditorUtilitySubsystem* const EditorUtilitySubsystem{ GEditor->GetEditorSubsystem<UEditorUtilitySubsystem>() };
+			if (EditorUtilitySubsystem)
+			{
+				EditorUtilitySubsystem->TryRun(LoadedBlutility);
+			}
+		}
+	}
+}
+
+TSharedPtr<FJsonObject> UHyperlinkScript::GenerateScriptPayload(FString ScriptPath)
+{
+	// Ensure the provided path only has forward slashes
+	ScriptPath.ReplaceCharInline(TEXT('\\'), TEXT('/'));
+	
+	// If this path is listed in sys.path then we can just use the relative path for this script
+	for (const FString& SystemPath : UHyperlinkPythonBridge::GetChecked().GetSystemPaths())
+	{
+		// If successful remove any remaining forward slashes and exit
+		if (ScriptPath.RemoveFromStart(SystemPath))
+		{
+			ScriptPath.ReplaceInline(TEXT("/"), TEXT(""));
+			break;
+		}
+	}
+	
+	const FHyperlinkNamePayload PayloadStruct{ FName(ScriptPath) };
+	return FJsonObjectConverter::UStructToJsonObject(PayloadStruct);
+}
+
+TSharedPtr<FJsonObject> UHyperlinkScript::GeneratePayloadFromSelectedBlutility()
+{
+	TSharedPtr<FJsonObject> Payload{ nullptr };
+	
+	// TODO: implement this sort of content browser operation in utilities (get selected assets of type)
 	const FContentBrowserModule& ContentBrowser =
 		FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser"));
 	TArray<FAssetData> SelectedAssets{};
@@ -69,26 +131,10 @@ TSharedPtr<FJsonObject> UHyperlinkScript::GeneratePayload() const
 	if (SelectedAssets.Num() > 0 )
 	{
 		const FHyperlinkNamePayload PayloadStruct{ SelectedAssets[0].PackageName };
-		Payload =  FJsonObjectConverter::UStructToJsonObject(PayloadStruct);
+		Payload = FJsonObjectConverter::UStructToJsonObject(PayloadStruct);
 	}
 
 	return Payload;
-}
-
-void UHyperlinkScript::ExecutePayload(const TSharedRef<FJsonObject>& InPayload)
-{
-	FHyperlinkNamePayload PayloadStruct{};
-	if (FJsonObjectConverter::JsonObjectToUStruct(InPayload, &PayloadStruct) &&
-		UserConfirmedScriptExecution(PayloadStruct.Name.ToString()))
-	{
-		UObject* const LoadedBlutility{ FHyperlinkUtility::LoadObject(PayloadStruct.Name.ToString()) };
-
-		UEditorUtilitySubsystem* const EditorUtilitySubsystem{ GEditor->GetEditorSubsystem<UEditorUtilitySubsystem>() };
-		if (EditorUtilitySubsystem)
-		{
-			EditorUtilitySubsystem->TryRun(LoadedBlutility);
-		}
-	}
 }
 
 bool UHyperlinkScript::IsBlutilitySelected()

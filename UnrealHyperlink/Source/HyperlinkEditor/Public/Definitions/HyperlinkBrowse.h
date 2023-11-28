@@ -29,7 +29,7 @@ public:
 	virtual void Initialize() override;
 	virtual void Deinitialize() override;
 
-	virtual TSharedPtr<FJsonObject> GeneratePayload() const override;
+	virtual TSharedPtr<FJsonObject> GeneratePayload(const TArray<FString>& Args) const override;
 	TSharedPtr<FJsonObject> GeneratePayloadFromPath(const FName& PackageOrFolderName) const;
 	
 	virtual void ExecutePayload(const TSharedRef<FJsonObject>& InPayload) override;

@@ -78,7 +78,7 @@ void UHyperlinkNode::Deinitialize()
 	FHyperlinkNodeCommands::Unregister();
 }
 
-TSharedPtr<FJsonObject> UHyperlinkNode::GeneratePayload() const
+TSharedPtr<FJsonObject> UHyperlinkNode::GeneratePayload(const TArray<FString>& Args) const
 {
 	TSharedPtr<FJsonObject> Payload{ nullptr };
 

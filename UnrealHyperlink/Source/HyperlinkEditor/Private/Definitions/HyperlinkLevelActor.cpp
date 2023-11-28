@@ -53,7 +53,7 @@ void UHyperlinkLevelActor::Deinitialize()
 	FHyperlinkLevelActorCommands::Unregister();
 }
 
-TSharedPtr<FJsonObject> UHyperlinkLevelActor::GeneratePayload() const
+TSharedPtr<FJsonObject> UHyperlinkLevelActor::GeneratePayload(const TArray<FString>& Args) const
 {
 	TSharedPtr<FJsonObject> Payload{ nullptr };
 	

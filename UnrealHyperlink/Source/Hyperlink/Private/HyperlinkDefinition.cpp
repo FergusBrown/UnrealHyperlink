@@ -13,7 +13,12 @@
 
 void UHyperlinkDefinition::CopyLink() const
 {
-	if (const TSharedPtr<FJsonObject> Payload{ GeneratePayload() })
+	CopyLink(TArray<FString>());
+}
+
+void UHyperlinkDefinition::CopyLink(const TArray<FString>& Args) const
+{
+	if (const TSharedPtr<FJsonObject> Payload{ GeneratePayload(Args) })
 	{
 		CopyLink(Payload.ToSharedRef());
 	}
@@ -24,9 +29,9 @@ void UHyperlinkDefinition::CopyLink() const
 	}
 }
 
-void UHyperlinkDefinition::PrintLink() const
+void UHyperlinkDefinition::PrintLink(const TArray<FString>& Args) const
 {
-	if (const TSharedPtr<FJsonObject> Payload{ GeneratePayload() })
+	if (const TSharedPtr<FJsonObject> Payload{ GeneratePayload(Args) })
 	{
 		UE_LOG(LogHyperlink, Display, TEXT("%s"),
 			*FHyperlinkUtility::CreateLinkFromPayload(GetClass(), Payload.ToSharedRef()));
