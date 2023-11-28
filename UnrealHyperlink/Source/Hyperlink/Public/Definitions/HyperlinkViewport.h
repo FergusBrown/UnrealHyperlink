@@ -27,10 +27,10 @@ struct FHyperlinkViewportPayload
 	FName LevelPackageName{};
 
 	UPROPERTY()
-	FVector Location{};
+	FVector Location{ FVector::ZeroVector };
 
 	UPROPERTY()
-	FRotator Rotation{};
+	FRotator Rotation{ FRotator::ZeroRotator };
 };
 
 /**
