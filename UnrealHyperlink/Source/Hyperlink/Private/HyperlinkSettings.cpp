@@ -177,7 +177,8 @@ void UHyperlinkSettings::PostRegister()
 	if (bBlueprintClassesRegistered && bInMemoryClassesRegistered)
 	{
 		// Any nullptr can be removed as invalid classes
-		RegisteredDefinitions.RemoveAll([](const FHyperlinkClassEntry& Entry){ return Entry.Class.IsNull(); });
+		RegisteredDefinitions.RemoveAll([](const FHyperlinkClassEntry& Entry)
+			{ return Entry.Class.LoadSynchronous() == nullptr; });
 	
 		// Sort registered definitions so they appear in alphabetical order
 		RegisteredDefinitions.Sort([](const FHyperlinkClassEntry& Lhs, const FHyperlinkClassEntry& Rhs)
