@@ -99,7 +99,6 @@ TSharedPtr<FJsonObject> UHyperlinkScript::GenerateScriptPayload(FString ScriptPa
 	// If this path is listed in sys.path then we can just use the relative path for this script
 	for (const FString& SystemPath : UHyperlinkPythonBridge::GetChecked().GetSystemPaths())
 	{
-		// If successful remove any remaining forward slashes and exit
 		if (ScriptPath.RemoveFromStart(SystemPath))
 		{
 			break;
