@@ -10,18 +10,18 @@ struct FHyperlinkClassEntry
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = HyperlinkClassEntry)
 	bool bEnabled{ true };
 	
 	/*
 	 * A C++ class which inherits from UHyperlinkDefinition
 	 * or a Blueprint which inherits from UHyperlinkDefinitionBlueprintBase
 	 */
-	UPROPERTY(VisibleAnywhere, NoClear, DisplayName = "Definition Class")
+	UPROPERTY(VisibleAnywhere, NoClear, DisplayName = "Definition Class", Category = HyperlinkClassEntry)
 	TSoftClassPtr<UHyperlinkDefinition> Class{ nullptr };
 
 	/* The string which will be used to identify this class */
-	UPROPERTY(EditAnywhere, DisplayName = "Definition Identifier", meta = (EditCondition = "bEnabled"))
+	UPROPERTY(EditAnywhere, DisplayName = "Definition Identifier", Category = HyperlinkClassEntry, meta = (EditCondition = "bEnabled"))
 	FString Identifier{ TEXT("") };
 };
 

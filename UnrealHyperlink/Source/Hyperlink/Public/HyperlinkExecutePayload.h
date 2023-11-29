@@ -13,9 +13,9 @@ struct FHyperlinkExecutePayload
 {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, Category = HyperlinkExecutePayload)
 	TSubclassOf<UHyperlinkDefinition> Class{ nullptr };
 
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, Category = HyperlinkExecutePayload)
 	FJsonObjectWrapper DefinitionPayload{};
 };
