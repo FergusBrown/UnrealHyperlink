@@ -18,15 +18,37 @@ void UHyperlinkDefinition::CopyLink() const
 
 void UHyperlinkDefinition::CopyLink(const TArray<FString>& Args) const
 {
+	// Editor only code used to display notification
+#if WITH_EDITOR
+	FNotificationInfo Info{ FText::GetEmpty() };
+	Info.ExpireDuration = 2.0f;
+	Info.bUseSuccessFailIcons = true;
+	SNotificationItem::ECompletionState CompletionState{ SNotificationItem::CS_None };
+#endif //WITH_EDITOR
+
 	if (const TSharedPtr<FJsonObject> Payload{ GeneratePayload(Args) })
 	{
 		CopyLink(Payload.ToSharedRef());
+		
+#if WITH_EDITOR
+		Info.Text = FText::FromString(TEXT("Link Copied"));
+		CompletionState = SNotificationItem::CS_Success;
+#endif //WITH_EDITOR
 	}
 	else
 	{
 		UE_LOG(LogHyperlink, Error, TEXT("Failed to generate and copy %s link"),
 			*GetClass()->GetDefaultObjectName().ToString());
+		
+#if WITH_EDITOR
+		Info.Text = FText::FromString(TEXT("Link Copy Failed"));
+		CompletionState = SNotificationItem::CS_Fail;
+#endif //WITH_EDITOR
 	}
+
+#if WITH_EDITOR
+	FSlateNotificationManager::Get().AddNotification(Info)->SetCompletionState(CompletionState);
+#endif //WITH_EDITOR
 }
 
 void UHyperlinkDefinition::PrintLink(const TArray<FString>& Args) const
@@ -49,10 +71,4 @@ void UHyperlinkDefinition::CopyLink(const TSharedRef<FJsonObject>& Payload) cons
 		{ FHyperlinkUtility::CreateLinkFromPayload(GetClass(), Payload) };
 	UE_LOG(LogHyperlink, Display, TEXT("Copied: %s"), *LinkString);
 	FPlatformApplicationMisc::ClipboardCopy(*LinkString);
-
-#if WITH_EDITOR
-	FNotificationInfo Info{ FText::FromString(TEXT("Link Copied")) };
-	Info.ExpireDuration = 2.0f;
-	FSlateNotificationManager::Get().AddNotification(Info);
-#endif //WITH_EDITOR
 }
