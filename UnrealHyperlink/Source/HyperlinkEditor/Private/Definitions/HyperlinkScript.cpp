@@ -102,7 +102,6 @@ TSharedPtr<FJsonObject> UHyperlinkScript::GenerateScriptPayload(FString ScriptPa
 		// If successful remove any remaining forward slashes and exit
 		if (ScriptPath.RemoveFromStart(SystemPath))
 		{
-			ScriptPath.ReplaceInline(TEXT("/"), TEXT(""));
 			break;
 		}
 	}
