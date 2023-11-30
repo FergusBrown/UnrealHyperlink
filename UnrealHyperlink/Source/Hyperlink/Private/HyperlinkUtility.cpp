@@ -5,6 +5,7 @@
 
 #include "HyperlinkDefinition.h"
 #include "HyperlinkExecutePayload.h"
+#include "HyperlinkPythonBridge.h"
 #include "HyperlinkSettings.h"
 #include "Internationalization/Regex.h"
 #include "JsonObjectConverter.h"
@@ -50,9 +51,67 @@ FString FHyperlinkUtility::CreateLinkFromPayload(const TSubclassOf<UHyperlinkDef
 		}
 		
 		FJsonObjectConverter::UStructToJsonObjectString(ExecutePayload, PayloadString, 0, 0, 0, nullptr, false);
+
+		// Escape any special characters in the URL
+#if WITH_EDITOR
+		// Use the more complete python version of the function if we're in the editor
+		if (GEditor)
+		{
+			PayloadString = UHyperlinkPythonBridge::GetChecked().EscapeUrlString(PayloadString);
+		}
+		else
+#endif //WITH_EDITOR
+		{
+			// Escape code here
+			PayloadString = FHyperlinkUtility::EscapeUrlString(PayloadString);
+		}
 	}
 	
 	return GetLinkBaseAddress() / PayloadString;
+}
+
+FString FHyperlinkUtility::EscapeUrlString(const FString& InString)
+{
+	// Map of char to the URL encoded equivalent.
+	static const TCHAR* CharEncodingMap[][2] 
+	{
+		// Always replace "%" first to avoid double-encoding characters
+		{ TEXT("%"), TEXT("%25") },
+		{ TEXT(" "), TEXT("%20") },
+		{ TEXT("!"), TEXT("%21") },
+		{ TEXT("\""), TEXT("%22") },
+		{ TEXT("#"), TEXT("%23") },
+		{ TEXT("$"), TEXT("%24") },
+		{ TEXT("&"), TEXT("%26") },
+		{ TEXT("'"), TEXT("%27") },
+		{ TEXT("("), TEXT("%28") },
+		{ TEXT(")"), TEXT("%29") },
+		{ TEXT("*"), TEXT("%2A") },
+		{ TEXT("+"), TEXT("%2B") },
+		{ TEXT(","), TEXT("%2C") },
+		{ TEXT(":"), TEXT("%3A") },
+		{ TEXT(";"), TEXT("%3B") },
+		{ TEXT("="), TEXT("%3D") },
+		{ TEXT("?"), TEXT("%3F") },
+		{ TEXT("["), TEXT("%5B") },
+		{ TEXT("]"), TEXT("%5D") },
+		{ TEXT("@"), TEXT("%40") },
+		{ TEXT("{"), TEXT("%7B") },
+		{ TEXT("}"), TEXT("%7D") },
+		{ TEXT("~"), TEXT("%7E") },
+	};
+
+	FString EscapedString{ InString };
+
+	for (int32 Idx { 0 }; Idx < GetNum(CharEncodingMap); ++Idx )
+	{
+		const TCHAR* const OriginalChar{ CharEncodingMap[Idx][0] };
+		const TCHAR* const EscapedChar{ CharEncodingMap[Idx][1] };
+		// Use ReplaceInline as that won't create a copy of the string if the character isn't found
+		EscapedString.ReplaceInline(OriginalChar, EscapedChar, ESearchCase::CaseSensitive);
+	}
+
+	return EscapedString;
 }
 
 #if WITH_EDITOR

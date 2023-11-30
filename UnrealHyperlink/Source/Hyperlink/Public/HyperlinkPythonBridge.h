@@ -19,9 +19,11 @@ public:
 	static const UHyperlinkPythonBridge* Get();
 	static const UHyperlinkPythonBridge& GetChecked();
 
+	/* Decode any escaped special characters in the URL. For example replacing "%7B" with '{' */
 	UFUNCTION(BlueprintImplementableEvent)
 	FString ParseUrlString(const FString& InString) const;
 
+	/* Escape special characters in the URL. For or example replacing '{' with "%7B" */
 	UFUNCTION(BlueprintImplementableEvent)
 	FString EscapeUrlString(const FString& InString) const;
 

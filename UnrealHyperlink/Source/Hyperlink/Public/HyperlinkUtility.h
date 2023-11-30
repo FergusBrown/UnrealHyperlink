@@ -20,6 +20,12 @@ public:
 	
 	static FString CreateLinkFromPayload(TSubclassOf<UHyperlinkDefinition> DefinitionClass,
 		const TSharedRef<FJsonObject>& InPayload);
+
+	/* Simple approach to escaping special characters in the URL (Based on FGLTFFileBuilder::EncodeURI, thanks!)
+	 * CAUTION: Prefer the implementation of this function in UHyperlinkPythonBridge which has what should be a
+	 * more complete approach to escaping the URL.
+	 */
+	static FString EscapeUrlString(const FString& InString);
 	
 #if WITH_EDITOR
 	/* CODE ONLY UTILITY */
