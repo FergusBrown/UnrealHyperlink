@@ -24,6 +24,6 @@ Currently the plugin only works with UE 5.2/5.3
 ### Building from Source
 
 1. Clone this repo or download its files.
-2. Copy the UnrealHyperlink folder to your project's plugin folder (e.g. /[Project Root]/Plugins) .
+2. Copy the UnrealHyperlink folder to the engine plugin folder ([UE Root]/Engine/Plugins) or your project's plugin folder (/[Project Root]/Plugins).
 3. (Optional) If you want to have a look at some basic examples of extending the plugin with blueprint and python you can install the example plugin. To do this copy the HyperlinkExamples folder to your project's plugin folder. Once built you'll also need to enable this plugin in your project's plugin settings.
 4. Build your project.
