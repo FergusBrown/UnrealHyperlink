@@ -48,6 +48,7 @@ private:
 	void InitDefinitions();
 	void DeinitDefinitions();
 	
+	void HelpConsole(const TArray<FString>& Args);
 	void CopyLinkConsole(const TArray<FString>& Args);
 #if WITH_EDITOR
 	void ExecuteLinkConsole(const TArray<FString>& Args);

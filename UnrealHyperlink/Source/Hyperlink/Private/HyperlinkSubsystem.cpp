@@ -32,6 +32,15 @@ void UHyperlinkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	}
 
 	// Register console commands
+	IConsoleObject* const HelpConsoleCommand
+	{
+		IConsoleManager::Get().RegisterConsoleCommand(
+		TEXT("uhl.Help"),
+		TEXT("List available hyperlinks by identifier"),
+		FConsoleCommandWithArgsDelegate::CreateUObject(this, &UHyperlinkSubsystem::HelpConsole))
+	};
+	ConsoleCommands.Emplace(HelpConsoleCommand);
+	
 	IConsoleObject* const CopyConsoleCommand
 	{
 		IConsoleManager::Get().RegisterConsoleCommand(
@@ -127,6 +136,25 @@ void UHyperlinkSubsystem::DeinitDefinitions()
 		}
 	}
 	Definitions.Empty();
+}
+
+void UHyperlinkSubsystem::HelpConsole(const TArray<FString>& Args)
+{
+	if (Definitions.Num() == 0)
+	{
+		UE_LOG(LogHyperlink, Display, TEXT("No hyperlink definitions are currently available"));
+	}
+	else
+	{
+		FString HelpMessage{ TEXT("The following hyperlink definitions are currently available:\n") };
+		
+		for (const TPair<FString, TObjectPtr<UHyperlinkDefinition>>& Pair : Definitions)
+		{
+			HelpMessage.Append(FString::Printf(TEXT("%s\n"), *Pair.Key));
+		}
+
+		UE_LOG(LogHyperlink, Display, TEXT("%s"), *HelpMessage);
+	}
 }
 
 void UHyperlinkSubsystem::CopyLinkConsole(const TArray<FString>& Args)
