@@ -3,12 +3,13 @@
 
 #include "Definitions/HyperlinkEdit.h"
 
-#include "ContentBrowserModule.h"
 #include "HyperlinkCommonPayload.h"
+#include "JsonObjectConverter.h"
+#if WITH_EDITOR
+#include "ContentBrowserModule.h"
 #include "HyperlinkUtility.h"
 #include "IContentBrowserSingleton.h"
-#include "JsonObjectConverter.h"
-#include "LogHyperlinkEditor.h"
+#include "LogHyperlink.h"
 
 #define LOCTEXT_NAMESPACE "HyperlinkEdit"
 
@@ -24,9 +25,9 @@ FHyperlinkEditCommands::FHyperlinkEditCommands()
 void FHyperlinkEditCommands::RegisterCommands()
 {
 	UI_COMMAND(CopyContentBrowserLink, "Copy Edit Link", "Copy a link to edit the selected asset",
-		EUserInterfaceActionType::Button, FInputChord(EModifierKey::Alt | EModifierKey::Shift, EKeys::E));
+	           EUserInterfaceActionType::Button, FInputChord(EModifierKey::Alt | EModifierKey::Shift, EKeys::E));
 	UI_COMMAND(CopyAssetEditorLink, "Copy Edit Link", "Copy a link to edit this asset",
-	EUserInterfaceActionType::Button, FInputChord(EModifierKey::Alt | EModifierKey::Shift, EKeys::E));
+	           EUserInterfaceActionType::Button, FInputChord(EModifierKey::Alt | EModifierKey::Shift, EKeys::E));
 }
 
 #undef LOCTEXT_NAMESPACE
@@ -52,12 +53,12 @@ void UHyperlinkEdit::Initialize()
 
 	// Content Browser asset context menu
 	FHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("ContentBrowser.AssetContextMenu"), TEXT("CommonAssetActions"),
-		EditCommands, FHyperlinkEditCommands::Get().CopyContentBrowserLink);
+	                                               EditCommands, FHyperlinkEditCommands::Get().CopyContentBrowserLink);
 	
 	// Asset Editor asset menu
 	// Note because of the way asset editor drop down menus work we can't (easily) add this entry in a sub menu
 	FHyperlinkUtility::AddHyperlinkMenuEntry(TEXT("MainFrame.MainMenu.Asset"), EditCommands,
-		FHyperlinkEditCommands::Get().CopyContentBrowserLink, false);
+	                                         FHyperlinkEditCommands::Get().CopyContentBrowserLink, false);
 	
 	// Keyboard shortcut command
 	// Note that the keyboard shortcut will only be registered if applied on startup because of the way content
@@ -97,12 +98,24 @@ void UHyperlinkEdit::Deinitialize()
 	
 	FHyperlinkEditCommands::Unregister();
 }
+#endif //WITH_EDITOR
 
 TSharedPtr<FJsonObject> UHyperlinkEdit::GeneratePayload(const TArray<FString>& Args) const
 {
-	return GeneratePayloadFromContentBrowser();
+#if WITH_EDITOR
+  	return GeneratePayloadFromContentBrowser();
+#else
+	return nullptr;
+#endif //WITH_EDITOR
 }
 
+TSharedPtr<FJsonObject> UHyperlinkEdit::GeneratePayloadFromPackageName(const FName& PackageName)
+{
+	const FHyperlinkNamePayload PayloadStruct{ PackageName };
+	return FJsonObjectConverter::UStructToJsonObject(PayloadStruct);
+}
+
+#if WITH_EDITOR
 TSharedPtr<FJsonObject> UHyperlinkEdit::GeneratePayloadFromContentBrowser()
 {
 	TSharedPtr<FJsonObject> Payload{ nullptr };
@@ -117,7 +130,7 @@ TSharedPtr<FJsonObject> UHyperlinkEdit::GeneratePayloadFromContentBrowser()
 	}
 	else
 	{
-		UE_LOG(LogHyperlinkEditor, Display, TEXT("Cannot generate Edit link with no assets selected in Content Browser"));
+		UE_LOG(LogHyperlink, Display, TEXT("Cannot generate Edit link with no assets selected in Content Browser"));
 	}
 	
 	return Payload;
@@ -126,12 +139,6 @@ TSharedPtr<FJsonObject> UHyperlinkEdit::GeneratePayloadFromContentBrowser()
 TSharedPtr<FJsonObject> UHyperlinkEdit::GeneratePayloadFromAssetEditor() const
 {
 	return GeneratePayloadFromPackageName(AssetEditorPackageName);
-}
-
-TSharedPtr<FJsonObject> UHyperlinkEdit::GeneratePayloadFromPackageName(const FName& PackageName)
-{
-	const FHyperlinkNamePayload PayloadStruct{ PackageName };
-	return FJsonObjectConverter::UStructToJsonObject(PayloadStruct);
 }
 
 void UHyperlinkEdit::ExecutePayload(const TSharedRef<FJsonObject>& InPayload)
@@ -155,3 +162,5 @@ TSharedRef<FExtender> UHyperlinkEdit::OnExtendAssetEditor(const TSharedRef<FUICo
 
 	return MakeShared<FExtender>();
 }
+#endif //WITH_EDITOR
+

@@ -3,14 +3,15 @@
 
 #include "Definitions/HyperlinkBrowse.h"
 
+#include "HyperlinkCommonPayload.h"
+#include "JsonObjectConverter.h"
+#if WITH_EDITOR
 #include "AssetRegistry/IAssetRegistry.h"
 #include "ContentBrowserModule.h"
 #include "Editor.h"
-#include "HyperlinkCommonPayload.h"
 #include "HyperlinkUtility.h"
 #include "IContentBrowserSingleton.h"
-#include "JsonObjectConverter.h"
-#include "LogHyperlinkEditor.h"
+#include "LogHyperlink.h"
 
 #define LOCTEXT_NAMESPACE "HyperlinkBrowse"
 
@@ -45,10 +46,10 @@ void UHyperlinkBrowse::Initialize()
 	
 	// Context menu extensions
 	FHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("ContentBrowser.AssetContextMenu"), TEXT("CommonAssetActions"),
-	BrowseCommands, FHyperlinkBrowseCommands::Get().CopyBrowseLink);
+	                                               BrowseCommands, FHyperlinkBrowseCommands::Get().CopyBrowseLink);
 
 	FHyperlinkUtility::AddHyperlinkSubMenuAndEntry(TEXT("ContentBrowser.FolderContextMenu"), TEXT("PathViewFolderOptions"),
-	BrowseCommands, FHyperlinkBrowseCommands::Get().CopyFolderLink);
+	                                               BrowseCommands, FHyperlinkBrowseCommands::Get().CopyFolderLink);
 	
 	// Keyboard shortcut command
 	// Note that the keyboard shortcut will only be registered if applied on startup because of the way content
@@ -75,11 +76,13 @@ void UHyperlinkBrowse::Deinitialize()
 	
 	FHyperlinkBrowseCommands::Unregister();
 }
+#endif //WITH_EDITOR
 
 TSharedPtr<FJsonObject> UHyperlinkBrowse::GeneratePayload(const TArray<FString>& Args) const
 {
 	TSharedPtr<FJsonObject> Payload{ nullptr };
-	
+
+#if WITH_EDITOR
 	const FContentBrowserModule& ContentBrowser =
 		FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser"));
 	TArray<FAssetData> SelectedAssets{};
@@ -100,7 +103,7 @@ TSharedPtr<FJsonObject> UHyperlinkBrowse::GeneratePayload(const TArray<FString>&
 			const FString& VirtualPath{ SelectedFolders[0] };
 			FString InternalPath;
 			const EContentBrowserPathType ConvertedType{ GEditor->GetEditorSubsystem<UContentBrowserDataSubsystem>()->
-				TryConvertVirtualPath(VirtualPath, InternalPath) };
+			                                                      TryConvertVirtualPath(VirtualPath, InternalPath) };
 			
 			if (ConvertedType == EContentBrowserPathType::Internal)
 			{
@@ -108,7 +111,7 @@ TSharedPtr<FJsonObject> UHyperlinkBrowse::GeneratePayload(const TArray<FString>&
 			}
 			else
 			{
-				UE_LOG(LogHyperlinkEditor, Error, TEXT("Failed to convert %s to an internal path, cannot create browse link."), *VirtualPath);
+				UE_LOG(LogHyperlink, Error, TEXT("Failed to convert %s to an internal path, cannot create browse link."), *VirtualPath);
 			}
 		}
 		else
@@ -121,11 +124,13 @@ TSharedPtr<FJsonObject> UHyperlinkBrowse::GeneratePayload(const TArray<FString>&
 			}
 			else
 			{
-				UE_LOG(LogHyperlinkEditor, Error, TEXT("Cannot create browse link at invalid path."));
+				UE_LOG(LogHyperlink, Error, TEXT("Cannot create browse link at invalid path."));
 			}
 		}
 	}
-	
+#endif //WITH_EDITOR
+
+
 	return Payload;
 }
 
@@ -135,6 +140,7 @@ TSharedPtr<FJsonObject> UHyperlinkBrowse::GeneratePayloadFromPath(const FName& P
 	return FJsonObjectConverter::UStructToJsonObject(PayloadStruct);
 }
 
+#if WITH_EDITOR
 void UHyperlinkBrowse::ExecutePayload(const TSharedRef<FJsonObject>& InPayload)
 {
 	FHyperlinkNamePayload PayloadStruct{};
@@ -158,3 +164,5 @@ void UHyperlinkBrowse::ExecutePayload(const TSharedRef<FJsonObject>& InPayload)
 		}
 	}
 }
+#endif //WITH_EDITOR
+

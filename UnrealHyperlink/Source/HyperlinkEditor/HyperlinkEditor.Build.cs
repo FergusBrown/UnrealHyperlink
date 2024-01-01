@@ -24,8 +24,6 @@ public class HyperlinkEditor : ModuleRules
                 "ApplicationCore",
                 "AssetRegistry",
                 "Blutility",
-                "ContentBrowser",
-                "ContentBrowserData",
                 "CoreUObject",
                 "DeveloperSettings",
                 "EditorFramework",

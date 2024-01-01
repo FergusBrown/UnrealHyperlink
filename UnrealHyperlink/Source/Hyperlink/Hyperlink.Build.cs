@@ -37,6 +37,8 @@ public class Hyperlink : ModuleRules
                 {
                     "ApplicationCore",
                     "Blutility",
+                    "ContentBrowser",
+                    "ContentBrowserData",
                     "InputCore",
                     "PythonScriptPlugin",
                     "ToolMenus",
