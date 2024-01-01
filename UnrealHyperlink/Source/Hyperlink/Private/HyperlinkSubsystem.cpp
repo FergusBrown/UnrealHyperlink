@@ -6,7 +6,7 @@
 #include "HyperlinkClassEntry.h"
 #include "HyperlinkDefinition.h"
 #include "HyperlinkSettings.h"
-#include "Log.h"
+#include "LogHyperlink.h"
 
 #if WITH_EDITOR
 #include "Internationalization/Regex.h"

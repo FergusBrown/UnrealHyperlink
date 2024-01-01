@@ -11,7 +11,7 @@
 #include "JsonObjectConverter.h"
 
 #if WITH_EDITOR
-#include "Log.h"
+#include "LogHyperlink.h"
 #include "Styling/StarshipCoreStyle.h"
 
 namespace FHyperlinkUtilityConstants

@@ -8,7 +8,7 @@
 #include "HyperlinkUtility.h"
 #include "IMaterialEditor.h"
 #include "JsonObjectConverter.h"
-#include "Log.h"
+#include "LogHyperlinkEditor.h"
 #include "Toolkits/ToolkitManager.h"
 
 #define LOCTEXT_NAMESPACE "HyperlinkNode"

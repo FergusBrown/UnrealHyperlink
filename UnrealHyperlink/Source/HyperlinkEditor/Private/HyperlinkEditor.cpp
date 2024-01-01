@@ -10,7 +10,7 @@
 #include "HyperlinkSubsystem.h"
 #include "IHttpRouter.h"
 #include "Interfaces/IMainFrameModule.h"
-#include "Log.h"
+#include "LogHyperlinkEditor.h"
 #include "Windows/WindowsPlatformApplicationMisc.h"
 
 #define LOCTEXT_NAMESPACE "FHyperlinkEditorModule"

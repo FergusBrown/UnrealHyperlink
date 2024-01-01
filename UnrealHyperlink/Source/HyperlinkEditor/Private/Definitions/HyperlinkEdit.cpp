@@ -8,7 +8,7 @@
 #include "HyperlinkUtility.h"
 #include "IContentBrowserSingleton.h"
 #include "JsonObjectConverter.h"
-#include "Log.h"
+#include "LogHyperlinkEditor.h"
 
 #define LOCTEXT_NAMESPACE "HyperlinkEdit"
 

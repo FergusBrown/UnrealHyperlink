@@ -4,7 +4,7 @@
 #include "HyperlinkDefinition.h"
 
 #include "HyperlinkUtility.h"
-#include "Log.h"
+#include "LogHyperlink.h"
 #include "Windows/WindowsPlatformApplicationMisc.h"
 #if WITH_EDITOR
 #include "Framework/Notifications/NotificationManager.h"

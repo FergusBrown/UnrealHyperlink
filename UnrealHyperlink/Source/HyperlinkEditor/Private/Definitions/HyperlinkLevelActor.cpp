@@ -6,7 +6,7 @@
 #include "HyperlinkUtility.h"
 #include "JsonObjectConverter.h"
 #include "LevelEditor.h"
-#include "Log.h"
+#include "LogHyperlinkEditor.h"
 #include "Selection.h"
 
 #define LOCTEXT_NAMESPACE "HyperlinkLevelActor"
